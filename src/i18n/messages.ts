@@ -24,5 +24,15 @@ export const messages = {
   storage: 'Stockage utilisé : {size}',
   direction: 'Sens d’apprentissage',
   frEs: 'Français vers espagnol',
-  esFr: 'Espagnol vers français'
+  esFr: 'Espagnol vers français',
+  vocabularyTitle: 'Vocabulaire',
+  vocabularyOpen: 'Voir tout le vocabulaire',
+  vocabularyAll: 'Tout le vocabulaire disponible',
+  vocabularyCount: '{count, plural, one {# entrée active} other {# entrées actives}}, classées par niveau CECRL puis par ordre alphabétique.',
+  vocabularyReadOnly: 'Cette consultation ne modifie ni votre sens d’apprentissage ni votre progression.',
+  vocabularyDisplayDirection: 'Sens d’affichage du vocabulaire',
+  vocabularyFrEs: 'Français → espagnol',
+  vocabularyEsFr: 'Espagnol → français',
+  vocabularyLevel: 'Niveau {level}',
+  vocabularyLevelCount: '{count, plural, one {# entrée} other {# entrées}}'
 } as const

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FormattedMessage, IntlProvider, useIntl } from 'react-intl'
 import { ensureCatalogSchedules } from './bootstrap'
 import { PrivacyNotice } from './PrivacyNotice'
+import { VocabularyBrowser } from './VocabularyBrowser'
 import { catalog, catalogVersion } from '../content/catalog'
 import { appVersion } from '../config/version'
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
@@ -12,7 +13,7 @@ import { messages } from '../i18n/messages'
 import { applyServiceWorkerUpdate } from '../pwa/update'
 import '../ui/styles.css'
 
-type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'complete'
+type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'vocabulary' | 'complete'
 type SessionMode = 'scheduled' | 'free'
 
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
@@ -277,11 +278,14 @@ function AppContent() {
           <div><strong>{progress.consolidatedCount}</strong><span>Consolidées (intervalle ≥ 21 j)</span></div><div><strong>{progress.coveragePercent} %</strong><span>Catalogue A1 étudié</span></div>
           <div><strong>{progress.recallRate30d === null ? '—' : `${progress.recallRate30d} %`}</strong><span>Rappels corrects sur 30 j</span></div><div><strong>{progress.effortPoints}</strong><span>Points d’effort · 1 par rappel</span></div>
         </section>
+        <button className="secondary" onClick={() => setScreen('vocabulary')}><FormattedMessage id="vocabularyOpen" /></button>
         <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress, settings.dailyNew, newRemainingToday, freeReviewAvailable)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
         <p className="privacy"><FormattedMessage id="privacy" /></p>
       </main>
     )
   }
+
+  if (screen === 'vocabulary') return <VocabularyBrowser entries={catalog} initialDirection={settings.direction} onBack={() => setScreen('home')} banner={updateBanner} />
 
   if (screen === 'settings') return (
     <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>

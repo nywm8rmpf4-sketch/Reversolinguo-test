@@ -1,6 +1,7 @@
 export type Direction = 'fr-es' | 'es-fr'
 export type Rating = 0 | 1 | 2 | 3
 export type LearningState = 'NEW' | 'LEARNING' | 'REVIEW' | 'RELEARNING' | 'SUSPENDED'
+export type CefrLevel = 'PRE-A1' | 'A1' | 'A2' | 'B1' | 'B2'
 
 export interface LexicalEntry {
   id: string
@@ -9,7 +10,7 @@ export interface LexicalEntry {
   article?: string
   exampleEs: string
   exampleFr: string
-  level: 'A1'
+  level: CefrLevel
   theme: string
 }
 

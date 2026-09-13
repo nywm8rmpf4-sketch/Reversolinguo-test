@@ -49,7 +49,23 @@ button:focus-visible,input:focus-visible,select:focus-visible,.file-button:focus
 fieldset { border:0;padding:0;margin:1.4rem 0 0; } legend { font-weight:700;margin-bottom:.7rem; }
 .rating-grid { display:grid;grid-template-columns:1fr 1fr;gap:.6rem; }.rating-grid button { background:#f4e8df;color:var(--berry-dark); }
 .success { border-radius:50%;background:#31704b; }.pulse { animation:success-pulse .45s ease-out; }.centered p { color:var(--muted);line-height:1.5; }.centered .primary { margin-top:1rem; }
+.vocabulary-controls { margin-top:1.5rem; box-shadow:none; }
+.direction-switch { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; margin:.9rem 0; }
+.direction-switch button { background:#f4e8df; color:var(--berry-dark); border:2px solid transparent; }
+.direction-switch button[aria-pressed="true"] { background:#fff3d9; border-color:var(--berry); }
+.vocabulary-groups { display:grid; gap:1rem; margin-top:1rem; }
+.vocabulary-level { background:rgba(255,253,248,.94); border:1px solid var(--line); border-radius:24px; padding:1rem; }
+.vocabulary-level-heading { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:.7rem; }
+.vocabulary-level-heading h2 { margin:0; font-size:1.15rem; color:var(--berry-dark); }
+.vocabulary-level-heading span { color:var(--muted); font-size:.82rem; }
+.vocabulary-list { list-style:none; margin:0; padding:0; display:grid; gap:.45rem; }
+.vocabulary-list li { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:.65rem; min-height:52px; padding:.7rem .75rem; border-top:1px solid var(--line); }
+.vocabulary-list li:first-child { border-top:0; }
+.vocabulary-source { font-weight:750; }
+.vocabulary-target { color:var(--berry-dark); text-align:right; }
+.vocabulary-arrow { color:var(--muted); font-weight:800; }
 @keyframes success-pulse { 0% { transform:scale(.92); } 70% { transform:scale(1.08); } 100% { transform:scale(1); } }
 .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important;transition:none!important;animation:none!important; } }
+@media (max-width:420px) { .direction-switch { grid-template-columns:1fr; }.vocabulary-list li { grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:.45rem; padding-inline:.35rem; }.vocabulary-list { font-size:.92rem; } }
 @media (min-width:700px) { .shell { padding-inline:2rem; }.hero-card,.panel,.flashcard { padding:2rem; } }
