@@ -16,7 +16,7 @@ test('onboarding and first recall', async ({ page }) => {
   await page.getByRole('button', { name: 'Correct' }).click()
 })
 
-test('installed shell and progress survive an offline reload', async ({ page, context }) => {
+test('installed shell and progress survive an offline relaunch', async ({ page, context }) => {
   await onboard(page)
   await expect(page.getByText('Disponible hors ligne')).toBeVisible({ timeout: 15_000 })
 
@@ -24,11 +24,17 @@ test('installed shell and progress survive an offline reload', async ({ page, co
   await page.getByRole('textbox', { name: 'Votre réponse' }).fill('la mano')
   await page.getByRole('button', { name: 'Voir la réponse' }).click()
   await page.getByRole('button', { name: 'Correct' }).click()
+  await expect(page.getByRole('textbox', { name: 'Votre réponse' })).toHaveValue('')
 
   await context.setOffline(true)
-  await page.reload()
-  await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Réviser maintenant' })).toBeVisible()
-  await page.getByRole('button', { name: 'Réviser maintenant' }).click()
-  await expect(page.getByRole('textbox', { name: 'Votre réponse' })).toBeVisible()
+  await page.close()
+
+  const offlinePage = await context.newPage()
+  await offlinePage.goto('/')
+  await expect(offlinePage.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
+  await expect(offlinePage.getByRole('button', { name: 'Réviser maintenant' })).toBeVisible()
+  const effort = offlinePage.getByText('Points d’effort · 1 par rappel').locator('..')
+  await expect(effort.getByText('1', { exact: true })).toBeVisible()
+  await offlinePage.getByRole('button', { name: 'Réviser maintenant' }).click()
+  await expect(offlinePage.getByRole('textbox', { name: 'Votre réponse' })).toBeVisible()
 })
