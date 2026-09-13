@@ -1,0 +1,14 @@
+{
+  "catalog_id": "fr-es-a1",
+  "catalog_version": "2026.09-pilot2",
+  "source_language": "es",
+  "target_language": "fr",
+  "cefr_level": "A1",
+  "entry_count": 24,
+  "license": "Project test content; release licence review pending.",
+  "schema_id": "https://reversolinguo.app/schemas/lexical-entry-v2.json",
+  "min_app_version": "0.3.0",
+  "catalog_sha256": "32b1fa6cb17cf8fb0892dc20b87b677ac6d7fec2f9952457d13ef547360dfa0f",
+  "status": "draft-human-review",
+  "human_review": "NOT_EXECUTED"
+}

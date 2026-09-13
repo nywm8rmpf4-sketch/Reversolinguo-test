@@ -1,0 +1,16 @@
+{
+  "entry_id": "7f4c2058-0c98-4ab1-a2c4-68e481382caf",
+  "language_tag": "es",
+  "lemma": "la mano",
+  "part_of_speech": "noun",
+  "gender": "feminine",
+  "article": "la",
+  "senses": [{ "sense_id": "main", "translations": ["la main"], "example_source": "Levanta la mano.", "example_target": "Lève la main.", "note": "Nom féminin malgré la terminaison en -o." }],
+  "cefr_level": "A1",
+  "cefr_rationale": "Entrée concrète de vocabulaire courant proposée pour le pilote A1.",
+  "themes": ["corps"],
+  "variety": "pan-hispanic-common",
+  "provenance": { "source": "exemple éditorial Reversolinguo", "license": "CC0-1.0", "authored_by": "Reversolinguo project fixture" },
+  "status": "draft",
+  "version": 1
+}

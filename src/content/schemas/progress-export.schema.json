@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reversolinguo.app/schemas/progress-export-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "exportedAt", "schedules", "reviews", "settings"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "schedules": { "type": "array", "maxItems": 200000, "items": { "$ref": "#/$defs/schedule" } },
+    "reviews": { "type": "array", "maxItems": 1000000, "items": { "$ref": "#/$defs/review" } },
+    "settings": { "type": "array", "maxItems": 1, "items": { "$ref": "#/$defs/settings" } }
+  },
+  "$defs": {
+    "schedule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["key", "entryId", "direction", "state", "intervalDays", "dueAt", "updatedAt", "schedulerVersion"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 }, "entryId": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["fr-es", "es-fr"] }, "state": { "enum": ["NEW", "LEARNING", "REVIEW", "RELEARNING", "SUSPENDED"] },
+        "learningStep": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "intervalDays": { "type": "integer", "minimum": 0, "maximum": 365 }, "dueAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }, "schedulerVersion": { "const": "srs-1" }
+      }
+    },
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "scheduleKey", "entryId", "direction", "rating", "reviewedAt", "previousDueAt", "nextDueAt", "appVersion", "catalogVersion", "schedulerVersion", "previousState"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 }, "scheduleKey": { "type": "string", "minLength": 1 }, "entryId": { "type": "string", "minLength": 1 },
+        "direction": { "enum": ["fr-es", "es-fr"] }, "rating": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "reviewedAt": { "type": "string", "format": "date-time" }, "previousDueAt": { "type": "string", "format": "date-time" }, "nextDueAt": { "type": "string", "format": "date-time" },
+        "appVersion": { "type": "string" }, "catalogVersion": { "type": "string" }, "schedulerVersion": { "const": "srs-1" },
+        "previousState": { "$ref": "#/$defs/schedule" }, "canceledAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "settings": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "onboarded", "direction", "dailyNew"],
+      "properties": {
+        "id": { "const": "settings" }, "onboarded": { "type": "boolean" }, "direction": { "enum": ["fr-es", "es-fr"] },
+        "dailyNew": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "dailyGoalMinutes": { "type": "integer", "minimum": 1, "maximum": 60 },
+        "motionEnabled": { "type": "boolean" }, "soundEnabled": { "type": "boolean" }, "vibrationEnabled": { "type": "boolean" }
+      }
+    }
+  }
+}

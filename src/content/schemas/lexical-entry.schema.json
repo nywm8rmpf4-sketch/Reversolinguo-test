@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reversolinguo.app/schemas/lexical-entry-v2.json",
+  "title": "Reversolinguo lexical entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["entry_id", "language_tag", "lemma", "part_of_speech", "senses", "cefr_level", "cefr_rationale", "themes", "provenance", "status", "version"],
+  "properties": {
+    "entry_id": { "type": "string", "format": "uuid" },
+    "language_tag": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$" },
+    "lemma": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "part_of_speech": { "enum": ["noun", "verb", "adjective", "adverb", "expression", "connector", "other"] },
+    "gender": { "enum": ["masculine", "feminine", "common", "not_applicable"] },
+    "article": { "type": "string", "minLength": 1, "maxLength": 24 },
+    "senses": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["sense_id", "translations", "example_source", "example_target"],
+        "properties": {
+          "sense_id": { "type": "string", "minLength": 1 },
+          "translations": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "example_source": { "type": "string", "minLength": 1 },
+          "example_target": { "type": "string", "minLength": 1 },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "cefr_level": { "enum": ["PRE-A1", "A1", "A2", "B1", "B2"] },
+    "cefr_rationale": { "type": "string", "minLength": 1 },
+    "themes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "variety": { "type": "string", "minLength": 1 },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "license", "authored_by"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 },
+        "authored_by": { "type": "string", "minLength": 1 },
+        "reviewed_by": { "type": "string", "minLength": 1 },
+        "reviewed_at": { "type": "string", "format": "date" }
+      }
+    },
+    "status": { "enum": ["draft", "reviewed", "validated", "withdrawn"] },
+    "version": { "type": "integer", "minimum": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "enum": ["reviewed", "validated"] } }, "required": ["status"] },
+      "then": { "properties": { "provenance": { "required": ["source", "license", "authored_by", "reviewed_by", "reviewed_at"] } } }
+    }
+  ]
+}

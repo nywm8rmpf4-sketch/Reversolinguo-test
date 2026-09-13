@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://reversolinguo.app/schemas/catalog-manifest-v1.json",
+  "title": "Reversolinguo catalog manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["catalog_id", "catalog_version", "source_language", "target_language", "cefr_level", "entry_count", "license", "schema_id", "min_app_version", "catalog_sha256", "status", "human_review"],
+  "properties": {
+    "catalog_id": { "type": "string", "minLength": 1 },
+    "catalog_version": { "type": "string", "minLength": 1 },
+    "source_language": { "type": "string", "minLength": 2 },
+    "target_language": { "type": "string", "minLength": 2 },
+    "cefr_level": { "enum": ["PRE-A1", "A1", "A2", "B1", "B2"] },
+    "entry_count": { "type": "integer", "minimum": 1 },
+    "license": { "type": "string", "minLength": 1 },
+    "schema_id": { "type": "string", "format": "uri" },
+    "min_app_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "catalog_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "status": { "enum": ["draft-human-review", "validated", "withdrawn"] },
+    "human_review": { "enum": ["NOT_EXECUTED", "PASS", "FAIL", "TIMEOUT"] }
+  }
+}

@@ -1,0 +1,220 @@
+import { useEffect, useMemo, useState } from 'react'
+import { FormattedMessage, IntlProvider, useIntl } from 'react-intl'
+import { ensureCatalogSchedules } from './bootstrap'
+import { catalog, catalogVersion } from '../content/catalog'
+import { summarizeProgress, type ProgressSummary } from '../domain/progress'
+import { orderSession, reviewSchedule } from '../domain/scheduler'
+import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
+import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
+import { messages } from '../i18n/messages'
+import { applyServiceWorkerUpdate } from '../pwa/update'
+import '../ui/styles.css'
+
+type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'complete'
+
+const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
+
+function normalize(value: string) {
+  return value.normalize('NFC').trim().toLocaleLowerCase('fr').replace(/[.!?]$/u, '')
+}
+
+function challenge(summary: ProgressSummary) {
+  if (summary.dueCount > 0) return `Défi léger : réviser ${Math.min(3, summary.dueCount)} carte${summary.dueCount > 1 ? 's' : ''} due${summary.dueCount > 1 ? 's' : ''}.`
+  if (summary.newCount > 0) return `Défi léger : découvrir ${Math.min(2, summary.newCount)} nouveau${summary.newCount > 1 ? 'x' : ''} mot${summary.newCount > 1 ? 's' : ''}.`
+  return 'Défi léger : une révision libre si vous en avez envie.'
+}
+
+function successFeedback(settings: SettingsRecord) {
+  if (settings.vibrationEnabled && 'vibrate' in navigator) navigator.vibrate(35)
+  if (settings.soundEnabled && 'AudioContext' in window) {
+    const context = new AudioContext()
+    const oscillator = context.createOscillator()
+    const gain = context.createGain()
+    oscillator.frequency.value = 523
+    gain.gain.value = 0.035
+    oscillator.connect(gain); gain.connect(context.destination)
+    oscillator.start(); oscillator.stop(context.currentTime + 0.08)
+    oscillator.addEventListener('ended', () => void context.close())
+  }
+}
+
+function AppContent() {
+  const intl = useIntl()
+  const [screen, setScreen] = useState<Screen>('loading')
+  const [settings, setSettings] = useState<SettingsRecord>(defaultSettings)
+  const [queue, setQueue] = useState<ScheduleState[]>([])
+  const [answer, setAnswer] = useState('')
+  const [revealed, setRevealed] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [lastReview, setLastReview] = useState<ReviewEvent | null>(null)
+  const [offlineReady, setOfflineReady] = useState(false)
+  const [progress, setProgress] = useState<ProgressSummary>(emptyProgress)
+  const [storageSize, setStorageSize] = useState('indisponible')
+  const [updateReady, setUpdateReady] = useState(false)
+
+  useEffect(() => {
+    db.settings.get('settings').then((saved) => {
+      if (saved?.onboarded) { setSettings({ ...defaultSettings, ...saved }); setScreen('home') } else setScreen('onboarding')
+    }).catch(() => setScreen('onboarding'))
+  }, [])
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.ready.then(() => setOfflineReady(true)).catch(() => setOfflineReady(false))
+    const ready = () => setUpdateReady(true)
+    window.addEventListener('reversolinguo:update-ready', ready)
+    return () => window.removeEventListener('reversolinguo:update-ready', ready)
+  }, [])
+
+  useEffect(() => {
+    if (screen !== 'home') return
+    Promise.all([
+      db.schedules.where('direction').equals(settings.direction).toArray(),
+      db.reviews.filter((item) => item.direction === settings.direction).toArray()
+    ]).then(([states, reviews]) => setProgress(summarizeProgress(states, reviews, new Date())))
+  }, [screen, settings.direction])
+
+  useEffect(() => {
+    if (screen !== 'settings' || !navigator.storage?.estimate) return
+    navigator.storage.estimate().then(({ usage }) => setStorageSize(`${Math.ceil((usage ?? 0) / 1024)} ko`)).catch(() => setStorageSize('indisponible'))
+  }, [screen])
+
+  const updateBanner = updateReady && screen !== 'session' ? <aside className="update-banner"><span>Une mise à jour est prête.</span><button onClick={() => applyServiceWorkerUpdate()}>Mettre à jour</button></aside> : null
+  const current = queue[0]
+  const entry = useMemo(() => catalog.find((item) => item.id === current?.entryId), [current])
+  const expected = entry ? (current?.direction === 'fr-es' ? entry.es.split(',').map((item) => item.trim()) : entry.fr) : []
+  const prompt = entry ? (current?.direction === 'fr-es' ? entry.fr[0] : entry.es) : ''
+  const answerMatches = expected.some((item) => normalize(item) === normalize(answer))
+
+  async function persistSettings(patch: Partial<SettingsRecord>) {
+    const next: SettingsRecord = { ...settings, ...patch, id: 'settings' }
+    await db.settings.put(next); setSettings(next)
+  }
+
+  async function begin(direction: Direction) {
+    const nextSettings: SettingsRecord = { ...settings, onboarded: true, direction }
+    await ensureCatalogSchedules(db)
+    await db.settings.put(nextSettings)
+    setSettings(nextSettings); setScreen('home')
+  }
+
+  async function startSession() {
+    const all = await db.schedules.where('direction').equals(settings.direction).toArray()
+    const catalogOrder = new Map(catalog.map((item, index) => [item.id, index]))
+    all.sort((a, b) => (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER))
+    const session = orderSession(all, new Date(), settings.dailyNew)
+    setQueue(session); setAnswer(''); setRevealed(false); setScreen(session.length ? 'session' : 'complete')
+  }
+
+  async function rate(rating: Rating) {
+    if (!current) return
+    const now = new Date()
+    const next = reviewSchedule(current, rating, now)
+    await db.transaction('rw', db.schedules, db.reviews, async () => {
+      await db.schedules.put(next)
+      const event: ReviewEvent = {
+        id: crypto.randomUUID(), scheduleKey: current.key, entryId: current.entryId, direction: current.direction, rating,
+        reviewedAt: now.toISOString(), previousDueAt: current.dueAt, nextDueAt: next.dueAt,
+        appVersion: '0.3.0', catalogVersion, schedulerVersion: 'srs-1', previousState: current
+      }
+      await db.reviews.add(event); setLastReview(event)
+    })
+    const rest = queue.slice(1)
+    setQueue(rest); setAnswer(''); setRevealed(false)
+    if (!rest.length) { successFeedback(settings); setScreen('complete') }
+  }
+
+  async function undoLastReview() {
+    if (!lastReview || lastReview.canceledAt) return
+    const canceledAt = new Date().toISOString()
+    await db.transaction('rw', db.schedules, db.reviews, async () => {
+      await db.schedules.put(lastReview.previousState)
+      await db.reviews.update(lastReview.id, { canceledAt })
+    })
+    setQueue((items) => [lastReview.previousState, ...items.filter((item) => item.key !== lastReview.previousState.key)])
+    setLastReview(null); setAnswer(''); setRevealed(false); setScreen('session')
+  }
+
+  async function downloadExport() {
+    const blob = new Blob([await exportProgress()], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url; link.download = `reversolinguo-${new Date().toISOString().slice(0, 10)}.json`; link.click()
+    URL.revokeObjectURL(url); setNotice('Sauvegarde exportée.')
+  }
+
+  async function uploadImport(file?: File) {
+    if (!file) return
+    try { await importProgress(await file.text()); setNotice('Sauvegarde importée.'); setTimeout(() => location.reload(), 400) }
+    catch (error) { setNotice(error instanceof Error ? error.message : 'Import impossible.') }
+  }
+
+  async function erase() {
+    if (!confirm('Effacer définitivement toute la progression sur cet appareil ?')) return
+    await resetProgress(); setSettings(defaultSettings); setScreen('onboarding')
+  }
+
+  if (screen === 'loading') return <main className="shell"><p aria-live="polite">Chargement…</p></main>
+
+  if (screen === 'onboarding') return (
+    <main className="shell onboarding">
+      <div className="brand-mark" aria-hidden="true">R</div><h1><FormattedMessage id="title" /></h1><p className="tagline"><FormattedMessage id="tagline" /></p>
+      <section className="panel" aria-labelledby="direction-title">
+        <h2 id="direction-title"><FormattedMessage id="direction" /></h2>
+        <label htmlFor="daily-goal">Objectif quotidien indicatif</label>
+        <input id="daily-goal" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => setSettings((value) => ({ ...value, dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) }))} />
+        <span className="helper">Minutes souhaitées ; vous pouvez arrêter à tout moment.</span>
+        <button className="primary" onClick={() => begin('fr-es')}><FormattedMessage id="frEs" /></button>
+        <button className="secondary" onClick={() => begin('es-fr')}><FormattedMessage id="esFr" /></button>
+      </section><p className="privacy"><FormattedMessage id="privacy" /></p>
+    </main>
+  )
+
+  if (screen === 'home') {
+    const planned = progress.dueCount + Math.min(progress.newCount, settings.dailyNew)
+    const estimate = Math.max(1, Math.ceil(planned * 0.5))
+    return (
+      <main className="shell">{updateBanner}
+        <header className="topbar"><div><span className="eyebrow">FR · ES · A1</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
+        <section className="hero-card"><span className="status"><span aria-hidden="true">●</span> <FormattedMessage id={offlineReady ? 'offlineReady' : 'preparingOffline'} /></span><h2><FormattedMessage id="tagline" /></h2>
+          <p><FormattedMessage id="due" values={{ count: progress.dueCount }} /> · environ {estimate} min (estimation)</p>
+          <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>
+        </section>
+        <section className="stats" aria-label="Progression">
+          <div><strong>{progress.newCount}</strong><span>À découvrir</span></div><div><strong>{progress.learningCount}</strong><span>En apprentissage</span></div>
+          <div><strong>{progress.consolidatedCount}</strong><span>Consolidées (intervalle ≥ 21 j)</span></div><div><strong>{progress.coveragePercent} %</strong><span>Catalogue A1 étudié</span></div>
+          <div><strong>{progress.recallRate30d === null ? '—' : `${progress.recallRate30d} %`}</strong><span>Rappels corrects sur 30 j</span></div><div><strong>{progress.effortPoints}</strong><span>Points d’effort · 1 par rappel</span></div>
+        </section>
+        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
+        <p className="privacy"><FormattedMessage id="privacy" /></p>
+      </main>
+    )
+  }
+
+  if (screen === 'settings') return (
+    <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>
+      <section className="panel actions">
+        <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value as Direction })}><option value="fr-es">Français → espagnol</option><option value="es-fr">Espagnol → français</option></select>
+        <label htmlFor="daily-new">Nouveaux mots par jour : {settings.dailyNew}</label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
+        <label htmlFor="daily-goal-settings">Objectif indicatif (minutes)</label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
+        <label className="check"><input type="checkbox" checked={settings.motionEnabled} onChange={(event) => void persistSettings({ motionEnabled: event.target.checked })} /> Micro-animation de fin</label>
+        <label className="check"><input type="checkbox" checked={settings.soundEnabled} onChange={(event) => void persistSettings({ soundEnabled: event.target.checked })} /> Son de réussite</label>
+        <label className="check"><input type="checkbox" checked={settings.vibrationEnabled} onChange={(event) => void persistSettings({ vibrationEnabled: event.target.checked })} /> Vibration de réussite</label>
+        <button className="secondary" onClick={downloadExport}><FormattedMessage id="export" /></button><label className="file-button"><FormattedMessage id="import" /><input type="file" accept="application/json" onChange={(event) => uploadImport(event.target.files?.[0])} /></label><button className="danger" onClick={erase}><FormattedMessage id="reset" /></button>
+        <p><FormattedMessage id="storage" values={{ size: storageSize }} /></p><p className="notice" aria-live="polite">{notice}</p>
+      </section><p className="privacy">L’effacement des données du navigateur peut supprimer votre progression. Exportez-la régulièrement.</p>
+    </main>
+  )
+
+  if (screen === 'complete') return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id="finish" /></h1><p><FormattedMessage id="finishDetail" /></p>{lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}<button className="primary" onClick={() => setScreen('home')}>Retour à l’accueil</button></main>
+
+  return (
+    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only">Fermer la séance</span></button><progress value={Math.max(1, settings.dailyNew - queue.length + 1)} max={Math.max(1, settings.dailyNew)} aria-label="Progression de la séance"/><span>{queue.length}</span></header>
+      {lastReview && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
+      {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
+        {!revealed ? <button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button> : <div className="correction"><p className={answerMatches ? 'answer-ok' : 'answer-review'}>{answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p><fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset></div>}
+      </section>}
+    </main>
+  )
+}
+
+export default function App() { return <IntlProvider locale="fr" messages={messages}><AppContent /></IntlProvider> }
