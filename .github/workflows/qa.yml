@@ -20,10 +20,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Use Node 24
+      - name: Use baseline Node
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '24.19.0'
+
+      - name: Use baseline npm
+        run: |
+          npm install --global npm@11.9.0
+          node --version
+          npm --version
 
       - name: Materialize and verify exact lockfile
         shell: bash
