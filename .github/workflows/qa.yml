@@ -43,8 +43,20 @@ jobs:
       - name: Install exact dependencies
         run: npm ci
 
+      - name: Dependency vulnerability gate
+        run: npm audit --audit-level=high
+
       - name: Static, unit, integration and single build
         run: npm run check
+
+      - name: Shell size and CSP gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          dist_bytes="$(find dist -type f -printf '%s\n' | awk '{sum += $1} END {print sum+0}')"
+          echo "dist uncompressed bytes: $dist_bytes"
+          test "$dist_bytes" -le 3145728
+          grep -Fq "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" dist/index.html
 
       - name: Record built artifact hashes
         shell: bash

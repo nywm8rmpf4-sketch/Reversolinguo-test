@@ -1,6 +1,21 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { ReversolinguoDatabase, defaultSettings, exportProgress, importProgress } from '../../src/storage/database'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ReversolinguoDatabase, defaultSettings, exportProgress, importProgress, resetProgress } from '../../src/storage/database'
 import { initialSchedule } from '../../src/domain/scheduler'
+import type { ReviewEvent } from '../../src/domain/model'
+
+function validSnapshot(entryId = 'card-1') {
+  const schedule = initialSchedule(entryId, 'fr-es', new Date('2026-09-13T08:00:00Z'))
+  return {
+    raw: JSON.stringify({
+      schemaVersion: 1,
+      exportedAt: '2026-09-13T08:00:00.000Z',
+      schedules: [schedule],
+      reviews: [],
+      settings: [{ ...defaultSettings, onboarded: true }]
+    }),
+    schedule
+  }
+}
 
 describe('local progress', () => {
   const names: string[] = []
@@ -40,5 +55,55 @@ describe('local progress', () => {
     await database.settings.put({ ...defaultSettings, onboarded: true, direction: 'es-fr' })
     await expect(importProgress('{"schemaVersion":2}', database)).rejects.toThrow('Format de sauvegarde invalide')
     expect((await database.settings.get('settings'))?.direction).toBe('es-fr')
+  })
+
+  it('rejects an import larger than two million bytes before parsing and preserves data', async () => {
+    const database = new ReversolinguoDatabase(`oversize-${crypto.randomUUID()}`); names.push(database.name)
+    await database.settings.put({ ...defaultSettings, onboarded: true, direction: 'es-fr' })
+    const oversized = `{"padding":"${'é'.repeat(1_000_001)}"}`
+    await expect(importProgress(oversized, database)).rejects.toThrow('Fichier trop volumineux')
+    expect((await database.settings.get('settings'))?.direction).toBe('es-fr')
+  })
+
+  it.each([
+    '<img src=x onerror=alert(1)>',
+    'javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>'
+  ])('rejects active imported content before any write: %s', async (entryId) => {
+    const database = new ReversolinguoDatabase(`active-${crypto.randomUUID()}`); names.push(database.name)
+    await database.settings.put({ ...defaultSettings, onboarded: true, direction: 'es-fr' })
+    const { raw } = validSnapshot(entryId)
+    await expect(importProgress(raw, database)).rejects.toThrow('Contenu actif interdit')
+    expect((await database.settings.get('settings'))?.direction).toBe('es-fr')
+    expect(await database.schedules.count()).toBe(0)
+  })
+
+  it('rolls back all tables if restoration fails after transaction start', async () => {
+    const database = new ReversolinguoDatabase(`rollback-${crypto.randomUUID()}`); names.push(database.name)
+    const oldSchedule = initialSchedule('old-card', 'fr-es', new Date('2026-09-13T08:00:00Z'))
+    await database.schedules.put(oldSchedule)
+    await database.settings.put({ ...defaultSettings, onboarded: true, direction: 'es-fr' })
+    const { raw, schedule: newSchedule } = validSnapshot('new-card')
+    const failure = vi.spyOn(database.reviews, 'bulkPut').mockRejectedValueOnce(new Error('injected failure'))
+    await expect(importProgress(raw, database)).rejects.toThrow('injected failure')
+    failure.mockRestore()
+    expect(await database.schedules.get(oldSchedule.key)).toEqual(oldSchedule)
+    expect(await database.schedules.get(newSchedule.key)).toBeUndefined()
+    expect((await database.settings.get('settings'))?.direction).toBe('es-fr')
+  })
+
+  it('clears schedules, reviews and settings in one reset', async () => {
+    const database = new ReversolinguoDatabase(`reset-${crypto.randomUUID()}`); names.push(database.name)
+    const schedule = initialSchedule('card-1', 'fr-es', new Date('2026-09-13T08:00:00Z'))
+    const review: ReviewEvent = {
+      id: 'review-1', scheduleKey: schedule.key, entryId: schedule.entryId, direction: schedule.direction, rating: 2,
+      reviewedAt: '2026-09-13T08:01:00.000Z', previousDueAt: schedule.dueAt, nextDueAt: '2026-09-14T08:01:00.000Z',
+      appVersion: '0.1.0', catalogVersion: '2026.09-pilot2', schedulerVersion: 'srs-1', previousState: schedule
+    }
+    await database.schedules.put(schedule)
+    await database.reviews.put(review)
+    await database.settings.put({ ...defaultSettings, onboarded: true })
+    await resetProgress(database)
+    expect(await Promise.all([database.schedules.count(), database.reviews.count(), database.settings.count()])).toEqual([0, 0, 0])
   })
 })

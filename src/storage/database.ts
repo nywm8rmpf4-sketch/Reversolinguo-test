@@ -18,6 +18,9 @@ export const defaultSettings: SettingsRecord = {
   motionEnabled: true, soundEnabled: false, vibrationEnabled: false
 }
 
+const maxImportBytes = 2_000_000
+const forbiddenActiveContent = /(?:<[^>]+>|javascript\s*:|data\s*:\s*text\/html)/iu
+
 function completeSettings(value?: Partial<SettingsRecord>): SettingsRecord {
   return { ...defaultSettings, ...value, id: 'settings' }
 }
@@ -38,6 +41,15 @@ function migrateReview(review: ReviewEvent): ReviewEvent {
   const scheduleKey = `${entryId}:${review.direction}`
   if (entryId === review.entryId && scheduleKey === review.scheduleKey && previousState.key === review.previousState.key) return review
   return { ...review, entryId, scheduleKey, previousState }
+}
+
+function containsForbiddenActiveContent(value: unknown): boolean {
+  if (typeof value === 'string') return forbiddenActiveContent.test(value)
+  if (Array.isArray(value)) return value.some(containsForbiddenActiveContent)
+  if (value && typeof value === 'object') {
+    return Object.entries(value).some(([key, item]) => forbiddenActiveContent.test(key) || containsForbiddenActiveContent(item))
+  }
+  return false
 }
 
 export class ReversolinguoDatabase extends Dexie {
@@ -84,8 +96,9 @@ export async function exportProgress(database = db): Promise<string> {
 }
 
 export async function importProgress(raw: string, database = db): Promise<void> {
-  if (raw.length > 2_000_000) throw new Error('Fichier trop volumineux.')
+  if (new TextEncoder().encode(raw).byteLength > maxImportBytes) throw new Error('Fichier trop volumineux.')
   const data: unknown = JSON.parse(raw)
+  if (containsForbiddenActiveContent(data)) throw new Error('Contenu actif interdit dans la sauvegarde.')
   const { validateProgressExport } = await import('../content/contracts')
   if (!validateProgressExport(data).valid) throw new Error('Format de sauvegarde invalide.')
   const validData = data as { schedules: ScheduleState[]; reviews: ReviewEvent[]; settings: Partial<SettingsRecord>[] }
