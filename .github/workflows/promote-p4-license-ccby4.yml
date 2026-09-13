@@ -1,0 +1,63 @@
+name: Promote exact P4 CC BY 4.0 tested artifact
+
+on:
+  push:
+    branches:
+      - promotion/p4-license-ccby4-exact-artifact
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout promotion ref
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download exact tested artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: reversolinguo-tested-dist-e642b4e84c859c777cd0be4ef2123de10b9f8108
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: nywm8rmpf4-sketch/Reversolinguo-test
+          run-id: 34775629694
+
+      - name: Verify exact artifact hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist.sha256
+          sha256sum --check --strict dist.sha256
+          test "$(sha256sum dist/assets/contracts-DPW1yrwU.js | awk '{print $1}')" = "6e5e44d682cea68add9ab8f7cff5a08912ece4cd060d9b3facb8c8bfd441c2ec"
+          test "$(sha256sum dist/assets/index-BC9e93SB.js | awk '{print $1}')" = "aff5fefd7d1656dbd7c7ba65a009bebb70c2029cf9639230f67cf573ca04306d"
+          test "$(sha256sum dist/assets/index-qk7HLhcv.css | awk '{print $1}')" = "ab3ccb1cf7289814b88cf27441eb03c99e1185fb8d3a644231c4a89bc7846d71"
+          test "$(sha256sum dist/index.html | awk '{print $1}')" = "89a7735d11ebd05bd378a2f7c1ae99b4a67de1ed3fa1842507515c328f4a3f95"
+          test "$(sha256sum dist/sw.js | awk '{print $1}')" = "80799c8d839a17b305972b564b5eb82aa4bf6588855cfa13b8cc10eed0694eb6"
+
+      - name: Publish exact tested dist to gh-pages without rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_dir="$RUNNER_TEMP/reversolinguo-p4-license-pages"
+          rm -rf "$publish_dir"
+          mkdir -p "$publish_dir"
+          cp -a dist/. "$publish_dir/"
+          cp dist.sha256 "$publish_dir/dist.sha256"
+          touch "$publish_dir/.nojekyll"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan gh-pages
+          git rm -rf .
+          git clean -fdx
+          cp -a "$publish_dir"/. .
+          git add -A
+          git commit -m "pages: exact tested P4 CC BY 4.0 artifact for 2e9d3cb302de05567641fb0f3b8bc731d3eb9e56"
+          git push --force origin HEAD:gh-pages
