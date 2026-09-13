@@ -36,13 +36,13 @@ jobs:
         run: npm ci
 
       - name: Lint impacted files
-        run: npx eslint src/app/App.tsx src/app/VocabularyBrowser.tsx src/domain/model.ts src/i18n/messages.ts tests/integration/vocabulary-browser.test.tsx --max-warnings 0
+        run: npx eslint src/app/App.tsx src/app/VocabularyBrowser.tsx src/domain/model.ts src/i18n/messages.ts tests/integration/app.test.tsx tests/integration/vocabulary-browser.test.tsx --max-warnings 0
 
       - name: Typecheck application
         run: npx tsc -b --pretty false
 
       - name: Run impacted integration tests
-        run: npx vitest run tests/integration/vocabulary-browser.test.tsx
+        run: npx vitest run tests/integration/app.test.tsx tests/integration/vocabulary-browser.test.tsx
 
       - name: Build exact Pages artifact
         run: npm run build
