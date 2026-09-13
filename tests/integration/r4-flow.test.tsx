@@ -16,13 +16,15 @@ describe('R4 unknown answer and exploration', () => {
     await db.open()
   })
 
-  it('reveals an unknown answer before recording exactly one forgotten review', async () => {
+  it('keeps Je ne sais pas active in a scheduled session and records exactly one forgotten review after correction', async () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
 
-    await user.click(await screen.findByRole('button', { name: 'Je ne sais pas' }))
+    const unknown = await screen.findByRole('button', { name: 'Je ne sais pas' })
+    expect(unknown).toBeEnabled()
+    await user.click(unknown)
     expect(screen.getByText('Réponse révélée')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'la mano' })).toBeVisible()
     expect(screen.getByText('Ce rappel sera noté « Oublié » lorsque vous continuerez.')).toBeVisible()
@@ -37,7 +39,29 @@ describe('R4 unknown answer and exploration', () => {
     expect(reviews[0].entryId).toBe(MANO_ID)
   })
 
-  it('unlocks random exploration only after the daily session and keeps exploration neutral', async () => {
+  it('keeps Je ne sais pas active and neutral in free review', async () => {
+    const user = userEvent.setup()
+    await db.settings.put({ ...defaultSettings, onboarded: true, dailyNew: 0 })
+    await ensureCatalogSchedules(db)
+    const future = new Date(Date.now() + 86_400_000).toISOString()
+    await db.schedules.update(`${MANO_ID}:fr-es`, { state: 'REVIEW', intervalDays: 3, dueAt: future, updatedAt: new Date().toISOString(), learningStep: undefined })
+    const before = await db.schedules.get(`${MANO_ID}:fr-es`)
+
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Réviser librement' }))
+    const unknown = await screen.findByRole('button', { name: 'Je ne sais pas' })
+    expect(unknown).toBeEnabled()
+    await user.click(unknown)
+    expect(screen.getByText('Réponse révélée')).toBeVisible()
+    expect(screen.getByText('Cette révision libre n’a modifié ni vos échéances ni vos statistiques.')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Continuer' }))
+
+    expect(await screen.findByRole('heading', { name: 'Révision libre terminée' })).toBeVisible()
+    expect(await db.schedules.get(`${MANO_ID}:fr-es`)).toEqual(before)
+    expect(await db.reviews.count()).toBe(0)
+  })
+
+  it('exposes exploration only on home after the daily session and keeps Je ne sais pas neutral in exploration', async () => {
     const user = userEvent.setup()
     await db.settings.put({ ...defaultSettings, onboarded: true, dailyNew: 1 })
     await ensureCatalogSchedules(db)
@@ -53,7 +77,8 @@ describe('R4 unknown answer and exploration', () => {
     await user.click(await screen.findByRole('button', { name: 'Je ne sais pas' }))
     await user.click(screen.getByRole('button', { name: 'Continuer' }))
     expect(await screen.findByRole('heading', { name: 'Séance terminée' })).toBeVisible()
-    expect(screen.queryByRole('button', { name: 'Explorer au hasard' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Explorer/u })).not.toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: 'Retour à l’accueil' }))
     expect(await screen.findByRole('button', { name: 'Explorer au hasard' })).toBeVisible()
 
@@ -62,7 +87,9 @@ describe('R4 unknown answer and exploration', () => {
     await user.click(screen.getByRole('button', { name: 'Explorer au hasard' }))
     expect(await screen.findByText(/Exploration · Traduisez en espagnol/u)).toBeVisible()
 
-    await user.click(screen.getByRole('button', { name: 'Je ne sais pas' }))
+    const explorationUnknown = screen.getByRole('button', { name: 'Je ne sais pas' })
+    expect(explorationUnknown).toBeEnabled()
+    await user.click(explorationUnknown)
     expect(screen.getByText('Exploration : vos réponses n’affectent ni les échéances ni les statistiques.')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Continuer' }))
 
@@ -73,8 +100,12 @@ describe('R4 unknown answer and exploration', () => {
 
     expect(await screen.findByRole('heading', { name: 'Exploration terminée' })).toBeVisible()
     expect(screen.getByText('Les mots explorés n’ont modifié ni votre planning ni vos statistiques.')).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Explorer encore' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: /Explorer/u })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Retour à l’accueil' })).toBeVisible()
     expect(await db.schedules.where('direction').equals('fr-es').toArray()).toEqual(schedulesBefore)
     expect(await db.reviews.toArray()).toEqual(reviewsBefore)
+
+    await user.click(screen.getByRole('button', { name: 'Retour à l’accueil' }))
+    expect(await screen.findByRole('button', { name: 'Explorer au hasard' })).toBeVisible()
   })
 })
