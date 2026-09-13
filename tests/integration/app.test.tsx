@@ -56,7 +56,7 @@ describe('accessible learning flow', () => {
     expect(await db.schedules.count()).toBe(48)
   })
 
-  it('does not offer a fake session when every card is scheduled for later', async () => {
+  it('offers free review instead of a fake scheduled session when every studied card is scheduled for later', async () => {
     await db.settings.put({ ...defaultSettings, onboarded: true })
     await ensureCatalogSchedules(db)
     const future = new Date(Date.now() + 86_400_000).toISOString()
@@ -69,10 +69,33 @@ describe('accessible learning flow', () => {
     })
 
     render(<App />)
-    expect(await screen.findByText('Rien à réviser pour le moment. Revenez à la prochaine échéance.')).toBeVisible()
+    expect(await screen.findByText('Rien à réviser selon le planning pour le moment. Vous pouvez réviser librement ou revenir à la prochaine échéance.')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Réviser librement' })).toBeVisible()
     expect(screen.getByText(/aucune séance planifiée/u)).toBeVisible()
+  })
+
+  it('replays a studied card freely without changing SRS state or statistics', async () => {
+    const user = userEvent.setup()
+    await db.settings.put({ ...defaultSettings, onboarded: true, dailyNew: 0 })
+    await ensureCatalogSchedules(db)
+    const future = new Date(Date.now() + 86_400_000).toISOString()
+    await db.schedules.update(`${MANO_ID}:fr-es`, { state: 'REVIEW', intervalDays: 3, dueAt: future, updatedAt: new Date().toISOString(), learningStep: undefined })
+    const before = await db.schedules.get(`${MANO_ID}:fr-es`)
+
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Réviser librement' }))
+    expect(await screen.findByText(/Révision libre · Traduisez en espagnol/u)).toBeVisible()
+    const input = screen.getByRole('textbox', { name: 'Votre réponse' })
+    await user.type(input, 'la mano')
+    await user.click(screen.getByRole('button', { name: 'Voir la réponse' }))
+    expect(screen.getByText('Révision libre : votre choix n’affecte ni les échéances ni les statistiques.')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Correct' }))
+
+    expect(await screen.findByRole('button', { name: 'Rejouer librement' })).toBeVisible()
+    expect(await db.schedules.get(`${MANO_ID}:fr-es`)).toEqual(before)
+    expect(await db.reviews.count()).toBe(0)
   })
 
   it('keeps removed catalog history but excludes its orphan schedule from active learning', async () => {
@@ -91,8 +114,9 @@ describe('accessible learning flow', () => {
     await db.schedules.put(orphan)
 
     render(<App />)
-    expect(await screen.findByText('Rien à réviser pour le moment. Revenez à la prochaine échéance.')).toBeVisible()
+    expect(await screen.findByText('Rien à réviser selon le planning pour le moment. Vous pouvez réviser librement ou revenir à la prochaine échéance.')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Réviser librement' })).toBeVisible()
     expect(await db.schedules.get(orphan.key)).toMatchObject({ entryId: 'withdrawn-entry', state: 'REVIEW' })
   })
 
@@ -105,6 +129,7 @@ describe('accessible learning flow', () => {
     expect(screen.getByRole('button', { name: 'Modifier le quota de nouveaux mots' })).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Réviser librement' })).not.toBeInTheDocument()
   })
 
   it('does not offer a sixth new card after the daily allowance has been used', async () => {
@@ -133,6 +158,7 @@ describe('accessible learning flow', () => {
     render(<App />)
     expect(await screen.findByText('Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Réviser librement' })).not.toBeInTheDocument()
     expect(screen.getByText(/aucune séance planifiée/u)).toBeVisible()
   })
 
