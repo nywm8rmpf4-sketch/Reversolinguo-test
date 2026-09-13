@@ -16,6 +16,7 @@ type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'comp
 
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
 const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
+const catalogEntryIds = new Set(catalog.map((item) => item.id))
 
 function normalize(value: string) {
   return value.normalize('NFC').trim().toLocaleLowerCase('fr').replace(/[.!?]$/u, '')
@@ -60,9 +61,19 @@ function AppContent() {
   const [updateReady, setUpdateReady] = useState(false)
 
   useEffect(() => {
-    db.settings.get('settings').then((saved) => {
-      if (saved?.onboarded) { setSettings({ ...defaultSettings, ...saved }); setScreen('home') } else setScreen('onboarding')
-    }).catch(() => setScreen('onboarding'))
+    let active = true
+    db.settings.get('settings').then(async (saved) => {
+      if (!active) return
+      if (saved?.onboarded) {
+        await ensureCatalogSchedules(db)
+        if (!active) return
+        setSettings({ ...defaultSettings, ...saved })
+        setScreen('home')
+      } else setScreen('onboarding')
+    }).catch(() => {
+      if (active) setScreen('onboarding')
+    })
+    return () => { active = false }
   }, [])
 
   useEffect(() => {
@@ -79,7 +90,8 @@ function AppContent() {
       db.reviews.filter((item) => item.direction === settings.direction).toArray()
     ]).then(([states, reviews]) => {
       const now = new Date()
-      setProgress(summarizeProgress(states, reviews, now))
+      const activeStates = states.filter((state) => catalogEntryIds.has(state.entryId))
+      setProgress(summarizeProgress(activeStates, reviews, now))
       setNewRemainingToday(remainingDailyNew(reviews, settings.direction, now, settings.dailyNew))
     })
   }, [screen, settings.direction, settings.dailyNew])
@@ -105,7 +117,7 @@ function AppContent() {
     const nextSettings: SettingsRecord = { ...settings, onboarded: true, direction }
     await ensureCatalogSchedules(db)
     await db.settings.put(nextSettings)
-    setSettings(nextSettings); setScreen('home')
+    setSettings(nextSettings); setNotice(''); setScreen('home')
   }
 
   async function startSession() {
@@ -115,30 +127,37 @@ function AppContent() {
       db.reviews.filter((item) => item.direction === settings.direction).toArray()
     ])
     const catalogOrder = new Map(catalog.map((item, index) => [item.id, index]))
-    all.sort((a, b) => (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER))
+    const active = all.filter((state) => catalogEntryIds.has(state.entryId))
+    active.sort((a, b) => (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER))
     const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
-    const session = orderSession(all, now, remainingNew, catalogThemes)
+    const session = orderSession(active, now, remainingNew, catalogThemes)
     if (!session.length) {
       setNotice('Aucune carte à réviser ou découvrir pour le moment.')
       setScreen('home')
       return
     }
-    setQueue(session); setSessionTotal(session.length); setAnswer(''); setRevealed(false); setScreen('session')
+    setNotice(''); setQueue(session); setSessionTotal(session.length); setAnswer(''); setRevealed(false); setScreen('session')
   }
 
   async function rate(rating: Rating) {
     if (!current) return
     const now = new Date()
     const next = reviewSchedule(current, rating, now)
-    await db.transaction('rw', db.schedules, db.reviews, async () => {
-      await db.schedules.put(next)
-      const event: ReviewEvent = {
-        id: crypto.randomUUID(), scheduleKey: current.key, entryId: current.entryId, direction: current.direction, rating,
-        reviewedAt: now.toISOString(), previousDueAt: current.dueAt, nextDueAt: next.dueAt,
-        appVersion, catalogVersion, schedulerVersion: 'srs-1', previousState: current
-      }
-      await db.reviews.add(event); setLastReview(event)
-    })
+    const event: ReviewEvent = {
+      id: crypto.randomUUID(), scheduleKey: current.key, entryId: current.entryId, direction: current.direction, rating,
+      reviewedAt: now.toISOString(), previousDueAt: current.dueAt, nextDueAt: next.dueAt,
+      appVersion, catalogVersion, schedulerVersion: 'srs-1', previousState: current
+    }
+    try {
+      await db.transaction('rw', db.schedules, db.reviews, async () => {
+        await db.schedules.put(next)
+        await db.reviews.add(event)
+      })
+    } catch {
+      setNotice('Impossible d’enregistrer ce rappel. La carte reste ici. Vérifiez l’espace disponible puis réessayez.')
+      return
+    }
+    setLastReview(event); setNotice('')
     const rest = queue.slice(1)
     setQueue(rest); setAnswer(''); setRevealed(false)
     if (!rest.length) { successFeedback(settings); setScreen('complete') }
@@ -152,7 +171,7 @@ function AppContent() {
       await db.reviews.update(lastReview.id, { canceledAt })
     })
     setQueue((items) => [lastReview.previousState, ...items.filter((item) => item.key !== lastReview.previousState.key)])
-    setLastReview(null); setAnswer(''); setRevealed(false); setScreen('session')
+    setLastReview(null); setAnswer(''); setRevealed(false); setNotice(''); setScreen('session')
   }
 
   async function downloadExport() {
@@ -204,6 +223,7 @@ function AppContent() {
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}>Modifier le quota de nouveaux mots</button>}
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper">Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.</p>}
           {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper">Rien à réviser pour le moment. Revenez à la prochaine échéance.</p>}
+          {notice && <p className="notice" role="status">{notice}</p>}
         </section>
         <section className="stats" aria-label="Progression">
           <div><strong>{progress.newCount}</strong><span>À découvrir</span></div><div><strong>{progress.learningCount}</strong><span>En apprentissage</span></div>
@@ -236,6 +256,7 @@ function AppContent() {
   return (
     <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only">Fermer la séance</span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label="Progression de la séance"/><span>{queue.length}</span></header>
       {lastReview && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
+      {notice && <p className="notice" role="alert">{notice}</p>}
       {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
         {!revealed ? <button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button> : <div className="correction"><p className={answerMatches ? 'answer-ok' : 'answer-review'}>{answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p><fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset></div>}
       </section>}

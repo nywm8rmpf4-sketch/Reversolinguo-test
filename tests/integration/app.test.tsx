@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/app/App'
 import { ensureCatalogSchedules } from '../../src/app/bootstrap'
 import { initialSchedule } from '../../src/domain/scheduler'
@@ -10,7 +10,12 @@ import { db, defaultSettings } from '../../src/storage/database'
 const MANO_ID = '69046998-47e6-5570-b469-5a5cc961a97e'
 
 describe('accessible learning flow', () => {
-  afterEach(async () => { await db.delete(); await db.open() })
+  afterEach(async () => {
+    cleanup()
+    vi.restoreAllMocks()
+    await db.delete()
+    await db.open()
+  })
 
   it('onboards without an account and starts a typed recall session', async () => {
     const user = userEvent.setup()
@@ -42,6 +47,15 @@ describe('accessible learning flow', () => {
     expect(screen.getByText(/effacer toutes les données locales/u)).toBeVisible()
   })
 
+  it('hydrates the current catalog for a returning user before showing home', async () => {
+    await db.settings.put({ ...defaultSettings, onboarded: true })
+    expect(await db.schedules.count()).toBe(0)
+
+    render(<App />)
+    expect(await screen.findByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
+    expect(await db.schedules.count()).toBe(48)
+  })
+
   it('does not offer a fake session when every card is scheduled for later', async () => {
     await db.settings.put({ ...defaultSettings, onboarded: true })
     await ensureCatalogSchedules(db)
@@ -59,6 +73,27 @@ describe('accessible learning flow', () => {
     expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
     expect(screen.getByText(/aucune séance planifiée/u)).toBeVisible()
+  })
+
+  it('keeps removed catalog history but excludes its orphan schedule from active learning', async () => {
+    const now = new Date()
+    await db.settings.put({ ...defaultSettings, onboarded: true })
+    await ensureCatalogSchedules(db)
+    const future = new Date(now.getTime() + 86_400_000).toISOString()
+    await db.schedules.toCollection().modify((schedule) => {
+      schedule.state = 'REVIEW'
+      schedule.intervalDays = 3
+      schedule.dueAt = future
+      schedule.updatedAt = now.toISOString()
+      delete schedule.learningStep
+    })
+    const orphan = { ...initialSchedule('withdrawn-entry', 'fr-es', now), state: 'REVIEW' as const, intervalDays: 3, dueAt: new Date(now.getTime() - 86_400_000).toISOString() }
+    await db.schedules.put(orphan)
+
+    render(<App />)
+    expect(await screen.findByText('Rien à réviser pour le moment. Revenez à la prochaine échéance.')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
+    expect(await db.schedules.get(orphan.key)).toMatchObject({ entryId: 'withdrawn-entry', state: 'REVIEW' })
   })
 
   it('explains when new cards are paused instead of offering an empty session', async () => {
@@ -99,5 +134,22 @@ describe('accessible learning flow', () => {
     expect(await screen.findByText('Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
     expect(screen.getByText(/aucune séance planifiée/u)).toBeVisible()
+  })
+
+  it('keeps the card and explains recovery when a review cannot be written', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
+    const input = await screen.findByRole('textbox', { name: 'Votre réponse' })
+    await user.type(input, 'la mano')
+    await user.click(screen.getByRole('button', { name: 'Voir la réponse' }))
+    vi.spyOn(db.reviews, 'add').mockRejectedValueOnce(new Error('simulated storage failure'))
+
+    await user.click(screen.getByRole('button', { name: 'Correct' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible d’enregistrer ce rappel. La carte reste ici. Vérifiez l’espace disponible puis réessayez.')
+    expect(screen.getByRole('button', { name: 'Correct' })).toBeVisible()
+    expect((await db.schedules.get(`${MANO_ID}:fr-es`))?.state).toBe('NEW')
+    expect(await db.reviews.count()).toBe(0)
   })
 })
