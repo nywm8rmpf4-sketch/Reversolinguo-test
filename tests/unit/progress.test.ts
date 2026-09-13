@@ -24,4 +24,11 @@ describe('progress summary', () => {
     const summary = summarizeProgress([fresh, learning, consolidated, due], reviews, now)
     expect(summary).toMatchObject({ total: 4, newCount: 1, dueCount: 2, learningCount: 1, consolidatedCount: 1, coveragePercent: 75, recallRate30d: 50, effortPoints: 3, activeDays7: 2 })
   })
+
+  it('keeps suspended cards out of the due count while preserving studied coverage', () => {
+    const now = new Date('2026-09-13T12:00:00Z')
+    const suspended: ScheduleState = { ...initialSchedule('paused', 'fr-es', now), state: 'SUSPENDED', intervalDays: 5, dueAt: '2026-09-12T12:00:00.000Z' }
+    const summary = summarizeProgress([suspended], [], now)
+    expect(summary).toMatchObject({ total: 1, newCount: 0, dueCount: 0, learningCount: 0, coveragePercent: 100 })
+  })
 })

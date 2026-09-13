@@ -37,6 +37,12 @@ describe('scheduler srs-1', () => {
     expect(ordered).toHaveLength(6)
   })
 
+  it('never schedules suspended cards even when their due date is past', () => {
+    const suspended = { ...initialSchedule('paused', 'fr-es', now), state: 'SUSPENDED' as const, dueAt: '2026-09-12T08:00:00.000Z' }
+    const due = { ...initialSchedule('due', 'fr-es', now), state: 'REVIEW' as const, dueAt: '2026-09-12T08:00:00.000Z' }
+    expect(orderSession([suspended, due], now, 0).map((item) => item.entryId)).toEqual(['due'])
+  })
+
   it('keeps opposite directions independent', () => {
     const frEs = reviewSchedule(initialSchedule('word', 'fr-es', now), 3, now)
     const esFr = initialSchedule('word', 'es-fr', now)

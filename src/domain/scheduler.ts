@@ -31,7 +31,7 @@ export function reviewSchedule(current: ScheduleState, rating: Rating, now: Date
 }
 
 export function orderSession(states: ScheduleState[], now: Date, newLimit = 5): ScheduleState[] {
-  const due = states.filter((item) => item.state !== 'NEW' && new Date(item.dueAt) <= now)
+  const due = states.filter((item) => item.state !== 'NEW' && item.state !== 'SUSPENDED' && new Date(item.dueAt) <= now)
     .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
   const fresh = states.filter((item) => item.state === 'NEW').slice(0, newLimit)
   return [...due, ...fresh]
