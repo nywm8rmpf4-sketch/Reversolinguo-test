@@ -1,3 +1,4 @@
+# Portable-release candidate QA: build once, validate once, promote exact artifact.
 name: QA candidate
 
 on:
