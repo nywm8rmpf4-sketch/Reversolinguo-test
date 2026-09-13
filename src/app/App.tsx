@@ -5,6 +5,7 @@ import { PrivacyNotice } from './PrivacyNotice'
 import { VocabularyBrowser } from './VocabularyBrowser'
 import { catalog, catalogVersion } from '../content/catalog'
 import { appVersion } from '../config/version'
+import { hasActiveReviewToday, randomExplorationSession } from '../domain/exploration'
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
 import { orderSession, remainingDailyNew, reviewSchedule } from '../domain/scheduler'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
@@ -14,7 +15,7 @@ import { applyServiceWorkerUpdate } from '../pwa/update'
 import '../ui/styles.css'
 
 type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'vocabulary' | 'complete'
-type SessionMode = 'scheduled' | 'free'
+type SessionMode = 'scheduled' | 'free' | 'exploration'
 
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
 const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
@@ -57,12 +58,14 @@ function AppContent() {
   const [completedSessionKeys, setCompletedSessionKeys] = useState<string[]>([])
   const [answer, setAnswer] = useState('')
   const [revealed, setRevealed] = useState(false)
+  const [unknownAnswer, setUnknownAnswer] = useState(false)
   const [notice, setNotice] = useState('')
   const [lastReview, setLastReview] = useState<ReviewEvent | null>(null)
   const [offlineReady, setOfflineReady] = useState(false)
   const [progress, setProgress] = useState<ProgressSummary>(emptyProgress)
   const [newRemainingToday, setNewRemainingToday] = useState(defaultSettings.dailyNew)
   const [freeReviewAvailable, setFreeReviewAvailable] = useState(false)
+  const [dailySessionCompleted, setDailySessionCompleted] = useState(false)
   const [storageSize, setStorageSize] = useState('indisponible')
   const [updateReady, setUpdateReady] = useState(false)
 
@@ -97,9 +100,13 @@ function AppContent() {
     ]).then(([states, reviews]) => {
       const now = new Date()
       const activeStates = states.filter((state) => catalogEntryIds.has(state.entryId))
-      setProgress(summarizeProgress(activeStates, reviews, now))
-      setNewRemainingToday(remainingDailyNew(reviews, settings.direction, now, settings.dailyNew))
+      const summary = summarizeProgress(activeStates, reviews, now)
+      const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
+      const planned = summary.dueCount + Math.min(summary.newCount, remainingNew)
+      setProgress(summary)
+      setNewRemainingToday(remainingNew)
       setFreeReviewAvailable(activeStates.some((state) => state.state !== 'NEW' && state.state !== 'SUSPENDED'))
+      setDailySessionCompleted(hasActiveReviewToday(reviews, settings.direction, catalogEntryIds, now) && planned === 0)
     })
   }, [screen, settings.direction, settings.dailyNew])
 
@@ -136,6 +143,7 @@ function AppContent() {
     setSessionTotal(session.length)
     setAnswer('')
     setRevealed(false)
+    setUnknownAnswer(false)
     setScreen('session')
   }
 
@@ -176,16 +184,40 @@ function AppContent() {
     openSession(session, 'free')
   }
 
-  function advanceFreeReview() {
+  async function startExploration() {
+    const now = new Date()
+    const [all, reviews] = await Promise.all([
+      db.schedules.where('direction').equals(settings.direction).toArray(),
+      db.reviews.filter((item) => item.direction === settings.direction).toArray()
+    ])
+    const active = all.filter((state) => catalogEntryIds.has(state.entryId))
+    const summary = summarizeProgress(active, reviews, now)
+    const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
+    const planned = summary.dueCount + Math.min(summary.newCount, remainingNew)
+    if (!hasActiveReviewToday(reviews, settings.direction, catalogEntryIds, now) || planned > 0) {
+      setNotice(intl.formatMessage({ id: 'explorationLocked' }))
+      setScreen('home')
+      return
+    }
+    const session = randomExplorationSession(active, 10)
+    if (!session.length) {
+      setNotice(intl.formatMessage({ id: 'explorationEmpty' }))
+      setScreen('home')
+      return
+    }
+    openSession(session, 'exploration')
+  }
+
+  function advanceUnscheduled() {
     const rest = queue.slice(1)
-    setQueue(rest); setAnswer(''); setRevealed(false); setNotice('')
+    setQueue(rest); setAnswer(''); setRevealed(false); setUnknownAnswer(false); setNotice('')
     if (!rest.length) { successFeedback(settings); setScreen('complete') }
   }
 
   async function rate(rating: Rating) {
     if (!current) return
-    if (sessionMode === 'free') {
-      advanceFreeReview()
+    if (sessionMode !== 'scheduled') {
+      advanceUnscheduled()
       return
     }
     const now = new Date()
@@ -206,8 +238,14 @@ function AppContent() {
     }
     setLastReview(event); setNotice('')
     const rest = queue.slice(1)
-    setQueue(rest); setAnswer(''); setRevealed(false)
+    setQueue(rest); setAnswer(''); setRevealed(false); setUnknownAnswer(false)
     if (!rest.length) { successFeedback(settings); setScreen('complete') }
+  }
+
+  function revealUnknown() {
+    setAnswer('')
+    setUnknownAnswer(true)
+    setRevealed(true)
   }
 
   async function undoLastReview() {
@@ -218,7 +256,7 @@ function AppContent() {
       await db.reviews.update(lastReview.id, { canceledAt })
     })
     setQueue((items) => [lastReview.previousState, ...items.filter((item) => item.key !== lastReview.previousState.key)])
-    setLastReview(null); setAnswer(''); setRevealed(false); setNotice(''); setSessionMode('scheduled'); setScreen('session')
+    setLastReview(null); setAnswer(''); setRevealed(false); setUnknownAnswer(false); setNotice(''); setSessionMode('scheduled'); setScreen('session')
   }
 
   async function downloadExport() {
@@ -268,6 +306,7 @@ function AppContent() {
           {progress.dueCount > 0 && <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>}
           {progress.dueCount === 0 && progress.newCount > 0 && newRemainingToday > 0 && <button className="primary large" onClick={startSession}>Découvrir maintenant</button>}
           {progress.dueCount === 0 && freeReviewAvailable && <button className="secondary" onClick={() => startFreeReview()}>Réviser librement</button>}
+          {dailySessionCompleted && <button className="secondary" onClick={startExploration}><FormattedMessage id="explorationOpen" /></button>}
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}>Modifier le quota de nouveaux mots</button>}
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper">{freeReviewAvailable ? 'Quota de nouveaux mots atteint pour aujourd’hui. Vous pouvez réviser librement les cartes déjà vues ou revenir demain.' : 'Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.'}</p>}
           {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper">Rien à réviser selon le planning pour le moment. {freeReviewAvailable ? 'Vous pouvez réviser librement ou revenir à la prochaine échéance.' : 'Revenez à la prochaine échéance.'}</p>}
@@ -302,14 +341,19 @@ function AppContent() {
     </main>
   )
 
-  if (screen === 'complete') return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id="finish" /></h1><p><FormattedMessage id="finishDetail" /></p>{lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}{completedSessionKeys.length > 0 && <button className="secondary" onClick={() => startFreeReview(completedSessionKeys)}>Rejouer librement</button>}<button className="primary" onClick={() => setScreen('home')}>Retour à l’accueil</button></main>
+  if (screen === 'complete') {
+    const completeTitle = sessionMode === 'scheduled' ? 'finish' : sessionMode === 'free' ? 'freeFinish' : 'explorationFinish'
+    const completeDetail = sessionMode === 'scheduled' ? 'finishDetail' : sessionMode === 'free' ? 'freeFinishDetail' : 'explorationFinishDetail'
+    return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id={completeTitle} /></h1><p><FormattedMessage id={completeDetail} /></p>{sessionMode === 'scheduled' && lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}{sessionMode !== 'exploration' && completedSessionKeys.length > 0 && <button className="secondary" onClick={() => startFreeReview(completedSessionKeys)}>Rejouer librement</button>}{sessionMode === 'scheduled' && <button className="secondary" onClick={startExploration}><FormattedMessage id="explorationOpen" /></button>}{sessionMode === 'exploration' && <button className="secondary" onClick={startExploration}><FormattedMessage id="explorationAgain" /></button>}<button className="primary" onClick={() => setScreen('home')}>Retour à l’accueil</button></main>
+  }
 
+  const modePrefix = sessionMode === 'free' ? 'Révision libre · ' : sessionMode === 'exploration' ? `${intl.formatMessage({ id: 'explorationLabel' })} · ` : ''
   return (
     <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only">Fermer la séance</span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label="Progression de la séance"/><span>{queue.length}</span></header>
       {lastReview && sessionMode === 'scheduled' && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {notice && <p className="notice" role="alert">{notice}</p>}
-      {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{sessionMode === 'free' ? 'Révision libre · ' : ''}{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
-        {!revealed ? <button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button> : <div className="correction"><p className={answerMatches ? 'answer-ok' : 'answer-review'}>{answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p>{sessionMode === 'free' && <p className="helper">Révision libre : votre choix n’affecte ni les échéances ni les statistiques.</p>}<fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset></div>}
+      {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{modePrefix}{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
+        {!revealed ? <><button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={unknownAnswer ? 'answer-review' : answerMatches ? 'answer-ok' : 'answer-review'}>{unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
       </section>}
     </main>
   )
