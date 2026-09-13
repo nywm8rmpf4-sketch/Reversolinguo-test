@@ -8,6 +8,17 @@ async function expectNoWcagViolations(page, screen) {
   expect(results.violations, `${screen}: ${JSON.stringify(results.violations, null, 2)}`).toEqual([])
 }
 
+async function expectVerticalButtonGap(first, second, minPixels = 12) {
+  await expect(first).toBeVisible()
+  await expect(second).toBeVisible()
+  const firstBox = await first.boundingBox()
+  const secondBox = await second.boundingBox()
+  expect(firstBox).not.toBeNull()
+  expect(secondBox).not.toBeNull()
+  const gap = secondBox.y - (firstBox.y + firstBox.height)
+  expect(gap).toBeGreaterThanOrEqual(minPixels)
+}
+
 test('critical learning screens have no automated WCAG A/AA violations', async ({ page }) => {
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
@@ -39,10 +50,12 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
   await expect(page.getByRole('button', { name: 'Explorer au hasard' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByRole('textbox', { name: 'Votre réponse' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Je ne sais pas' })).toBeVisible()
+  const showAnswer = page.getByRole('button', { name: 'Voir la réponse' })
+  const unknown = page.getByRole('button', { name: 'Je ne sais pas' })
+  await expectVerticalButtonGap(showAnswer, unknown)
   await expectNoWcagViolations(page, 'session-before-reveal')
 
-  await page.getByRole('button', { name: 'Je ne sais pas' }).click()
+  await unknown.click()
   await expect(page.getByText('Réponse révélée')).toBeVisible()
   await expect(page.getByText('Ce rappel sera noté « Oublié » lorsque vous continuerez.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Continuer' })).toBeVisible()
@@ -54,10 +67,12 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
   await expectNoWcagViolations(page, 'complete')
 
   await page.getByRole('button', { name: 'Retour à l’accueil' }).click()
-  await expect(page.getByRole('button', { name: 'Explorer au hasard' })).toBeVisible()
+  const freeReview = page.getByRole('button', { name: 'Réviser librement' })
+  const explore = page.getByRole('button', { name: 'Explorer au hasard' })
+  await expectVerticalButtonGap(freeReview, explore)
   await expectNoWcagViolations(page, 'home-after-daily-session')
 
-  await page.getByRole('button', { name: 'Explorer au hasard' }).click()
+  await explore.click()
   await expect(page.getByText(/Exploration · Traduisez en espagnol/u)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Je ne sais pas' })).toBeVisible()
   await expectNoWcagViolations(page, 'exploration-before-reveal')
