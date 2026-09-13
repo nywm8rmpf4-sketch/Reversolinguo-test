@@ -13,6 +13,7 @@ import { applyServiceWorkerUpdate } from '../pwa/update'
 import '../ui/styles.css'
 
 type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'complete'
+type SessionMode = 'scheduled' | 'free'
 
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
 const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
@@ -22,11 +23,12 @@ function normalize(value: string) {
   return value.normalize('NFC').trim().toLocaleLowerCase('fr').replace(/[.!?]$/u, '')
 }
 
-function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number) {
+function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number, freeReviewAvailable: boolean) {
   if (summary.dueCount > 0) return `Défi léger : réviser ${Math.min(3, summary.dueCount)} carte${summary.dueCount > 1 ? 's' : ''} à revoir.`
   if (summary.newCount > 0 && remainingNew > 0) return `Défi léger : découvrir ${Math.min(2, summary.newCount, remainingNew)} nouveau${Math.min(summary.newCount, remainingNew) > 1 ? 'x' : ''} mot${Math.min(summary.newCount, remainingNew) > 1 ? 's' : ''}.`
-  if (summary.newCount > 0 && configuredDailyNew === 0) return 'Les nouveaux mots sont en pause dans vos réglages.'
-  if (summary.newCount > 0) return 'Quota de nouveaux mots atteint pour aujourd’hui. Vous pourrez reprendre demain.'
+  if (summary.newCount > 0 && configuredDailyNew === 0) return freeReviewAvailable ? 'Les nouveaux mots sont en pause ; vous pouvez réviser librement les cartes déjà vues.' : 'Les nouveaux mots sont en pause dans vos réglages.'
+  if (summary.newCount > 0) return freeReviewAvailable ? 'Quota de nouveaux mots atteint ; une révision libre reste disponible.' : 'Quota de nouveaux mots atteint pour aujourd’hui. Vous pourrez reprendre demain.'
+  if (freeReviewAvailable) return 'Défi léger : rejouer quelques cartes en révision libre.'
   return 'Rien à faire pour l’instant : revenez à la prochaine échéance.'
 }
 
@@ -50,6 +52,8 @@ function AppContent() {
   const [settings, setSettings] = useState<SettingsRecord>(defaultSettings)
   const [queue, setQueue] = useState<ScheduleState[]>([])
   const [sessionTotal, setSessionTotal] = useState(0)
+  const [sessionMode, setSessionMode] = useState<SessionMode>('scheduled')
+  const [completedSessionKeys, setCompletedSessionKeys] = useState<string[]>([])
   const [answer, setAnswer] = useState('')
   const [revealed, setRevealed] = useState(false)
   const [notice, setNotice] = useState('')
@@ -57,6 +61,7 @@ function AppContent() {
   const [offlineReady, setOfflineReady] = useState(false)
   const [progress, setProgress] = useState<ProgressSummary>(emptyProgress)
   const [newRemainingToday, setNewRemainingToday] = useState(defaultSettings.dailyNew)
+  const [freeReviewAvailable, setFreeReviewAvailable] = useState(false)
   const [storageSize, setStorageSize] = useState('indisponible')
   const [updateReady, setUpdateReady] = useState(false)
 
@@ -93,6 +98,7 @@ function AppContent() {
       const activeStates = states.filter((state) => catalogEntryIds.has(state.entryId))
       setProgress(summarizeProgress(activeStates, reviews, now))
       setNewRemainingToday(remainingDailyNew(reviews, settings.direction, now, settings.dailyNew))
+      setFreeReviewAvailable(activeStates.some((state) => state.state !== 'NEW' && state.state !== 'SUSPENDED'))
     })
   }, [screen, settings.direction, settings.dailyNew])
 
@@ -120,6 +126,18 @@ function AppContent() {
     setSettings(nextSettings); setNotice(''); setScreen('home')
   }
 
+  function openSession(session: ScheduleState[], mode: SessionMode) {
+    setSessionMode(mode)
+    setCompletedSessionKeys(session.map((state) => state.key))
+    setLastReview(null)
+    setNotice('')
+    setQueue(session)
+    setSessionTotal(session.length)
+    setAnswer('')
+    setRevealed(false)
+    setScreen('session')
+  }
+
   async function startSession() {
     const now = new Date()
     const [all, reviews] = await Promise.all([
@@ -136,11 +154,39 @@ function AppContent() {
       setScreen('home')
       return
     }
-    setNotice(''); setQueue(session); setSessionTotal(session.length); setAnswer(''); setRevealed(false); setScreen('session')
+    openSession(session, 'scheduled')
+  }
+
+  async function startFreeReview(preferredKeys?: string[]) {
+    const all = await db.schedules.where('direction').equals(settings.direction).toArray()
+    const preferred = preferredKeys ? new Set(preferredKeys) : null
+    const catalogOrder = new Map(catalog.map((item, index) => [item.id, index]))
+    const eligible = all.filter((state) => catalogEntryIds.has(state.entryId) && state.state !== 'NEW' && state.state !== 'SUSPENDED' && (!preferred || preferred.has(state.key)))
+    eligible.sort((a, b) => {
+      const due = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
+      return due || (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER)
+    })
+    const session = eligible.slice(0, 20)
+    if (!session.length) {
+      setNotice('Aucune carte déjà étudiée n’est disponible pour une révision libre.')
+      setScreen('home')
+      return
+    }
+    openSession(session, 'free')
+  }
+
+  function advanceFreeReview() {
+    const rest = queue.slice(1)
+    setQueue(rest); setAnswer(''); setRevealed(false); setNotice('')
+    if (!rest.length) { successFeedback(settings); setScreen('complete') }
   }
 
   async function rate(rating: Rating) {
     if (!current) return
+    if (sessionMode === 'free') {
+      advanceFreeReview()
+      return
+    }
     const now = new Date()
     const next = reviewSchedule(current, rating, now)
     const event: ReviewEvent = {
@@ -171,7 +217,7 @@ function AppContent() {
       await db.reviews.update(lastReview.id, { canceledAt })
     })
     setQueue((items) => [lastReview.previousState, ...items.filter((item) => item.key !== lastReview.previousState.key)])
-    setLastReview(null); setAnswer(''); setRevealed(false); setNotice(''); setScreen('session')
+    setLastReview(null); setAnswer(''); setRevealed(false); setNotice(''); setSessionMode('scheduled'); setScreen('session')
   }
 
   async function downloadExport() {
@@ -220,9 +266,10 @@ function AppContent() {
           <p><FormattedMessage id="due" values={{ count: progress.dueCount }} />{hasSession ? ` · environ ${estimate} min (estimation)` : ' · aucune séance planifiée'}</p>
           {progress.dueCount > 0 && <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>}
           {progress.dueCount === 0 && progress.newCount > 0 && newRemainingToday > 0 && <button className="primary large" onClick={startSession}>Découvrir maintenant</button>}
+          {progress.dueCount === 0 && freeReviewAvailable && <button className="secondary" onClick={() => startFreeReview()}>Réviser librement</button>}
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}>Modifier le quota de nouveaux mots</button>}
-          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper">Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.</p>}
-          {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper">Rien à réviser pour le moment. Revenez à la prochaine échéance.</p>}
+          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper">{freeReviewAvailable ? 'Quota de nouveaux mots atteint pour aujourd’hui. Vous pouvez réviser librement les cartes déjà vues ou revenir demain.' : 'Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.'}</p>}
+          {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper">Rien à réviser selon le planning pour le moment. {freeReviewAvailable ? 'Vous pouvez réviser librement ou revenir à la prochaine échéance.' : 'Revenez à la prochaine échéance.'}</p>}
           {notice && <p className="notice" role="status">{notice}</p>}
         </section>
         <section className="stats" aria-label="Progression">
@@ -230,7 +277,7 @@ function AppContent() {
           <div><strong>{progress.consolidatedCount}</strong><span>Consolidées (intervalle ≥ 21 j)</span></div><div><strong>{progress.coveragePercent} %</strong><span>Catalogue A1 étudié</span></div>
           <div><strong>{progress.recallRate30d === null ? '—' : `${progress.recallRate30d} %`}</strong><span>Rappels corrects sur 30 j</span></div><div><strong>{progress.effortPoints}</strong><span>Points d’effort · 1 par rappel</span></div>
         </section>
-        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress, settings.dailyNew, newRemainingToday)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
+        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress, settings.dailyNew, newRemainingToday, freeReviewAvailable)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
         <p className="privacy"><FormattedMessage id="privacy" /></p>
       </main>
     )
@@ -251,14 +298,14 @@ function AppContent() {
     </main>
   )
 
-  if (screen === 'complete') return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id="finish" /></h1><p><FormattedMessage id="finishDetail" /></p>{lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}<button className="primary" onClick={() => setScreen('home')}>Retour à l’accueil</button></main>
+  if (screen === 'complete') return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id="finish" /></h1><p><FormattedMessage id="finishDetail" /></p>{lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}{completedSessionKeys.length > 0 && <button className="secondary" onClick={() => startFreeReview(completedSessionKeys)}>Rejouer librement</button>}<button className="primary" onClick={() => setScreen('home')}>Retour à l’accueil</button></main>
 
   return (
     <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only">Fermer la séance</span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label="Progression de la séance"/><span>{queue.length}</span></header>
-      {lastReview && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
+      {lastReview && sessionMode === 'scheduled' && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {notice && <p className="notice" role="alert">{notice}</p>}
-      {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
-        {!revealed ? <button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button> : <div className="correction"><p className={answerMatches ? 'answer-ok' : 'answer-review'}>{answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p><fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset></div>}
+      {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{sessionMode === 'free' ? 'Révision libre · ' : ''}{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
+        {!revealed ? <button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button> : <div className="correction"><p className={answerMatches ? 'answer-ok' : 'answer-review'}>{answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p>{sessionMode === 'free' && <p className="helper">Révision libre : votre choix n’affecte ni les échéances ni les statistiques.</p>}<fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset></div>}
       </section>}
     </main>
   )
