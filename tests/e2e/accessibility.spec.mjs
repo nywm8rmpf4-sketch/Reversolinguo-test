@@ -9,7 +9,7 @@ async function expectNoWcagViolations(page, screen) {
 }
 
 test('critical learning screens have no automated WCAG A/AA violations', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
   await expectNoWcagViolations(page, 'onboarding')
 

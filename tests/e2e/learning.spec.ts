@@ -1,7 +1,12 @@
 import { expect, test } from '@playwright/test'
 
+const configuredBase = process.env.REVERSOLINGUO_BASE ?? '/'
+const base = configuredBase.startsWith('/') && configuredBase.endsWith('/')
+  ? configuredBase
+  : `/${configuredBase.replace(/^\/+|\/+$/g, '')}/`
+
 async function onboard(page: import('@playwright/test').Page) {
-  await page.goto('/')
+  await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
   await page.getByRole('button', { name: 'Français vers espagnol' }).click()
   await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
@@ -48,9 +53,9 @@ test('installed shell and progress remain usable offline', async ({ page, contex
     })
     expect(cachedShell.controlled).toBe(true)
     expect(cachedShell.cacheNames.length).toBeGreaterThan(0)
-    expect(cachedShell.paths).toContain('/index.html')
-    expect(cachedShell.paths.some((path) => path.endsWith('.js'))).toBe(true)
-    expect(cachedShell.paths.some((path) => path.endsWith('.css'))).toBe(true)
+    expect(cachedShell.paths.some((path) => path === `${base}index.html` || path === base)).toBe(true)
+    expect(cachedShell.paths.some((path) => path.startsWith(`${base}assets/`) && path.endsWith('.js'))).toBe(true)
+    expect(cachedShell.paths.some((path) => path.startsWith(`${base}assets/`) && path.endsWith('.css'))).toBe(true)
     await page.getByRole('button', { name: 'Fermer la séance' }).click()
     await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
     await expectPersistedOfflineProgress(page)
@@ -59,7 +64,7 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 
   await page.close()
   const offlinePage = await context.newPage()
-  await offlinePage.goto('/')
+  await offlinePage.goto('./')
   await expect(offlinePage.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
   await expect(offlinePage.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
   await expectPersistedOfflineProgress(offlinePage)
