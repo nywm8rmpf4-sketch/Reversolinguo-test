@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ensureCatalogSchedules } from './app/bootstrap'
 import { verifyBundledCatalogIntegrity } from './content/integrity'
+import { messages } from './i18n/messages'
 import { configureServiceWorker } from './pwa/update'
 import App from './app/App'
 
@@ -11,8 +12,8 @@ function renderIntegrityError() {
   createRoot(rootElement).render(
     <StrictMode>
       <main>
-        <h1>Catalogue indisponible</h1>
-        <p>Le catalogue n’a pas pu être vérifié. Réinstallez ou mettez à jour l’application. Aucune progression n’a été modifiée.</p>
+        <h1>{messages.integrityErrorTitle}</h1>
+        <p>{messages.integrityErrorBody}</p>
       </main>
     </StrictMode>
   )

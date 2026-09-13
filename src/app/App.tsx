@@ -3,12 +3,14 @@ import { FormattedMessage, IntlProvider, useIntl } from 'react-intl'
 import { ensureCatalogSchedules } from './bootstrap'
 import { PrivacyNotice } from './PrivacyNotice'
 import { VocabularyBrowser } from './VocabularyBrowser'
-import { catalog, catalogVersion } from '../content/catalog'
+import { catalog, catalogManifest, catalogVersion } from '../content/catalog'
 import { appVersion } from '../config/version'
+import { bestAnswerDifference } from '../domain/answerDiff'
 import { hasActiveReviewToday, randomExplorationSession } from '../domain/exploration'
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
 import { orderSession, remainingDailyNew, reviewSchedule } from '../domain/scheduler'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
+import { activeLanguagePair, examplesFor, expectedFor, getDirectionConfig, normalizeAnswer, promptFor } from '../i18n/languagePairs'
 import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
 import { messages } from '../i18n/messages'
 import { applyServiceWorkerUpdate } from '../pwa/update'
@@ -16,22 +18,19 @@ import '../ui/styles.css'
 
 type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'vocabulary' | 'complete'
 type SessionMode = 'scheduled' | 'free' | 'exploration'
+type MessageId = keyof typeof messages
 
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
 const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
 const catalogEntryIds = new Set(catalog.map((item) => item.id))
 
-function normalize(value: string) {
-  return value.normalize('NFC').trim().toLocaleLowerCase('fr').replace(/[.!?]$/u, '')
-}
-
-function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number, freeReviewAvailable: boolean) {
-  if (summary.dueCount > 0) return `Défi léger : réviser ${Math.min(3, summary.dueCount)} carte${summary.dueCount > 1 ? 's' : ''} à revoir.`
-  if (summary.newCount > 0 && remainingNew > 0) return `Défi léger : découvrir ${Math.min(2, summary.newCount, remainingNew)} nouveau${Math.min(summary.newCount, remainingNew) > 1 ? 'x' : ''} mot${Math.min(summary.newCount, remainingNew) > 1 ? 's' : ''}.`
-  if (summary.newCount > 0 && configuredDailyNew === 0) return freeReviewAvailable ? 'Les nouveaux mots sont en pause ; vous pouvez réviser librement les cartes déjà vues.' : 'Les nouveaux mots sont en pause dans vos réglages.'
-  if (summary.newCount > 0) return freeReviewAvailable ? 'Quota de nouveaux mots atteint ; une révision libre reste disponible.' : 'Quota de nouveaux mots atteint pour aujourd’hui. Vous pourrez reprendre demain.'
-  if (freeReviewAvailable) return 'Défi léger : rejouer quelques cartes en révision libre.'
-  return 'Rien à faire pour l’instant : revenez à la prochaine échéance.'
+function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number, freeReviewAvailable: boolean): { id: MessageId; values?: { count: number } } {
+  if (summary.dueCount > 0) return { id: 'challengeDue', values: { count: Math.min(3, summary.dueCount) } }
+  if (summary.newCount > 0 && remainingNew > 0) return { id: 'challengeNew', values: { count: Math.min(2, summary.newCount, remainingNew) } }
+  if (summary.newCount > 0 && configuredDailyNew === 0) return { id: freeReviewAvailable ? 'challengePausedFree' : 'challengePaused' }
+  if (summary.newCount > 0) return { id: freeReviewAvailable ? 'challengeQuotaFree' : 'challengeQuota' }
+  if (freeReviewAvailable) return { id: 'challengeFree' }
+  return { id: 'challengeNone' }
 }
 
 function successFeedback(settings: SettingsRecord) {
@@ -66,7 +65,7 @@ function AppContent() {
   const [newRemainingToday, setNewRemainingToday] = useState(defaultSettings.dailyNew)
   const [freeReviewAvailable, setFreeReviewAvailable] = useState(false)
   const [dailySessionCompleted, setDailySessionCompleted] = useState(false)
-  const [storageSize, setStorageSize] = useState('indisponible')
+  const [storageSize, setStorageSize] = useState<string | null>(null)
   const [updateReady, setUpdateReady] = useState(false)
 
   useEffect(() => {
@@ -112,15 +111,18 @@ function AppContent() {
 
   useEffect(() => {
     if (screen !== 'settings' || !navigator.storage?.estimate) return
-    navigator.storage.estimate().then(({ usage }) => setStorageSize(`${Math.ceil((usage ?? 0) / 1024)} ko`)).catch(() => setStorageSize('indisponible'))
+    navigator.storage.estimate().then(({ usage }) => setStorageSize(`${Math.ceil((usage ?? 0) / 1024)} ko`)).catch(() => setStorageSize(null))
   }, [screen])
 
-  const updateBanner = updateReady && screen !== 'session' ? <aside className="update-banner"><span>Une mise à jour est prête.</span><button onClick={() => applyServiceWorkerUpdate()}>Mettre à jour</button></aside> : null
+  const updateBanner = updateReady && screen !== 'session' ? <aside className="update-banner"><span><FormattedMessage id="updateReady" /></span><button onClick={() => applyServiceWorkerUpdate()}><FormattedMessage id="updateNow" /></button></aside> : null
   const current = queue[0]
   const entry = useMemo(() => catalog.find((item) => item.id === current?.entryId), [current])
-  const expected = entry ? (current?.direction === 'fr-es' ? entry.es.split(',').map((item) => item.trim()) : entry.fr) : []
-  const prompt = entry ? (current?.direction === 'fr-es' ? entry.fr[0] : entry.es) : ''
-  const answerMatches = expected.some((item) => normalize(item) === normalize(answer))
+  const directionConfig = current ? getDirectionConfig(current.direction) : null
+  const expected = entry && current ? expectedFor(entry, current.direction) : []
+  const prompt = entry && current ? promptFor(entry, current.direction) : ''
+  const comparison = directionConfig && answer.trim() ? bestAnswerDifference(answer, expected, directionConfig.answerLanguage) : { expected: expected[0] ?? '', difference: 'spelling' as const }
+  const answerMatches = comparison.difference === 'exact'
+  const examples = entry && current ? examplesFor(entry, current.direction) : null
 
   async function persistSettings(patch: Partial<SettingsRecord>) {
     const next: SettingsRecord = { ...settings, ...patch, id: 'settings' }
@@ -159,7 +161,7 @@ function AppContent() {
     const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
     const session = orderSession(active, now, remainingNew, catalogThemes)
     if (!session.length) {
-      setNotice('Aucune carte à réviser ou découvrir pour le moment.')
+      setNotice(intl.formatMessage({ id: 'noCardsAvailable' }))
       setScreen('home')
       return
     }
@@ -177,7 +179,7 @@ function AppContent() {
     })
     const session = preferred ? eligible : eligible.slice(0, 20)
     if (!session.length) {
-      setNotice('Aucune carte déjà étudiée n’est disponible pour une révision libre.')
+      setNotice(intl.formatMessage({ id: 'noStudiedCards' }))
       setScreen('home')
       return
     }
@@ -233,7 +235,7 @@ function AppContent() {
         await db.reviews.add(event)
       })
     } catch {
-      setNotice('Impossible d’enregistrer ce rappel. La carte reste ici. Vérifiez l’espace disponible puis réessayez.')
+      setNotice(intl.formatMessage({ id: 'saveReviewError' }))
       return
     }
     setLastReview(event); setNotice('')
@@ -264,17 +266,17 @@ function AppContent() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url; link.download = `reversolinguo-${new Date().toISOString().slice(0, 10)}.json`; link.click()
-    URL.revokeObjectURL(url); setNotice('Sauvegarde exportée.')
+    URL.revokeObjectURL(url); setNotice(intl.formatMessage({ id: 'exportDone' }))
   }
 
   async function uploadImport(file?: File) {
     if (!file) return
-    try { await importProgress(await file.text()); setNotice('Sauvegarde importée.'); setTimeout(() => location.reload(), 400) }
-    catch (error) { setNotice(error instanceof Error ? error.message : 'Import impossible.') }
+    try { await importProgress(await file.text()); setNotice(intl.formatMessage({ id: 'importDone' })); setTimeout(() => location.reload(), 400) }
+    catch (error) { setNotice(error instanceof Error ? error.message : intl.formatMessage({ id: 'importFailed' })) }
   }
 
   async function erase() {
-    if (!confirm('Effacer définitivement toute la progression sur cet appareil ?')) return
+    if (!confirm(intl.formatMessage({ id: 'eraseConfirm' }))) return
     await resetProgress(); setSettings(defaultSettings); setScreen('onboarding')
   }
 
@@ -285,11 +287,10 @@ function AppContent() {
       <div className="brand-mark" aria-hidden="true">R</div><h1><FormattedMessage id="title" /></h1><p className="tagline"><FormattedMessage id="tagline" /></p>
       <section className="panel" aria-labelledby="direction-title">
         <h2 id="direction-title"><FormattedMessage id="direction" /></h2>
-        <label htmlFor="daily-goal">Objectif quotidien indicatif</label>
+        <label htmlFor="daily-goal"><FormattedMessage id="dailyGoal" /></label>
         <input id="daily-goal" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => setSettings((value) => ({ ...value, dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) }))} />
-        <span className="helper">Minutes souhaitées ; vous pouvez arrêter à tout moment.</span>
-        <button className="primary" onClick={() => begin('fr-es')}><FormattedMessage id="frEs" /></button>
-        <button className="secondary" onClick={() => begin('es-fr')}><FormattedMessage id="esFr" /></button>
+        <span className="helper"><FormattedMessage id="dailyGoalHelper" /></span>
+        {activeLanguagePair.directions.map((config, index) => <button key={config.id} className={index === 0 ? 'primary' : 'secondary'} onClick={() => begin(config.id)}><FormattedMessage id={config.selectMessageId} /></button>)}
       </section><p className="privacy"><FormattedMessage id="privacy" /></p>
     </main>
   )
@@ -298,27 +299,28 @@ function AppContent() {
     const planned = progress.dueCount + Math.min(progress.newCount, newRemainingToday)
     const hasSession = planned > 0
     const estimate = hasSession ? Math.max(1, Math.ceil(planned * 0.5)) : 0
+    const challengeInfo = challenge(progress, settings.dailyNew, newRemainingToday, freeReviewAvailable)
     return (
       <main className="shell">{updateBanner}
-        <header className="topbar"><div><span className="eyebrow">FR · ES · A1</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
+        <header className="topbar"><div><span className="eyebrow">{activeLanguagePair.targetLanguage.toUpperCase()} · {activeLanguagePair.sourceLanguage.toUpperCase()} · {catalogManifest.cefr_level}</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
         <section className="hero-card"><span className="status"><span aria-hidden="true">●</span> <FormattedMessage id={offlineReady ? 'offlineReady' : 'preparingOffline'} /></span><h2><FormattedMessage id="tagline" /></h2>
-          <p><FormattedMessage id="due" values={{ count: progress.dueCount }} />{hasSession ? ` · environ ${estimate} min (estimation)` : ' · aucune séance planifiée'}</p>
+          <p><FormattedMessage id="due" values={{ count: progress.dueCount }} /> · {hasSession ? <FormattedMessage id="sessionEstimate" values={{ minutes: estimate }} /> : <FormattedMessage id="noScheduledSession" />}</p>
           {progress.dueCount > 0 && <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>}
-          {progress.dueCount === 0 && progress.newCount > 0 && newRemainingToday > 0 && <button className="primary large" onClick={startSession}>Découvrir maintenant</button>}
-          {progress.dueCount === 0 && freeReviewAvailable && <button className="secondary" onClick={() => startFreeReview()}>Réviser librement</button>}
+          {progress.dueCount === 0 && progress.newCount > 0 && newRemainingToday > 0 && <button className="primary large" onClick={startSession}><FormattedMessage id="discoverNow" /></button>}
+          {progress.dueCount === 0 && freeReviewAvailable && <button className="secondary" onClick={() => startFreeReview()}><FormattedMessage id="freeReview" /></button>}
           {dailySessionCompleted && <button className="secondary" onClick={startExploration}><FormattedMessage id="explorationOpen" /></button>}
-          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}>Modifier le quota de nouveaux mots</button>}
-          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper">{freeReviewAvailable ? 'Quota de nouveaux mots atteint pour aujourd’hui. Vous pouvez réviser librement les cartes déjà vues ou revenir demain.' : 'Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.'}</p>}
-          {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper">Rien à réviser selon le planning pour le moment. {freeReviewAvailable ? 'Vous pouvez réviser librement ou revenir à la prochaine échéance.' : 'Revenez à la prochaine échéance.'}</p>}
+          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}><FormattedMessage id="editNewQuota" /></button>}
+          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper"><FormattedMessage id={freeReviewAvailable ? 'quotaReachedFree' : 'quotaReached'} /></p>}
+          {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper"><FormattedMessage id={freeReviewAvailable ? 'nothingDueFree' : 'nothingDue'} /></p>}
           {notice && <p className="notice" role="status">{notice}</p>}
         </section>
-        <section className="stats" aria-label="Progression">
-          <div><strong>{progress.newCount}</strong><span>À découvrir</span></div><div><strong>{progress.learningCount}</strong><span>En apprentissage</span></div>
-          <div><strong>{progress.consolidatedCount}</strong><span>Consolidées (intervalle ≥ 21 j)</span></div><div><strong>{progress.coveragePercent} %</strong><span>Catalogue A1 étudié</span></div>
-          <div><strong>{progress.recallRate30d === null ? '—' : `${progress.recallRate30d} %`}</strong><span>Rappels corrects sur 30 j</span></div><div><strong>{progress.effortPoints}</strong><span>Points d’effort · 1 par rappel</span></div>
+        <section className="stats" aria-label={intl.formatMessage({ id: 'statsLabel' })}>
+          <div><strong>{progress.newCount}</strong><span><FormattedMessage id="statNew" /></span></div><div><strong>{progress.learningCount}</strong><span><FormattedMessage id="statLearning" /></span></div>
+          <div><strong>{progress.consolidatedCount}</strong><span><FormattedMessage id="statConsolidated" /></span></div><div><strong>{progress.coveragePercent} %</strong><span><FormattedMessage id="statCoverage" /></span></div>
+          <div><strong>{progress.recallRate30d === null ? '—' : `${progress.recallRate30d} %`}</strong><span><FormattedMessage id="statRecall" /></span></div><div><strong>{progress.effortPoints}</strong><span><FormattedMessage id="statEffort" /></span></div>
         </section>
         <button className="secondary" onClick={() => setScreen('vocabulary')}><FormattedMessage id="vocabularyOpen" /></button>
-        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress, settings.dailyNew, newRemainingToday, freeReviewAvailable)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
+        <section className="panel motivation"><h2><FormattedMessage id="today" /></h2><p><FormattedMessage id={challengeInfo.id} values={challengeInfo.values} /></p><p><FormattedMessage id="activeDays" values={{ count: progress.activeDays7 }} /> · <FormattedMessage id="noStreakLoss" /></p>{progress.consolidatedCount > 0 && <p className="badge"><FormattedMessage id="firstConsolidatedBadge" /></p>}</section>
         <p className="privacy"><FormattedMessage id="privacy" /></p>
       </main>
     )
@@ -329,31 +331,32 @@ function AppContent() {
   if (screen === 'settings') return (
     <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>
       <section className="panel actions">
-        <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value as Direction })}><option value="fr-es">Français → espagnol</option><option value="es-fr">Espagnol → français</option></select>
-        <label htmlFor="daily-new">Nouveaux mots par jour : {settings.dailyNew}</label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
-        <label htmlFor="daily-goal-settings">Objectif indicatif (minutes)</label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
-        <label className="check"><input type="checkbox" checked={settings.motionEnabled} onChange={(event) => void persistSettings({ motionEnabled: event.target.checked })} /> Micro-animation de fin</label>
-        <label className="check"><input type="checkbox" checked={settings.soundEnabled} onChange={(event) => void persistSettings({ soundEnabled: event.target.checked })} /> Son de réussite</label>
-        <label className="check"><input type="checkbox" checked={settings.vibrationEnabled} onChange={(event) => void persistSettings({ vibrationEnabled: event.target.checked })} /> Vibration de réussite</label>
+        <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value })}>{activeLanguagePair.directions.map((config) => <option key={config.id} value={config.id}>{intl.formatMessage({ id: config.displayMessageId })}</option>)}</select>
+        <label htmlFor="daily-new"><FormattedMessage id="dailyNew" values={{ count: settings.dailyNew }} /></label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
+        <label htmlFor="daily-goal-settings"><FormattedMessage id="dailyGoalSettings" /></label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
+        <label className="check"><input type="checkbox" checked={settings.motionEnabled} onChange={(event) => void persistSettings({ motionEnabled: event.target.checked })} /> <FormattedMessage id="motionSetting" /></label>
+        <label className="check"><input type="checkbox" checked={settings.soundEnabled} onChange={(event) => void persistSettings({ soundEnabled: event.target.checked })} /> <FormattedMessage id="soundSetting" /></label>
+        <label className="check"><input type="checkbox" checked={settings.vibrationEnabled} onChange={(event) => void persistSettings({ vibrationEnabled: event.target.checked })} /> <FormattedMessage id="vibrationSetting" /></label>
         <button className="secondary" onClick={downloadExport}><FormattedMessage id="export" /></button><label className="file-button"><FormattedMessage id="import" /><input type="file" accept="application/json" onChange={(event) => uploadImport(event.target.files?.[0])} /></label><button className="danger" onClick={erase}><FormattedMessage id="reset" /></button>
-        <p><FormattedMessage id="storage" values={{ size: storageSize }} /></p><p className="notice" aria-live="polite">{notice}</p>
-      </section><PrivacyNotice /><p className="privacy">L’effacement des données du navigateur peut supprimer votre progression. Exportez-la régulièrement.</p>
+        <p><FormattedMessage id="storage" values={{ size: storageSize ?? intl.formatMessage({ id: 'storageUnavailable' }) }} /></p><p className="notice" aria-live="polite">{notice}</p>
+      </section><PrivacyNotice /><p className="privacy"><FormattedMessage id="eraseBrowserWarning" /></p>
     </main>
   )
 
   if (screen === 'complete') {
     const completeTitle = sessionMode === 'scheduled' ? 'finish' : sessionMode === 'free' ? 'freeFinish' : 'explorationFinish'
     const completeDetail = sessionMode === 'scheduled' ? 'finishDetail' : sessionMode === 'free' ? 'freeFinishDetail' : 'explorationFinishDetail'
-    return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id={completeTitle} /></h1><p><FormattedMessage id={completeDetail} /></p>{sessionMode === 'scheduled' && lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}{sessionMode !== 'exploration' && completedSessionKeys.length > 0 && <button className="secondary" onClick={() => startFreeReview(completedSessionKeys)}>Rejouer librement</button>}<button className="primary" onClick={() => setScreen('home')}>Retour à l’accueil</button></main>
+    return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id={completeTitle} /></h1><p><FormattedMessage id={completeDetail} /></p>{sessionMode === 'scheduled' && lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}{sessionMode !== 'exploration' && completedSessionKeys.length > 0 && <button className="secondary" onClick={() => startFreeReview(completedSessionKeys)}><FormattedMessage id="replayFree" /></button>}<button className="primary" onClick={() => setScreen('home')}><FormattedMessage id="home" /></button></main>
   }
 
-  const modePrefix = sessionMode === 'free' ? 'Révision libre · ' : sessionMode === 'exploration' ? `${intl.formatMessage({ id: 'explorationLabel' })} · ` : ''
+  const modePrefix = sessionMode === 'free' ? `${intl.formatMessage({ id: 'freeFinish' }).replace(' terminée', '')} · ` : sessionMode === 'exploration' ? `${intl.formatMessage({ id: 'explorationLabel' })} · ` : ''
+  const differenceMessage: MessageId = comparison.difference === 'accent' ? 'differenceAccent' : comparison.difference === 'article-or-gender' ? 'differenceArticleGender' : 'differenceSpelling'
   return (
-    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only">Fermer la séance</span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label="Progression de la séance"/><span>{queue.length}</span></header>
+    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only"><FormattedMessage id="closeSession" /></span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label={intl.formatMessage({ id: 'sessionProgress' })}/><span>{queue.length}</span></header>
       {lastReview && sessionMode === 'scheduled' && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {notice && <p className="notice" role="alert">{notice}</p>}
-      {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{modePrefix}{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
-        {!revealed ? <><button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={unknownAnswer ? 'answer-review' : answerMatches ? 'answer-ok' : 'answer-review'}>{unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
+      {entry && current && directionConfig && examples && <section className="flashcard" aria-live="polite"><span className="direction-label">{modePrefix}<FormattedMessage id={directionConfig.promptMessageId} /></span><h1 lang={directionConfig.promptLanguage} dir="auto">{prompt}</h1><label htmlFor="answer"><FormattedMessage id="answerLabel" /></label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} lang={directionConfig.answerLanguage} />
+        {!revealed ? <><button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={unknownAnswer ? 'answer-review' : answerMatches ? 'answer-ok' : 'answer-review'}>{unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? <FormattedMessage id="answerExact" /> : <FormattedMessage id="answerCompare" />}</p>{!unknownAnswer && !answerMatches && <div className="answer-difference"><p><FormattedMessage id="answerGiven" values={{ answer }} /></p><p><strong><FormattedMessage id={differenceMessage} /></strong></p><p><FormattedMessage id="answerExpected" values={{ expected: comparison.expected }} /></p></div>}<h2 lang={directionConfig.answerLanguage} dir="auto">{comparison.expected || expected[0]}</h2><p><span lang={directionConfig.promptLanguage} dir="auto">{examples.prompt}</span><br/><span lang={directionConfig.answerLanguage} dir="auto">{examples.answer}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend><FormattedMessage id="recallRating" /></legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
       </section>}
     </main>
   )

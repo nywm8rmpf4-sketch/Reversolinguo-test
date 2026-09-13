@@ -1,6 +1,6 @@
 import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
 import manifest from '../../catalogs/fr-es/a1/manifest.json'
-import type { LexicalEntry } from '../domain/model'
+import type { CefrLevel, LexicalEntry } from '../domain/model'
 
 interface CanonicalSense {
   translations: string[]
@@ -10,10 +10,11 @@ interface CanonicalSense {
 
 interface CanonicalEntry {
   entry_id: string
+  language_tag: string
   lemma: string
   article?: string
   senses: CanonicalSense[]
-  cefr_level: 'A1'
+  cefr_level: CefrLevel
   themes: string[]
   status: 'draft' | 'reviewed' | 'validated' | 'withdrawn'
 }
@@ -27,11 +28,13 @@ export const catalog: LexicalEntry[] = (canonicalEntries as CanonicalEntry[])
     if (!sense) throw new Error(`Entrée sans sens exploitable : ${entry.entry_id}`)
     return {
       id: entry.entry_id,
-      es: entry.lemma,
-      fr: sense.translations,
+      source: entry.lemma,
+      targets: sense.translations,
+      sourceLanguage: entry.language_tag,
+      targetLanguage: manifest.target_language,
       article: entry.article,
-      exampleEs: sense.example_source,
-      exampleFr: sense.example_target,
+      exampleSource: sense.example_source,
+      exampleTarget: sense.example_target,
       level: entry.cefr_level,
       theme: entry.themes[0] ?? 'général'
     }

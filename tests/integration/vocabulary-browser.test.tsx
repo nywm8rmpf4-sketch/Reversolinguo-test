@@ -33,28 +33,30 @@ describe('vocabulary browser', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(catalog.length)
 
     const frenchCollator = new Intl.Collator('fr', { sensitivity: 'base' })
-    const expectedFrenchFirst = catalog.slice().sort((a, b) => frenchCollator.compare(a.fr.join(' · '), b.fr.join(' · ')))[0]
+    const expectedFrenchFirst = catalog.slice().sort((a, b) => frenchCollator.compare(a.targets.join(' · '), b.targets.join(' · ')))[0]
     const firstFrenchRow = screen.getAllByRole('listitem')[0]
-    expect(within(firstFrenchRow).getByText(expectedFrenchFirst.fr.join(' · '))).toBeVisible()
+    expect(within(firstFrenchRow).getByText(expectedFrenchFirst.targets.join(' · '))).toBeVisible()
 
     await user.click(screen.getByRole('button', { name: 'Espagnol → français' }))
     expect(screen.getByRole('button', { name: 'Espagnol → français' })).toHaveAttribute('aria-pressed', 'true')
 
     const spanishCollator = new Intl.Collator('es', { sensitivity: 'base' })
-    const expectedSpanishFirst = catalog.slice().sort((a, b) => spanishCollator.compare(a.es, b.es))[0]
+    const expectedSpanishFirst = catalog.slice().sort((a, b) => spanishCollator.compare(a.source, b.source))[0]
     const firstSpanishRow = screen.getAllByRole('listitem')[0]
-    expect(within(firstSpanishRow).getByText(expectedSpanishFirst.es)).toBeVisible()
+    expect(within(firstSpanishRow).getByText(expectedSpanishFirst.source)).toBeVisible()
   })
 
-  it('orders CEFR groups from PRE-A1 through B2', () => {
+  it('orders CEFR groups from PRE-A1 through B2 with language-generic runtime entries', () => {
     const levels: LexicalEntry[] = [
       ['b2', 'B2'], ['a2', 'A2'], ['pre', 'PRE-A1'], ['b1', 'B1'], ['a1', 'A1']
     ].map(([id, level]) => ({
       id,
-      es: `es-${id}`,
-      fr: [`fr-${id}`],
-      exampleEs: `Ejemplo ${id}`,
-      exampleFr: `Exemple ${id}`,
+      source: `es-${id}`,
+      targets: [`fr-${id}`],
+      sourceLanguage: 'es',
+      targetLanguage: 'fr',
+      exampleSource: `Ejemplo ${id}`,
+      exampleTarget: `Exemple ${id}`,
       level: level as LexicalEntry['level'],
       theme: 'test'
     }))
@@ -66,7 +68,7 @@ describe('vocabulary browser', () => {
     expect(headings).toEqual(['Niveau PRE-A1', 'Niveau A1', 'Niveau A2', 'Niveau B1', 'Niveau B2'])
   })
 
-  it('exposes both directions without changing learning settings or progress', async () => {
+  it('exposes both configured directions without changing learning settings or progress', async () => {
     const user = userEvent.setup()
     await db.settings.put({ ...defaultSettings, onboarded: true, direction: 'fr-es' })
     const beforeSettings = await db.settings.get('settings')
