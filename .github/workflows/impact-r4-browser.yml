@@ -1,0 +1,56 @@
+name: R4 browser impact QA
+
+on:
+  push:
+    branches:
+      - impact/r4-unknown-exploration
+
+permissions:
+  contents: read
+
+jobs:
+  browser-impact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      REVERSOLINGUO_BASE: /Reversolinguo-test/
+    steps:
+      - name: Checkout exact R4 candidate
+        uses: actions/checkout@v4
+
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+
+      - name: Use baseline npm
+        run: npm install --global npm@11.9.0
+
+      - name: Verify exact lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object package-lock.json)" = "a22b8ebe265ee44c392967a615c949039a2890ad"
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Build exact Pages candidate once
+        run: npm run build
+
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Install pinned accessibility audit tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false --ignore-scripts @axe-core/playwright@4.13.0 axe-core@4.13.0
+          test "$(node -p "require('./node_modules/@axe-core/playwright/package.json').version")" = "4.13.0"
+          test "$(node -p "require('./node_modules/axe-core/package.json').version")" = "4.13.0"
+          test "$(git hash-object package-lock.json)" = "a22b8ebe265ee44c392967a615c949039a2890ad"
+          axe_path="$(node -p "require.resolve('axe-core/axe.min.js')")"
+          echo "c24f097bd2f451d4f933e8bc7d8d539f8672a2ebcb5cc9f9f3eec8ca9470a0c1  $axe_path" | sha256sum --check --strict
+
+      - name: Run only affected accessibility path on three engines
+        run: npx playwright test tests/e2e/accessibility.spec.mjs
