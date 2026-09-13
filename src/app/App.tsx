@@ -166,7 +166,7 @@ function AppContent() {
       const due = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
       return due || (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER)
     })
-    const session = eligible.slice(0, 20)
+    const session = preferred ? eligible : eligible.slice(0, 20)
     if (!session.length) {
       setNotice('Aucune carte déjà étudiée n’est disponible pour une révision libre.')
       setScreen('home')
