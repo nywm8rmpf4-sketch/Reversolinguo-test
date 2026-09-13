@@ -47,7 +47,21 @@
   "allOf": [
     {
       "if": { "properties": { "status": { "enum": ["reviewed", "validated"] } }, "required": ["status"] },
-      "then": { "properties": { "provenance": { "type": "object", "required": ["source", "license", "authored_by", "reviewed_by", "reviewed_at"] } } }
+      "then": {
+        "properties": {
+          "provenance": {
+            "type": "object",
+            "required": ["source", "license", "authored_by", "reviewed_by", "reviewed_at"],
+            "properties": {
+              "source": { "type": "string", "minLength": 1 },
+              "license": { "type": "string", "minLength": 1 },
+              "authored_by": { "type": "string", "minLength": 1 },
+              "reviewed_by": { "type": "string", "minLength": 1 },
+              "reviewed_at": { "type": "string", "format": "date" }
+            }
+          }
+        }
+      }
     }
   ]
 }

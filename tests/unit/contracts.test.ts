@@ -10,6 +10,11 @@ describe('shared executable contracts', () => {
     expect(result.valid).toBe(false)
     expect(result.errors.length).toBeGreaterThan(3)
   })
+  it('requires human review provenance before reviewed or validated status', () => {
+    const result = validateLexicalEntry({ ...validEntry, status: 'reviewed' })
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((error) => error.keyword === 'required')).toBe(true)
+  })
   it('rejects executable content in a progress import', () => {
     const result = validateProgressExport({ schemaVersion: 1, exportedAt: new Date().toISOString(), schedules: [], reviews: [], settings: [], html: '<script>alert(1)</script>' })
     expect(result.valid).toBe(false)
