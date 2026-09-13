@@ -1,0 +1,59 @@
+name: QA impact UI
+
+on:
+  push:
+    branches:
+      - 'impact/**'
+
+permissions:
+  contents: read
+
+jobs:
+  impact-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      REVERSOLINGUO_BASE: /Reversolinguo-test/
+    steps:
+      - name: Checkout exact impact candidate
+        uses: actions/checkout@v4
+
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+
+      - name: Use baseline npm
+        run: npm install --global npm@11.9.0
+
+      - name: Verify exact lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object package-lock.json)" = "a22b8ebe265ee44c392967a615c949039a2890ad"
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Lint impacted files
+        run: npx eslint src/app/App.tsx src/app/VocabularyBrowser.tsx src/domain/model.ts src/i18n/messages.ts tests/integration/vocabulary-browser.test.tsx --max-warnings 0
+
+      - name: Typecheck application
+        run: npx tsc -b --pretty false
+
+      - name: Run impacted integration tests
+        run: npx vitest run tests/integration/vocabulary-browser.test.tsx
+
+      - name: Build exact Pages artifact
+        run: npm run build
+
+      - name: Cheap artifact guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          dist_bytes="$(find dist -type f -printf '%s\n' | awk '{sum += $1} END {print sum+0}')"
+          echo "dist uncompressed bytes: $dist_bytes"
+          test "$dist_bytes" -le 3145728
+          grep -Fq 'src="/Reversolinguo-test/assets/' dist/index.html
+          grep -Fq 'href="/Reversolinguo-test/manifest.webmanifest"' dist/index.html
+          grep -Fq '"scope":"/Reversolinguo-test/"' dist/manifest.webmanifest
