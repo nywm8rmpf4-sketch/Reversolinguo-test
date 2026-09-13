@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FormattedMessage, IntlProvider, useIntl } from 'react-intl'
 import { ensureCatalogSchedules } from './bootstrap'
 import { catalog, catalogVersion } from '../content/catalog'
+import { appVersion } from '../config/version'
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
 import { orderSession, reviewSchedule } from '../domain/scheduler'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
@@ -114,7 +115,7 @@ function AppContent() {
       const event: ReviewEvent = {
         id: crypto.randomUUID(), scheduleKey: current.key, entryId: current.entryId, direction: current.direction, rating,
         reviewedAt: now.toISOString(), previousDueAt: current.dueAt, nextDueAt: next.dueAt,
-        appVersion: '0.3.0', catalogVersion, schedulerVersion: 'srs-1', previousState: current
+        appVersion, catalogVersion, schedulerVersion: 'srs-1', previousState: current
       }
       await db.reviews.add(event); setLastReview(event)
     })
