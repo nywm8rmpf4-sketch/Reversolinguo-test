@@ -53,7 +53,9 @@ describe('R4 unknown answer and exploration', () => {
     await user.click(await screen.findByRole('button', { name: 'Je ne sais pas' }))
     await user.click(screen.getByRole('button', { name: 'Continuer' }))
     expect(await screen.findByRole('heading', { name: 'Séance terminée' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Explorer au hasard' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Explorer au hasard' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Retour à l’accueil' }))
+    expect(await screen.findByRole('button', { name: 'Explorer au hasard' })).toBeVisible()
 
     const schedulesBefore = await db.schedules.where('direction').equals('fr-es').toArray()
     const reviewsBefore = await db.reviews.toArray()
