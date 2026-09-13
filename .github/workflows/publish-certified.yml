@@ -1,0 +1,173 @@
+name: Publish certified artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact candidate commit associated with the certified artifact
+        required: true
+        type: string
+      artifact_id:
+        description: Exact PASS QA artifact ID
+        required: true
+        type: string
+      artifact_sha256:
+        description: Expected SHA-256 of the artifact ZIP
+        required: true
+        type: string
+      expected_publication_head:
+        description: Expected current Reversolinguo/main HEAD before publication
+        required: true
+        type: string
+      release_branch:
+        description: Target certified release branch
+        required: true
+        default: release/v1.0.0-certified
+        type: string
+      release_tag:
+        description: Immutable release tag to create
+        required: true
+        default: v1.0.0
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+      ARTIFACT_ID: ${{ inputs.artifact_id }}
+      ARTIFACT_SHA256: ${{ inputs.artifact_sha256 }}
+      EXPECTED_PUBLICATION_HEAD: ${{ inputs.expected_publication_head }}
+      RELEASE_BRANCH: ${{ inputs.release_branch }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      QA_TOKEN: ${{ github.token }}
+      PUBLICATION_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
+      PUBLICATION_REPO: nywm8rmpf4-sketch/Reversolinguo
+    steps:
+      - name: Require dedicated publication credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${PUBLICATION_TOKEN:-}" ]; then
+            echo 'REVERSESOLINGUO publication credential is not configured.' >&2
+            echo 'Expected secret: REVERSOLINGUO_PUBLICATION_TOKEN' >&2
+            exit 1
+          fi
+
+      - name: Checkout exact certified candidate for provenance
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.candidate_sha }}
+
+      - name: Verify candidate identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+
+      - name: Download and verify exact certified artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_zip="$RUNNER_TEMP/certified-artifact.zip"
+          QA_TOKEN_VALUE="$QA_TOKEN"
+          GH_TOKEN="$QA_TOKEN_VALUE" gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$artifact_zip"
+          actual="$(sha256sum "$artifact_zip" | awk '{print $1}')"
+          echo "artifact sha256: $actual"
+          test "$actual" = "$ARTIFACT_SHA256"
+          artifact_dir="$RUNNER_TEMP/certified-artifact"
+          mkdir -p "$artifact_dir"
+          unzip -q "$artifact_zip" -d "$artifact_dir"
+          cd "$artifact_dir"
+          test -d dist
+          test -f dist.sha256
+          sha256sum --check --strict dist.sha256
+          if grep -R -Fq '/Reversolinguo-test/' dist; then
+            echo 'ERROR: QA repository path leaked into certified artifact' >&2
+            exit 1
+          fi
+
+      - name: Authenticate to publication repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          GH_TOKEN="$PUBLICATION_TOKEN" gh auth setup-git
+
+      - name: Guard publication refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          publication_dir="$RUNNER_TEMP/publication"
+          git clone "https://github.com/$PUBLICATION_REPO.git" "$publication_dir"
+          cd "$publication_dir"
+          current_main="$(git rev-parse HEAD)"
+          echo "publication main before: $current_main"
+          test "$current_main" = "$EXPECTED_PUBLICATION_HEAD"
+          existing_release="$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | awk '{print $1}')"
+          if [ -n "$existing_release" ]; then
+            test "$existing_release" = "$EXPECTED_PUBLICATION_HEAD"
+          fi
+          if git ls-remote --exit-code origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "ERROR: release tag already exists: $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+      - name: Create publication commit from exact artifact bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          publication_dir="$RUNNER_TEMP/publication"
+          artifact_dir="$RUNNER_TEMP/certified-artifact"
+          cd "$publication_dir"
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$artifact_dir/dist"/. .
+          cp "$artifact_dir/dist.sha256" ./dist.sha256
+          touch .nojekyll
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m "release: certified $RELEASE_TAG exact artifact $ARTIFACT_ID"
+          publication_commit="$(git rev-parse HEAD)"
+          echo "PUBLICATION_COMMIT=$publication_commit" >> "$GITHUB_ENV"
+
+      - name: Push release branch first and verify exact files remotely
+        shell: bash
+        run: |
+          set -euo pipefail
+          publication_dir="$RUNNER_TEMP/publication"
+          verify_dir="$RUNNER_TEMP/publication-verify"
+          cd "$publication_dir"
+          git push origin "HEAD:refs/heads/$RELEASE_BRANCH"
+          remote_release="$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | awk '{print $1}')"
+          test "$remote_release" = "$PUBLICATION_COMMIT"
+          git clone --depth=1 --branch "$RELEASE_BRANCH" "https://github.com/$PUBLICATION_REPO.git" "$verify_dir"
+          cd "$verify_dir"
+          while read -r expected path; do
+            rel="${path#dist/}"
+            test -f "$rel"
+            actual="$(sha256sum "$rel" | awk '{print $1}')"
+            test "$actual" = "$expected"
+          done < dist.sha256
+          if grep -R -Fq '/Reversolinguo-test/' . --exclude-dir=.git; then
+            echo 'ERROR: publication contains QA repository path' >&2
+            exit 1
+          fi
+
+      - name: Advance publication main and create immutable tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/publication"
+          git push origin "HEAD:refs/heads/main"
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$remote_main" = "$PUBLICATION_COMMIT"
+          git tag -a "$RELEASE_TAG" -m "Reversolinguo $RELEASE_TAG certified artifact $ARTIFACT_ID"
+          git push origin "refs/tags/$RELEASE_TAG"
+          tag_commit="$(git rev-list -n1 "$RELEASE_TAG")"
+          test "$tag_commit" = "$PUBLICATION_COMMIT"
