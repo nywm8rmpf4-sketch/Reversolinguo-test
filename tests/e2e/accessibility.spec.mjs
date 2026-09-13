@@ -50,7 +50,7 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
   await expect(page.getByRole('button', { name: 'Explorer au hasard' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByRole('textbox', { name: 'Votre réponse' })).toBeVisible()
-  const showAnswer = page.getByRole('button', { name: 'Afficher la réponse' })
+  const showAnswer = page.getByRole('button', { name: 'Voir la réponse' })
   const unknown = page.getByRole('button', { name: 'Je ne sais pas' })
   await expectVerticalButtonGap(showAnswer, unknown)
   await expectNoWcagViolations(page, 'session-before-reveal')
