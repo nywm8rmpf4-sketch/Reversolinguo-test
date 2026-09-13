@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 import type { CefrLevel, Direction, LexicalEntry } from '../domain/model'
 
 const levelOrder: CefrLevel[] = ['PRE-A1', 'A1', 'A2', 'B1', 'B2']
@@ -20,6 +20,7 @@ interface VocabularyBrowserProps {
 }
 
 export function VocabularyBrowser({ entries, initialDirection, onBack, banner }: VocabularyBrowserProps) {
+  const intl = useIntl()
   const [direction, setDirection] = useState<Direction>(initialDirection)
   const groups = useMemo(() => {
     const locale = direction === 'fr-es' ? 'fr' : 'es'
@@ -46,12 +47,12 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, banner }:
       <section className="panel vocabulary-controls" aria-labelledby="vocabulary-all-title">
         <h2 id="vocabulary-all-title"><FormattedMessage id="vocabularyAll" /></h2>
         <p className="helper"><FormattedMessage id="vocabularyCount" values={{ count: entries.length }} /></p>
-        <div className="direction-switch" role="group" aria-label="Sens d’affichage du vocabulaire">
+        <div className="direction-switch" role="group" aria-label={intl.formatMessage({ id: 'vocabularyDisplayDirection' })}>
           <button type="button" aria-pressed={direction === 'fr-es'} onClick={() => setDirection('fr-es')}>
-            Français → espagnol
+            <FormattedMessage id="vocabularyFrEs" />
           </button>
           <button type="button" aria-pressed={direction === 'es-fr'} onClick={() => setDirection('es-fr')}>
-            Espagnol → français
+            <FormattedMessage id="vocabularyEsFr" />
           </button>
         </div>
         <p className="helper"><FormattedMessage id="vocabularyReadOnly" /></p>
@@ -61,8 +62,8 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, banner }:
         {groups.map((group) => (
           <section className="vocabulary-level" key={group.level} aria-labelledby={`vocabulary-level-${group.level}`}>
             <div className="vocabulary-level-heading">
-              <h2 id={`vocabulary-level-${group.level}`}>Niveau {group.level}</h2>
-              <span>{group.entries.length} entrée{group.entries.length > 1 ? 's' : ''}</span>
+              <h2 id={`vocabulary-level-${group.level}`}><FormattedMessage id="vocabularyLevel" values={{ level: group.level }} /></h2>
+              <span><FormattedMessage id="vocabularyLevelCount" values={{ count: group.entries.length }} /></span>
             </div>
             <ul className="vocabulary-list">
               {group.entries.map((entry) => (
