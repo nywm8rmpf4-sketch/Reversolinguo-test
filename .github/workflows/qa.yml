@@ -4,18 +4,15 @@ on:
   push:
     branches:
       - 'candidate/**'
-      - main
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   qa:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      REVERSOLINGUO_BASE: /Reversolinguo-test/
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
@@ -51,7 +48,7 @@ jobs:
       - name: Static, unit, integration and single build
         run: npm run check
 
-      - name: Shell size, CSP and Pages base gates
+      - name: Portable artifact, size and CSP gates
         shell: bash
         run: |
           set -euo pipefail
@@ -59,9 +56,21 @@ jobs:
           echo "dist uncompressed bytes: $dist_bytes"
           test "$dist_bytes" -le 3145728
           grep -Fq "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" dist/index.html
-          grep -Fq 'src="/Reversolinguo-test/assets/' dist/index.html
-          grep -Fq 'href="/Reversolinguo-test/manifest.webmanifest"' dist/index.html
-          grep -Fq '"scope":"/Reversolinguo-test/"' dist/manifest.webmanifest
+          grep -Eq 'src="\./assets/' dist/index.html
+          grep -Fq 'href="./manifest.webmanifest"' dist/index.html
+          if grep -R -Fq '/Reversolinguo-test/' dist; then
+            echo 'ERROR: QA repository path leaked into portable artifact' >&2
+            exit 1
+          fi
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'
+          const manifest = JSON.parse(fs.readFileSync('dist/manifest.webmanifest', 'utf8'))
+          if (manifest.start_url !== './') throw new Error(`non-portable start_url: ${manifest.start_url}`)
+          if (manifest.scope !== undefined && manifest.scope !== './') throw new Error(`non-portable scope: ${manifest.scope}`)
+          for (const icon of manifest.icons ?? []) {
+            if (typeof icon.src === 'string' && icon.src.startsWith('/')) throw new Error(`absolute icon path: ${icon.src}`)
+          }
+          NODE
 
       - name: Record built artifact hashes
         shell: bash
@@ -85,7 +94,7 @@ jobs:
           echo "c24f097bd2f451d4f933e8bc7d8d539f8672a2ebcb5cc9f9f3eec8ca9470a0c1  $axe_path" | sha256sum --check --strict
           echo "AXE_CORE_PATH=$axe_path" >> "$GITHUB_ENV"
 
-      - name: Browser, offline and automated accessibility QA on the same build
+      - name: Browser, offline and automated accessibility QA on portable build under QA subpath
         run: npm run test:e2e
 
       - name: Upload exact tested artifact
@@ -96,25 +105,3 @@ jobs:
             dist/
             dist.sha256
           if-no-files-found: error
-
-      - name: Publish exact tested dist to gh-pages
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          set -euo pipefail
-          publish_dir="$RUNNER_TEMP/reversolinguo-pages"
-          rm -rf "$publish_dir"
-          mkdir -p "$publish_dir"
-          cp -a dist/. "$publish_dir/"
-          cp dist.sha256 "$publish_dir/dist.sha256"
-          touch "$publish_dir/.nojekyll"
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout --orphan gh-pages
-          git rm -rf .
-          git clean -fdx
-          cp -a "$publish_dir"/. .
-          git add -A
-          git commit -m "pages: exact tested artifact $GITHUB_SHA"
-          git push --force origin HEAD:gh-pages
