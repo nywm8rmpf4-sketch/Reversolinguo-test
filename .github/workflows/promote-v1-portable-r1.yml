@@ -1,0 +1,99 @@
+name: Promote v1 portable exact artifact r1
+
+on:
+  push:
+    branches:
+      - 'promotion/v1.0-portable-exact-r1'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CANDIDATE_SHA: 0804ce7d69311db6d30acebdc9aace519ff7956d
+      ARTIFACT_ID: '10327071495'
+      ARTIFACT_SHA256: c1724a67c9ca7bc830b256078c8d51febc8a3badf60d0b14026a4262ec3595c4
+      EXPECTED_MAIN_HEAD: 9450fe36b80d62d38a1487fc894b8c24eefd3b49
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout promotion branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Guard source and current test main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git cat-file -e "$CANDIDATE_SHA^{commit}"
+          git fetch origin main --quiet
+          current_main="$(git rev-parse origin/main)"
+          echo "current main: $current_main"
+          test "$current_main" = "$EXPECTED_MAIN_HEAD"
+          git merge-base --is-ancestor "$current_main" "$CANDIDATE_SHA"
+
+      - name: Download exact PASS artifact and verify bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_zip="$RUNNER_TEMP/qualified-artifact.zip"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$artifact_zip"
+          actual="$(sha256sum "$artifact_zip" | awk '{print $1}')"
+          echo "artifact sha256: $actual"
+          test "$actual" = "$ARTIFACT_SHA256"
+          artifact_dir="$RUNNER_TEMP/qualified-artifact"
+          mkdir -p "$artifact_dir"
+          unzip -q "$artifact_zip" -d "$artifact_dir"
+          cd "$artifact_dir"
+          test -d dist
+          test -f dist.sha256
+          sha256sum --check --strict dist.sha256
+          if grep -R -Fq '/Reversolinguo-test/' dist; then
+            echo 'ERROR: QA repository path leaked into portable artifact' >&2
+            exit 1
+          fi
+
+      - name: Fast-forward exact qualified source to test main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin "$CANDIDATE_SHA:refs/heads/main"
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          echo "promoted main: $remote_main"
+          test "$remote_main" = "$CANDIDATE_SHA"
+
+      - name: Publish exact qualified artifact to gh-pages without rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_dir="$RUNNER_TEMP/qualified-artifact"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan qa-exact-pages
+          git rm -rf .
+          git clean -fdx
+          cp -a "$artifact_dir/dist"/. .
+          cp "$artifact_dir/dist.sha256" ./dist.sha256
+          touch .nojekyll
+          git add -A
+          git commit -m "pages: exact portable qualified artifact $CANDIDATE_SHA"
+          pages_commit="$(git rev-parse HEAD)"
+          git push --force origin HEAD:gh-pages
+          remote_pages="$(git ls-remote origin refs/heads/gh-pages | awk '{print $1}')"
+          echo "gh-pages: $remote_pages"
+          test "$remote_pages" = "$pages_commit"
+
+      - name: Reverify published bytes against artifact manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          while read -r expected path; do
+            rel="${path#dist/}"
+            actual="$(git show "HEAD:$rel" | sha256sum | awk '{print $1}')"
+            test "$actual" = "$expected"
+          done < "$RUNNER_TEMP/qualified-artifact/dist.sha256"
+          cmp <(git show HEAD:dist.sha256) "$RUNNER_TEMP/qualified-artifact/dist.sha256"
