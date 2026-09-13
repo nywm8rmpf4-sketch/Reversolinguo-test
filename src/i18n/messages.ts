@@ -25,7 +25,6 @@ export const messages = {
   explorationEmpty: 'Aucun mot actif n’est disponible pour l’exploration.',
   explorationFinish: 'Exploration terminée',
   explorationFinishDetail: 'Les mots explorés n’ont modifié ni votre planning ni vos statistiques.',
-  explorationAgain: 'Explorer encore',
   settings: 'Données et réglages',
   export: 'Exporter ma progression',
   import: 'Importer une sauvegarde',
