@@ -1,0 +1,62 @@
+name: Promote exact R4 spacing tested artifact
+
+on:
+  push:
+    branches:
+      - promotion/r4-ui-spacing-exact-artifact
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout promotion ref
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download exact tested spacing artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: r4-spacing-tested-dist-15a82ab9dd6c50e7e2a7baceb158916d2ac98231
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: nywm8rmpf4-sketch/Reversolinguo-test
+          run-id: 34771243299
+
+      - name: Verify exact artifact hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist.sha256
+          sha256sum --check --strict dist.sha256
+          test "$(sha256sum dist/assets/index-BfAbsDAj.js | awk '{print $1}')" = "e2c6b014b9096fd293e61e953f707625553837f42bf77e9d2ed23d23e955a658"
+          test "$(sha256sum dist/assets/index-qk7HLhcv.css | awk '{print $1}')" = "ab3ccb1cf7289814b88cf27441eb03c99e1185fb8d3a644231c4a89bc7846d71"
+          test "$(sha256sum dist/index.html | awk '{print $1}')" = "5723b0f10c5e2b01dd2ab7562a1fad021c164a0248c06ae1207ebf80407d05f4"
+          test "$(sha256sum dist/sw.js | awk '{print $1}')" = "5edda9f8235df1de616f1c3afefd49bb61a45619ca60c29a76e70a400c0ae313"
+
+      - name: Publish exact tested dist to gh-pages without rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_dir="$RUNNER_TEMP/reversolinguo-r4-spacing-pages"
+          rm -rf "$publish_dir"
+          mkdir -p "$publish_dir"
+          cp -a dist/. "$publish_dir/"
+          cp dist.sha256 "$publish_dir/dist.sha256"
+          touch "$publish_dir/.nojekyll"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan gh-pages
+          git rm -rf .
+          git clean -fdx
+          cp -a "$publish_dir"/. .
+          git add -A
+          git commit -m "pages: exact tested R4 spacing artifact for 13c8b24524acf307a250bd25a5fae6309bb7fd39"
+          git push --force origin HEAD:gh-pages
