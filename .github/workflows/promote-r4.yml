@@ -1,0 +1,61 @@
+name: Promote exact R4 tested artifact
+
+on:
+  push:
+    branches:
+      - promotion/r4-exact-artifact
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout promotion ref
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download exact tested R4 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: r4-corrected-tested-dist-2bf2da9bb6586617b088ecd1fa65f7c0797d3f37
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: nywm8rmpf4-sketch/Reversolinguo-test
+          run-id: 34769778508
+
+      - name: Verify exact artifact hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist.sha256
+          sha256sum --check --strict dist.sha256
+          test "$(sha256sum dist/assets/index-D9HjgJ3-.js | awk '{print $1}')" = "b79c75852fea00e50eb1a7b903fc03be3e69291af8d8f2b98053ac0b64dd0fe1"
+          test "$(sha256sum dist/index.html | awk '{print $1}')" = "8c90e9378ab74b9b519401de5aa82d96d95fd948cb546c34cbac751aad0bbb22"
+          test "$(sha256sum dist/sw.js | awk '{print $1}')" = "2b2101251404070f217487261e44dca7a9835cbdbc8fc49bfa6d4327c2f22408"
+
+      - name: Publish exact tested dist to gh-pages without rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_dir="$RUNNER_TEMP/reversolinguo-r4-pages"
+          rm -rf "$publish_dir"
+          mkdir -p "$publish_dir"
+          cp -a dist/. "$publish_dir/"
+          cp dist.sha256 "$publish_dir/dist.sha256"
+          touch "$publish_dir/.nojekyll"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan gh-pages
+          git rm -rf .
+          git clean -fdx
+          cp -a "$publish_dir"/. .
+          git add -A
+          git commit -m "pages: exact tested R4 artifact for d80811dff8f39752ff68b8daeb5683961ca08a62"
+          git push --force origin HEAD:gh-pages
