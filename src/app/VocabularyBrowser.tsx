@@ -1,15 +1,16 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import type { CefrLevel, Direction, LexicalEntry } from '../domain/model'
+import { activeLanguagePair, displaySourceLanguage, getDirectionConfig, lexicalValues } from '../i18n/languagePairs'
 
 const levelOrder: CefrLevel[] = ['PRE-A1', 'A1', 'A2', 'B1', 'B2']
 
 function sourceText(entry: LexicalEntry, direction: Direction) {
-  return direction === 'fr-es' ? entry.fr.join(' · ') : entry.es
+  return lexicalValues(entry, getDirectionConfig(direction).promptSide).join(' · ')
 }
 
 function targetText(entry: LexicalEntry, direction: Direction) {
-  return direction === 'fr-es' ? entry.es : entry.fr.join(' · ')
+  return lexicalValues(entry, getDirectionConfig(direction).answerSide).join(' · ')
 }
 
 interface VocabularyBrowserProps {
@@ -23,8 +24,7 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, banner }:
   const intl = useIntl()
   const [direction, setDirection] = useState<Direction>(initialDirection)
   const groups = useMemo(() => {
-    const locale = direction === 'fr-es' ? 'fr' : 'es'
-    const collator = new Intl.Collator(locale, { sensitivity: 'base' })
+    const collator = new Intl.Collator(displaySourceLanguage(direction), { sensitivity: 'base' })
     return levelOrder
       .map((level) => ({
         level,
@@ -48,12 +48,11 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, banner }:
         <h2 id="vocabulary-all-title"><FormattedMessage id="vocabularyAll" /></h2>
         <p className="helper"><FormattedMessage id="vocabularyCount" values={{ count: entries.length }} /></p>
         <div className="direction-switch" role="group" aria-label={intl.formatMessage({ id: 'vocabularyDisplayDirection' })}>
-          <button type="button" aria-pressed={direction === 'fr-es'} onClick={() => setDirection('fr-es')}>
-            <FormattedMessage id="vocabularyFrEs" />
-          </button>
-          <button type="button" aria-pressed={direction === 'es-fr'} onClick={() => setDirection('es-fr')}>
-            <FormattedMessage id="vocabularyEsFr" />
-          </button>
+          {activeLanguagePair.directions.map((config) => (
+            <button type="button" key={config.id} aria-pressed={direction === config.id} onClick={() => setDirection(config.id)}>
+              <FormattedMessage id={config.displayMessageId} />
+            </button>
+          ))}
         </div>
         <p className="helper"><FormattedMessage id="vocabularyReadOnly" /></p>
       </section>
@@ -68,9 +67,9 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, banner }:
             <ul className="vocabulary-list">
               {group.entries.map((entry) => (
                 <li key={entry.id}>
-                  <span className="vocabulary-source">{sourceText(entry, direction)}</span>
+                  <span className="vocabulary-source" lang={getDirectionConfig(direction).promptLanguage} dir="auto">{sourceText(entry, direction)}</span>
                   <span className="vocabulary-arrow" aria-hidden="true">→</span>
-                  <span className="vocabulary-target">{targetText(entry, direction)}</span>
+                  <span className="vocabulary-target" lang={getDirectionConfig(direction).answerLanguage} dir="auto">{targetText(entry, direction)}</span>
                 </li>
               ))}
             </ul>

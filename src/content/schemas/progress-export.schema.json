@@ -12,12 +12,13 @@
     "settings": { "type": "array", "maxItems": 1, "items": { "$ref": "#/$defs/settings" } }
   },
   "$defs": {
+    "direction": { "type": "string", "minLength": 3, "maxLength": 64, "pattern": "^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$" },
     "schedule": {
       "type": "object", "additionalProperties": false,
       "required": ["key", "entryId", "direction", "state", "intervalDays", "dueAt", "updatedAt", "schedulerVersion"],
       "properties": {
         "key": { "type": "string", "minLength": 1 }, "entryId": { "type": "string", "minLength": 1 },
-        "direction": { "enum": ["fr-es", "es-fr"] }, "state": { "enum": ["NEW", "LEARNING", "REVIEW", "RELEARNING", "SUSPENDED"] },
+        "direction": { "$ref": "#/$defs/direction" }, "state": { "enum": ["NEW", "LEARNING", "REVIEW", "RELEARNING", "SUSPENDED"] },
         "learningStep": { "type": "integer", "minimum": 0, "maximum": 1 },
         "intervalDays": { "type": "integer", "minimum": 0, "maximum": 365 }, "dueAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }, "schedulerVersion": { "const": "srs-1" }
@@ -28,7 +29,7 @@
       "required": ["id", "scheduleKey", "entryId", "direction", "rating", "reviewedAt", "previousDueAt", "nextDueAt", "appVersion", "catalogVersion", "schedulerVersion", "previousState"],
       "properties": {
         "id": { "type": "string", "minLength": 1 }, "scheduleKey": { "type": "string", "minLength": 1 }, "entryId": { "type": "string", "minLength": 1 },
-        "direction": { "enum": ["fr-es", "es-fr"] }, "rating": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "direction": { "$ref": "#/$defs/direction" }, "rating": { "type": "integer", "minimum": 0, "maximum": 3 },
         "reviewedAt": { "type": "string", "format": "date-time" }, "previousDueAt": { "type": "string", "format": "date-time" }, "nextDueAt": { "type": "string", "format": "date-time" },
         "appVersion": { "type": "string" }, "catalogVersion": { "type": "string" }, "schedulerVersion": { "const": "srs-1" },
         "previousState": { "$ref": "#/$defs/schedule" }, "canceledAt": { "type": "string", "format": "date-time" }
@@ -38,7 +39,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["id", "onboarded", "direction", "dailyNew"],
       "properties": {
-        "id": { "const": "settings" }, "onboarded": { "type": "boolean" }, "direction": { "enum": ["fr-es", "es-fr"] },
+        "id": { "const": "settings" }, "onboarded": { "type": "boolean" }, "direction": { "$ref": "#/$defs/direction" },
         "dailyNew": { "type": "integer", "minimum": 0, "maximum": 20 },
         "dailyGoalMinutes": { "type": "integer", "minimum": 1, "maximum": 60 },
         "motionEnabled": { "type": "boolean" }, "soundEnabled": { "type": "boolean" }, "vibrationEnabled": { "type": "boolean" }

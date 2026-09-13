@@ -1,11 +1,11 @@
 import Dexie, { type EntityTable } from 'dexie'
 import { legacyEntryIdMap } from '../content/legacyIds'
-import type { ReviewEvent, ScheduleState } from '../domain/model'
+import type { Direction, ReviewEvent, ScheduleState } from '../domain/model'
 
 export interface SettingsRecord {
   id: 'settings'
   onboarded: boolean
-  direction: 'fr-es' | 'es-fr'
+  direction: Direction
   dailyNew: number
   dailyGoalMinutes: number
   motionEnabled: boolean
