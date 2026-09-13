@@ -1,0 +1,64 @@
+name: Promote exact prehuman completeness tested artifact
+
+on:
+  push:
+    branches:
+      - promotion/prehuman-completeness-r1-exact-artifact
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout promotion ref
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download exact tested artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: reversolinguo-tested-dist-3fabe0a3c7ed0f60683b738539a6c1674fba4e43
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: nywm8rmpf4-sketch/Reversolinguo-test
+          run-id: 34779049342
+
+      - name: Verify exact artifact hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist.sha256
+          sha256sum --check --strict dist.sha256
+          test "$(sha256sum dist/assets/contracts-BEps3OwK.js | awk '{print $1}')" = "bae304075474c6fdb596b51f5ce2792d8fbe77fc1471fb542f5b25325792f4d7"
+          test "$(sha256sum dist/assets/index-C1f49G4T.js | awk '{print $1}')" = "9e88f620784c1251e2b788af35e5d48d0ce5dafc3e1980cd47b5e09f9b94fd55"
+          test "$(sha256sum dist/assets/index-qk7HLhcv.css | awk '{print $1}')" = "ab3ccb1cf7289814b88cf27441eb03c99e1185fb8d3a644231c4a89bc7846d71"
+          test "$(sha256sum dist/index.html | awk '{print $1}')" = "c36c288fdb47ea8c0ebcac6199e779a30a8455245ccbd316d362539f8018badd"
+          test "$(sha256sum dist/manifest.webmanifest | awk '{print $1}')" = "ed583420f4a9644a6a6337e77e3c5ad2c67618c120fd7c2e0847b97adcf85fa7"
+          test "$(sha256sum dist/sw.js | awk '{print $1}')" = "a26421bbcf9b3bac7c86a6cea47a27ff3e694dd5ba748aef3bb954ebdbb6010b"
+
+      - name: Publish exact tested dist to gh-pages without rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_dir="$RUNNER_TEMP/reversolinguo-prehuman-pages"
+          rm -rf "$publish_dir"
+          mkdir -p "$publish_dir"
+          cp -a dist/. "$publish_dir/"
+          cp dist.sha256 "$publish_dir/dist.sha256"
+          touch "$publish_dir/.nojekyll"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan gh-pages
+          git rm -rf .
+          git clean -fdx
+          cp -a "$publish_dir"/. .
+          git add -A
+          git commit -m "pages: exact tested prehuman artifact for 9450fe36b80d62d38a1487fc894b8c24eefd3b49"
+          git push --force origin HEAD:gh-pages
