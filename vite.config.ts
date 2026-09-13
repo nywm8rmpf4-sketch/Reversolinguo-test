@@ -2,13 +2,10 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const configuredBase = process.env.REVERSOLINGUO_BASE ?? '/'
-const base = configuredBase.startsWith('/') && configuredBase.endsWith('/')
-  ? configuredBase
-  : `/${configuredBase.replace(/^\/+|\/+$/g, '')}/`
-
 export default defineConfig({
-  base,
+  // Release artifacts must be portable between the QA project subpath and
+  // the publication repository root. Keep generated URLs relative.
+  base: './',
   plugins: [
     react(),
     VitePWA({
