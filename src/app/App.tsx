@@ -10,7 +10,7 @@ import { hasActiveReviewToday, randomExplorationSession } from '../domain/explor
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
 import { orderSession, remainingDailyNew, reviewSchedule } from '../domain/scheduler'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
-import { activeLanguagePair, examplesFor, expectedFor, getDirectionConfig, normalizeAnswer, promptFor } from '../i18n/languagePairs'
+import { activeLanguagePair, examplesFor, expectedFor, getDirectionConfig, promptFor } from '../i18n/languagePairs'
 import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
 import { messages } from '../i18n/messages'
 import { applyServiceWorkerUpdate } from '../pwa/update'
@@ -280,7 +280,7 @@ function AppContent() {
     await resetProgress(); setSettings(defaultSettings); setScreen('onboarding')
   }
 
-  if (screen === 'loading') return <main className="shell"><p aria-live="polite">Chargement…</p></main>
+  if (screen === 'loading') return <main className="shell"><p aria-live="polite"><FormattedMessage id="loading" /></p></main>
 
   if (screen === 'onboarding') return (
     <main className="shell onboarding">
@@ -349,7 +349,7 @@ function AppContent() {
     return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id={completeTitle} /></h1><p><FormattedMessage id={completeDetail} /></p>{sessionMode === 'scheduled' && lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}{sessionMode !== 'exploration' && completedSessionKeys.length > 0 && <button className="secondary" onClick={() => startFreeReview(completedSessionKeys)}><FormattedMessage id="replayFree" /></button>}<button className="primary" onClick={() => setScreen('home')}><FormattedMessage id="home" /></button></main>
   }
 
-  const modePrefix = sessionMode === 'free' ? `${intl.formatMessage({ id: 'freeFinish' }).replace(' terminée', '')} · ` : sessionMode === 'exploration' ? `${intl.formatMessage({ id: 'explorationLabel' })} · ` : ''
+  const modePrefix = sessionMode === 'free' ? `${intl.formatMessage({ id: 'freeReviewLabel' })} · ` : sessionMode === 'exploration' ? `${intl.formatMessage({ id: 'explorationLabel' })} · ` : ''
   const differenceMessage: MessageId = comparison.difference === 'accent' ? 'differenceAccent' : comparison.difference === 'article-or-gender' ? 'differenceArticleGender' : 'differenceSpelling'
   return (
     <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only"><FormattedMessage id="closeSession" /></span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label={intl.formatMessage({ id: 'sessionProgress' })}/><span>{queue.length}</span></header>

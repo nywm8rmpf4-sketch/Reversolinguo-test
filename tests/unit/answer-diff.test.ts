@@ -6,9 +6,9 @@ describe('answer difference classification', () => {
     expect(classifyAnswerDifference('como', 'cómo', 'es')).toBe('accent')
   })
 
-  it('distinguishes a missing Spanish article or gender marker', () => {
+  it('distinguishes a missing or incorrect Spanish article or gender marker', () => {
     expect(classifyAnswerDifference('mano', 'la mano', 'es')).toBe('article-or-gender')
-    expect(classifyAnswerDifference('el mano', 'la mano', 'es')).toBe('spelling')
+    expect(classifyAnswerDifference('el mano', 'la mano', 'es')).toBe('article-or-gender')
   })
 
   it('classifies other deviations as spelling or formulation', () => {
