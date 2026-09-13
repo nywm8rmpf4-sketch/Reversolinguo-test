@@ -90,7 +90,7 @@ describe('accessible learning flow', () => {
     const input = screen.getByRole('textbox', { name: 'Votre réponse' })
     await user.type(input, 'la mano')
     await user.click(screen.getByRole('button', { name: 'Voir la réponse' }))
-    expect(screen.getByText('Révision libre : votre choix n’affecte ni les échéances ni les statistiques.')).toBeVisible()
+    expect(screen.getByText('Cette révision libre n’a modifié ni vos échéances ni vos statistiques.')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Correct' }))
 
     expect(await screen.findByRole('button', { name: 'Rejouer librement' })).toBeVisible()
