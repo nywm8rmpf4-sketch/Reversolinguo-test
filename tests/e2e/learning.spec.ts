@@ -37,8 +37,12 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 
   if (browserName === 'webkit') {
     const cachedShell = await page.evaluate(async () => {
-      const response = await fetch('/')
-      return { ok: response.ok, body: await response.text(), controlled: Boolean(navigator.serviceWorker.controller) }
+      const response = await caches.match('/')
+      return {
+        ok: Boolean(response?.ok),
+        body: response ? await response.text() : '',
+        controlled: Boolean(navigator.serviceWorker.controller)
+      }
     })
     expect(cachedShell.controlled).toBe(true)
     expect(cachedShell.ok).toBe(true)
