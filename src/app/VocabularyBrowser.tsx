@@ -29,7 +29,8 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, banner }:
         level,
         entries: entries
           .filter((entry) => entry.level === level)
-          .toSorted((a, b) => collator.compare(sourceText(a, direction), sourceText(b, direction)))
+          .slice()
+          .sort((a, b) => collator.compare(sourceText(a, direction), sourceText(b, direction)))
       }))
       .filter((group) => group.entries.length > 0)
   }, [direction, entries])

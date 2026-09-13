@@ -32,7 +32,7 @@ describe('vocabulary browser', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(catalog.length)
 
     const frenchCollator = new Intl.Collator('fr', { sensitivity: 'base' })
-    const expectedFrenchFirst = catalog.toSorted((a, b) => frenchCollator.compare(a.fr.join(' · '), b.fr.join(' · ')))[0]
+    const expectedFrenchFirst = catalog.slice().sort((a, b) => frenchCollator.compare(a.fr.join(' · '), b.fr.join(' · ')))[0]
     const firstFrenchRow = screen.getAllByRole('listitem')[0]
     expect(within(firstFrenchRow).getByText(expectedFrenchFirst.fr.join(' · '))).toBeVisible()
 
@@ -40,7 +40,7 @@ describe('vocabulary browser', () => {
     expect(screen.getByRole('button', { name: 'Espagnol → français' })).toHaveAttribute('aria-pressed', 'true')
 
     const spanishCollator = new Intl.Collator('es', { sensitivity: 'base' })
-    const expectedSpanishFirst = catalog.toSorted((a, b) => spanishCollator.compare(a.es, b.es))[0]
+    const expectedSpanishFirst = catalog.slice().sort((a, b) => spanishCollator.compare(a.es, b.es))[0]
     const firstSpanishRow = screen.getAllByRole('listitem')[0]
     expect(within(firstSpanishRow).getByText(expectedSpanishFirst.es)).toBeVisible()
   })
