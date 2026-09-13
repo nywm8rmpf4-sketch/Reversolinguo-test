@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import entries from '../../catalogs/fr-es/a1/catalog.json'
 import manifest from '../../catalogs/fr-es/a1/manifest.json'
@@ -18,7 +19,7 @@ describe('A1 canonical catalog', () => {
   })
 
   it('has the exact SHA-256 recorded in the manifest', () => {
-    const raw = readFileSync(new URL('../../catalogs/fr-es/a1/catalog.json', import.meta.url))
+    const raw = readFileSync(resolve(process.cwd(), 'catalogs/fr-es/a1/catalog.json'))
     const hash = createHash('sha256').update(raw).digest('hex')
     expect(hash).toBe(manifest.catalog_sha256)
   })
