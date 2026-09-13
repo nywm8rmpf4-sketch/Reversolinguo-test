@@ -31,30 +31,17 @@ jobs:
           node --version
           npm --version
 
-      - name: Materialize and verify exact lockfile
+      - name: Verify exact lockfile
         shell: bash
         run: |
           set -euo pipefail
-          if [ ! -f package-lock.json ]; then
-            npm install --package-lock-only --ignore-scripts
-          fi
           actual="$(git hash-object package-lock.json)"
           expected="a22b8ebe265ee44c392967a615c949039a2890ad"
           echo "package-lock blob: $actual"
           test "$actual" = "$expected"
-          if ! git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore(qa): materialize exact lockfile"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
 
       - name: Install exact dependencies
         run: npm ci
-
-      - name: Install browser engines
-        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Static, unit, integration and single build
         run: npm run check
@@ -65,6 +52,9 @@ jobs:
           set -euo pipefail
           find dist -type f -print0 | sort -z | xargs -0 sha256sum > dist.sha256
           cat dist.sha256
+
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Browser and offline QA on the same build
         run: npm run test:e2e
