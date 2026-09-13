@@ -1,10 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-const configuredBase = process.env.REVERSOLINGUO_BASE ?? '/'
-const base = configuredBase.startsWith('/') && configuredBase.endsWith('/')
-  ? configuredBase
-  : `/${configuredBase.replace(/^\/+|\/+$/g, '')}/`
-
 async function onboard(page: import('@playwright/test').Page) {
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
@@ -42,20 +37,22 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 
   if (browserName === 'webkit') {
     const cachedShell = await page.evaluate(async () => {
+      const deploymentBase = new URL('./', window.location.href).pathname
       const cacheNames = await caches.keys()
       const requestLists = await Promise.all(cacheNames.map(async (name) => (await caches.open(name)).keys()))
       const paths = requestLists.flat().map((request) => new URL(request.url).pathname)
       return {
         controlled: Boolean(navigator.serviceWorker.controller),
         cacheNames,
+        deploymentBase,
         paths
       }
     })
     expect(cachedShell.controlled).toBe(true)
     expect(cachedShell.cacheNames.length).toBeGreaterThan(0)
-    expect(cachedShell.paths.some((path) => path === `${base}index.html` || path === base)).toBe(true)
-    expect(cachedShell.paths.some((path) => path.startsWith(`${base}assets/`) && path.endsWith('.js'))).toBe(true)
-    expect(cachedShell.paths.some((path) => path.startsWith(`${base}assets/`) && path.endsWith('.css'))).toBe(true)
+    expect(cachedShell.paths.some((path) => path === `${cachedShell.deploymentBase}index.html` || path === cachedShell.deploymentBase)).toBe(true)
+    expect(cachedShell.paths.some((path) => path.startsWith(`${cachedShell.deploymentBase}assets/`) && path.endsWith('.js'))).toBe(true)
+    expect(cachedShell.paths.some((path) => path.startsWith(`${cachedShell.deploymentBase}assets/`) && path.endsWith('.css'))).toBe(true)
     await page.getByRole('button', { name: 'Fermer la séance' }).click()
     await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
     await expectPersistedOfflineProgress(page)
