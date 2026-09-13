@@ -2,7 +2,8 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from '../../src/app/App'
-import { db } from '../../src/storage/database'
+import { ensureCatalogSchedules } from '../../src/app/bootstrap'
+import { db, defaultSettings } from '../../src/storage/database'
 
 const MANO_ID = '69046998-47e6-5570-b469-5a5cc961a97e'
 
@@ -13,7 +14,7 @@ describe('accessible learning flow', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
-    await user.click(await screen.findByRole('button', { name: 'Réviser maintenant' }))
+    await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
     const input = await screen.findByRole('textbox', { name: 'Votre réponse' })
     await user.type(input, 'la mano')
     await user.click(screen.getByRole('button', { name: 'Voir la réponse' }))
@@ -37,5 +38,35 @@ describe('accessible learning flow', () => {
     expect(screen.getByText(/Reversolinguo fonctionne sans compte et sans publicité/u)).toBeVisible()
     expect(screen.getByText(/Votre progression et vos réponses ne sont pas envoyées/u)).toBeVisible()
     expect(screen.getByText(/effacer toutes les données locales/u)).toBeVisible()
+  })
+
+  it('does not offer a fake session when every card is scheduled for later', async () => {
+    await db.settings.put({ ...defaultSettings, onboarded: true })
+    await ensureCatalogSchedules(db)
+    const future = new Date(Date.now() + 86_400_000).toISOString()
+    await db.schedules.toCollection().modify((schedule) => {
+      schedule.state = 'REVIEW'
+      schedule.intervalDays = 3
+      schedule.dueAt = future
+      schedule.updatedAt = new Date().toISOString()
+      delete schedule.learningStep
+    })
+
+    render(<App />)
+    expect(await screen.findByText('Rien à réviser pour le moment. Revenez à la prochaine échéance.')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
+    expect(screen.getByText(/aucune séance planifiée/u)).toBeVisible()
+  })
+
+  it('explains when new cards are paused instead of offering an empty session', async () => {
+    await db.settings.put({ ...defaultSettings, onboarded: true, dailyNew: 0 })
+    await ensureCatalogSchedules(db)
+
+    render(<App />)
+    expect(await screen.findByText('Les nouveaux mots sont en pause dans vos réglages.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Modifier le quota de nouveaux mots' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
   })
 })

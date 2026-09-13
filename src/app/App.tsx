@@ -20,10 +20,11 @@ function normalize(value: string) {
   return value.normalize('NFC').trim().toLocaleLowerCase('fr').replace(/[.!?]$/u, '')
 }
 
-function challenge(summary: ProgressSummary) {
-  if (summary.dueCount > 0) return `Défi léger : réviser ${Math.min(3, summary.dueCount)} carte${summary.dueCount > 1 ? 's' : ''} due${summary.dueCount > 1 ? 's' : ''}.`
-  if (summary.newCount > 0) return `Défi léger : découvrir ${Math.min(2, summary.newCount)} nouveau${summary.newCount > 1 ? 'x' : ''} mot${summary.newCount > 1 ? 's' : ''}.`
-  return 'Défi léger : une révision libre si vous en avez envie.'
+function challenge(summary: ProgressSummary, dailyNew: number) {
+  if (summary.dueCount > 0) return `Défi léger : réviser ${Math.min(3, summary.dueCount)} carte${summary.dueCount > 1 ? 's' : ''} à revoir.`
+  if (summary.newCount > 0 && dailyNew > 0) return `Défi léger : découvrir ${Math.min(2, summary.newCount)} nouveau${summary.newCount > 1 ? 'x' : ''} mot${summary.newCount > 1 ? 's' : ''}.`
+  if (summary.newCount > 0) return 'Les nouveaux mots sont en pause dans vos réglages.'
+  return 'Rien à faire pour l’instant : revenez à la prochaine échéance.'
 }
 
 function successFeedback(settings: SettingsRecord) {
@@ -173,20 +174,24 @@ function AppContent() {
 
   if (screen === 'home') {
     const planned = progress.dueCount + Math.min(progress.newCount, settings.dailyNew)
-    const estimate = Math.max(1, Math.ceil(planned * 0.5))
+    const hasSession = planned > 0
+    const estimate = hasSession ? Math.max(1, Math.ceil(planned * 0.5)) : 0
     return (
       <main className="shell">{updateBanner}
         <header className="topbar"><div><span className="eyebrow">FR · ES · A1</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
         <section className="hero-card"><span className="status"><span aria-hidden="true">●</span> <FormattedMessage id={offlineReady ? 'offlineReady' : 'preparingOffline'} /></span><h2><FormattedMessage id="tagline" /></h2>
-          <p><FormattedMessage id="due" values={{ count: progress.dueCount }} /> · environ {estimate} min (estimation)</p>
-          <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>
+          <p><FormattedMessage id="due" values={{ count: progress.dueCount }} />{hasSession ? ` · environ ${estimate} min (estimation)` : ' · aucune séance planifiée'}</p>
+          {progress.dueCount > 0 && <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>}
+          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && <button className="primary large" onClick={startSession}>Découvrir maintenant</button>}
+          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}>Modifier le quota de nouveaux mots</button>}
+          {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper">Rien à réviser pour le moment. Revenez à la prochaine échéance.</p>}
         </section>
         <section className="stats" aria-label="Progression">
           <div><strong>{progress.newCount}</strong><span>À découvrir</span></div><div><strong>{progress.learningCount}</strong><span>En apprentissage</span></div>
           <div><strong>{progress.consolidatedCount}</strong><span>Consolidées (intervalle ≥ 21 j)</span></div><div><strong>{progress.coveragePercent} %</strong><span>Catalogue A1 étudié</span></div>
           <div><strong>{progress.recallRate30d === null ? '—' : `${progress.recallRate30d} %`}</strong><span>Rappels corrects sur 30 j</span></div><div><strong>{progress.effortPoints}</strong><span>Points d’effort · 1 par rappel</span></div>
         </section>
-        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
+        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress, settings.dailyNew)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
         <p className="privacy"><FormattedMessage id="privacy" /></p>
       </main>
     )

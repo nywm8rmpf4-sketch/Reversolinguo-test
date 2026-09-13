@@ -14,7 +14,7 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
   await expectNoWcagViolations(page, 'onboarding')
 
   await page.getByRole('button', { name: 'Français vers espagnol' }).click()
-  await expect(page.getByRole('button', { name: 'Réviser maintenant' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
   await expectNoWcagViolations(page, 'home')
 
   await page.getByRole('button', { name: 'Réglages' }).click()
@@ -25,8 +25,8 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
   await dailyNew.fill('1')
   await expect(dailyNew).toHaveValue('1')
   await page.getByRole('button', { name: /Retour/u }).click()
-  await expect(page.getByRole('button', { name: 'Réviser maintenant' })).toBeVisible()
-  await page.getByRole('button', { name: 'Réviser maintenant' }).click()
+  await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
+  await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByRole('textbox', { name: 'Votre réponse' })).toBeVisible()
   await expectNoWcagViolations(page, 'session-before-reveal')
 
