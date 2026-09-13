@@ -96,3 +96,25 @@ jobs:
             dist/
             dist.sha256
           if-no-files-found: error
+
+      - name: Publish exact tested dist to gh-pages
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_dir="$RUNNER_TEMP/reversolinguo-pages"
+          rm -rf "$publish_dir"
+          mkdir -p "$publish_dir"
+          cp -a dist/. "$publish_dir/"
+          cp dist.sha256 "$publish_dir/dist.sha256"
+          touch "$publish_dir/.nojekyll"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout --orphan gh-pages
+          git rm -rf .
+          git clean -fdx
+          cp -a "$publish_dir"/. .
+          git add -A
+          git commit -m "pages: exact tested artifact $GITHUB_SHA"
+          git push --force origin HEAD:gh-pages
