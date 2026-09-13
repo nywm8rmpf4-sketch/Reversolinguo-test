@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FormattedMessage, IntlProvider, useIntl } from 'react-intl'
 import { ensureCatalogSchedules } from './bootstrap'
+import { PrivacyNotice } from './PrivacyNotice'
 import { catalog, catalogVersion } from '../content/catalog'
 import { appVersion } from '../config/version'
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
@@ -202,7 +203,7 @@ function AppContent() {
         <label className="check"><input type="checkbox" checked={settings.vibrationEnabled} onChange={(event) => void persistSettings({ vibrationEnabled: event.target.checked })} /> Vibration de réussite</label>
         <button className="secondary" onClick={downloadExport}><FormattedMessage id="export" /></button><label className="file-button"><FormattedMessage id="import" /><input type="file" accept="application/json" onChange={(event) => uploadImport(event.target.files?.[0])} /></label><button className="danger" onClick={erase}><FormattedMessage id="reset" /></button>
         <p><FormattedMessage id="storage" values={{ size: storageSize }} /></p><p className="notice" aria-live="polite">{notice}</p>
-      </section><p className="privacy">L’effacement des données du navigateur peut supprimer votre progression. Exportez-la régulièrement.</p>
+      </section><PrivacyNotice /><p className="privacy">L’effacement des données du navigateur peut supprimer votre progression. Exportez-la régulièrement.</p>
     </main>
   )
 

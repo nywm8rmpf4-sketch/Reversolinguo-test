@@ -1,7 +1,7 @@
 export const messages = {
   title: 'Reversolinguo',
   tagline: 'Les mots reviennent au bon moment.',
-  privacy: 'Votre progression reste sur cet appareil. Aucun compte n’est nécessaire.',
+  privacy: 'Votre progression reste sur cet appareil. Aucun compte, publicité ni traceur.',
   start: 'Commencer',
   reviewNow: 'Réviser maintenant',
   newCards: '{count, plural, one {# nouveau mot} other {# nouveaux mots}}',

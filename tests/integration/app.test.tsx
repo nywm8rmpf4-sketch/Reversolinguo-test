@@ -24,4 +24,18 @@ describe('accessible learning flow', () => {
     expect((await db.schedules.get(`${MANO_ID}:fr-es`))?.state).toBe('NEW')
     expect((await db.reviews.toArray())[0].canceledAt).toBeTruthy()
   })
+
+  it('exposes an age-appropriate short notice and a complete French privacy notice', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    expect(await screen.findByText('Votre progression reste sur cet appareil. Aucun compte, publicité ni traceur.')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Données et réglages' }))
+    const summary = await screen.findByText('Vie privée — en savoir plus')
+    expect(summary).toBeVisible()
+    await user.click(summary)
+    expect(screen.getByText(/Reversolinguo fonctionne sans compte et sans publicité/u)).toBeVisible()
+    expect(screen.getByText(/Votre progression et vos réponses ne sont pas envoyées/u)).toBeVisible()
+    expect(screen.getByText(/effacer toutes les données locales/u)).toBeVisible()
+  })
 })
