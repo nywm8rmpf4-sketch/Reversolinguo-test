@@ -37,16 +37,20 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 
   if (browserName === 'webkit') {
     const cachedShell = await page.evaluate(async () => {
-      const response = await caches.match('/')
+      const cacheNames = await caches.keys()
+      const requestLists = await Promise.all(cacheNames.map(async (name) => (await caches.open(name)).keys()))
+      const paths = requestLists.flat().map((request) => new URL(request.url).pathname)
       return {
-        ok: Boolean(response?.ok),
-        body: response ? await response.text() : '',
-        controlled: Boolean(navigator.serviceWorker.controller)
+        controlled: Boolean(navigator.serviceWorker.controller),
+        cacheNames,
+        paths
       }
     })
     expect(cachedShell.controlled).toBe(true)
-    expect(cachedShell.ok).toBe(true)
-    expect(cachedShell.body).toContain('<div id="root"></div>')
+    expect(cachedShell.cacheNames.length).toBeGreaterThan(0)
+    expect(cachedShell.paths).toContain('/index.html')
+    expect(cachedShell.paths.some((path) => path.endsWith('.js'))).toBe(true)
+    expect(cachedShell.paths.some((path) => path.endsWith('.css'))).toBe(true)
     await page.getByRole('button', { name: 'Fermer la séance' }).click()
     await expect(page.getByRole('button', { name: 'Réviser maintenant' })).toBeVisible()
     await expectPersistedOfflineProgress(page)
