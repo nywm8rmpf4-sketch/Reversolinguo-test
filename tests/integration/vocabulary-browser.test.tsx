@@ -5,13 +5,14 @@ import { afterEach, describe, expect, it } from 'vitest'
 import App from '../../src/app/App'
 import { VocabularyBrowser } from '../../src/app/VocabularyBrowser'
 import { catalog } from '../../src/content/catalog'
+import type { LexicalEntry } from '../../src/domain/model'
 import { messages } from '../../src/i18n/messages'
 import { db, defaultSettings } from '../../src/storage/database'
 
-function renderBrowser() {
+function renderBrowser(entries: LexicalEntry[] = catalog) {
   return render(
     <IntlProvider locale="fr" messages={messages}>
-      <VocabularyBrowser entries={catalog} initialDirection="fr-es" onBack={() => undefined} />
+      <VocabularyBrowser entries={entries} initialDirection="fr-es" onBack={() => undefined} />
     </IntlProvider>
   )
 }
@@ -43,6 +44,26 @@ describe('vocabulary browser', () => {
     const expectedSpanishFirst = catalog.slice().sort((a, b) => spanishCollator.compare(a.es, b.es))[0]
     const firstSpanishRow = screen.getAllByRole('listitem')[0]
     expect(within(firstSpanishRow).getByText(expectedSpanishFirst.es)).toBeVisible()
+  })
+
+  it('orders CEFR groups from PRE-A1 through B2', () => {
+    const levels: LexicalEntry[] = [
+      ['b2', 'B2'], ['a2', 'A2'], ['pre', 'PRE-A1'], ['b1', 'B1'], ['a1', 'A1']
+    ].map(([id, level]) => ({
+      id,
+      es: `es-${id}`,
+      fr: [`fr-${id}`],
+      exampleEs: `Ejemplo ${id}`,
+      exampleFr: `Exemple ${id}`,
+      level: level as LexicalEntry['level'],
+      theme: 'test'
+    }))
+
+    renderBrowser(levels)
+    const headings = screen.getAllByRole('heading', { level: 2 })
+      .map((heading) => heading.textContent)
+      .filter((text) => text?.startsWith('Niveau '))
+    expect(headings).toEqual(['Niveau PRE-A1', 'Niveau A1', 'Niveau A2', 'Niveau B1', 'Niveau B2'])
   })
 
   it('exposes both directions without changing learning settings or progress', async () => {
