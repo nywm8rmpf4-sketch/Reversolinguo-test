@@ -20,9 +20,12 @@ export interface CatalogIntegrityResult {
 
 const encoder = new TextEncoder()
 
-function decodeBase64(value: string): Uint8Array {
+function decodeBase64(value: string): ArrayBuffer {
   const decoded = atob(value)
-  return Uint8Array.from(decoded, (character) => character.charCodeAt(0))
+  const buffer = new ArrayBuffer(decoded.length)
+  const bytes = new Uint8Array(buffer)
+  for (let index = 0; index < decoded.length; index += 1) bytes[index] = decoded.charCodeAt(index)
+  return buffer
 }
 
 async function sha256Hex(value: string, subtle: SubtleCrypto): Promise<string> {
