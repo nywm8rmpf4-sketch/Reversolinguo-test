@@ -24,8 +24,15 @@ describe('A1 canonical catalog', () => {
     expect(hash).toBe(manifest.catalog_sha256)
   })
 
-  it('keeps human bilingual review explicitly open', () => {
-    expect(manifest.human_review).toBe('NOT_EXECUTED')
-    expect(entries.every((entry) => entry.status === 'draft')).toBe(true)
+  it('records the completed bilingual review and CC BY 4.0 publication metadata', () => {
+    expect(manifest.catalog_version).toBe('2026.09-pilot3')
+    expect(manifest.license).toBe('CC BY 4.0')
+    expect(manifest.status).toBe('validated')
+    expect(manifest.human_review).toBe('PASS')
+    expect(entries.every((entry) => entry.status === 'reviewed')).toBe(true)
+    expect(entries.every((entry) => entry.version === 2)).toBe(true)
+    expect(entries.every((entry) => entry.provenance.license === 'CC BY 4.0')).toBe(true)
+    expect(entries.every((entry) => entry.provenance.reviewed_by === 'Project owner bilingual review')).toBe(true)
+    expect(entries.every((entry) => entry.provenance.reviewed_at === '2026-09-13')).toBe(true)
   })
 })

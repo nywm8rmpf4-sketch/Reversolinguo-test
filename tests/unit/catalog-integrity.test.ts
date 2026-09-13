@@ -27,7 +27,7 @@ describe('signed catalog integrity', () => {
   })
 
   it('rejects a one-field manifest alteration', async () => {
-    const tampered = manifestText.replace('NOT_EXECUTED', 'PASS')
+    const tampered = manifestText.replace('"license": "CC BY 4.0"', '"license": "tampered"')
     await expect(verify(catalogText, tampered)).resolves.toEqual({ ok: false, reason: 'signature-invalid' })
   })
 
