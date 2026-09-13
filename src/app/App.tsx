@@ -5,7 +5,7 @@ import { PrivacyNotice } from './PrivacyNotice'
 import { catalog, catalogVersion } from '../content/catalog'
 import { appVersion } from '../config/version'
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
-import { orderSession, reviewSchedule } from '../domain/scheduler'
+import { orderSession, remainingDailyNew, reviewSchedule } from '../domain/scheduler'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
 import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
 import { messages } from '../i18n/messages'
@@ -15,15 +15,17 @@ import '../ui/styles.css'
 type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'complete'
 
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
+const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
 
 function normalize(value: string) {
   return value.normalize('NFC').trim().toLocaleLowerCase('fr').replace(/[.!?]$/u, '')
 }
 
-function challenge(summary: ProgressSummary, dailyNew: number) {
+function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number) {
   if (summary.dueCount > 0) return `Défi léger : réviser ${Math.min(3, summary.dueCount)} carte${summary.dueCount > 1 ? 's' : ''} à revoir.`
-  if (summary.newCount > 0 && dailyNew > 0) return `Défi léger : découvrir ${Math.min(2, summary.newCount)} nouveau${summary.newCount > 1 ? 'x' : ''} mot${summary.newCount > 1 ? 's' : ''}.`
-  if (summary.newCount > 0) return 'Les nouveaux mots sont en pause dans vos réglages.'
+  if (summary.newCount > 0 && remainingNew > 0) return `Défi léger : découvrir ${Math.min(2, summary.newCount, remainingNew)} nouveau${Math.min(summary.newCount, remainingNew) > 1 ? 'x' : ''} mot${Math.min(summary.newCount, remainingNew) > 1 ? 's' : ''}.`
+  if (summary.newCount > 0 && configuredDailyNew === 0) return 'Les nouveaux mots sont en pause dans vos réglages.'
+  if (summary.newCount > 0) return 'Quota de nouveaux mots atteint pour aujourd’hui. Vous pourrez reprendre demain.'
   return 'Rien à faire pour l’instant : revenez à la prochaine échéance.'
 }
 
@@ -46,12 +48,14 @@ function AppContent() {
   const [screen, setScreen] = useState<Screen>('loading')
   const [settings, setSettings] = useState<SettingsRecord>(defaultSettings)
   const [queue, setQueue] = useState<ScheduleState[]>([])
+  const [sessionTotal, setSessionTotal] = useState(0)
   const [answer, setAnswer] = useState('')
   const [revealed, setRevealed] = useState(false)
   const [notice, setNotice] = useState('')
   const [lastReview, setLastReview] = useState<ReviewEvent | null>(null)
   const [offlineReady, setOfflineReady] = useState(false)
   const [progress, setProgress] = useState<ProgressSummary>(emptyProgress)
+  const [newRemainingToday, setNewRemainingToday] = useState(defaultSettings.dailyNew)
   const [storageSize, setStorageSize] = useState('indisponible')
   const [updateReady, setUpdateReady] = useState(false)
 
@@ -73,8 +77,12 @@ function AppContent() {
     Promise.all([
       db.schedules.where('direction').equals(settings.direction).toArray(),
       db.reviews.filter((item) => item.direction === settings.direction).toArray()
-    ]).then(([states, reviews]) => setProgress(summarizeProgress(states, reviews, new Date())))
-  }, [screen, settings.direction])
+    ]).then(([states, reviews]) => {
+      const now = new Date()
+      setProgress(summarizeProgress(states, reviews, now))
+      setNewRemainingToday(remainingDailyNew(reviews, settings.direction, now, settings.dailyNew))
+    })
+  }, [screen, settings.direction, settings.dailyNew])
 
   useEffect(() => {
     if (screen !== 'settings' || !navigator.storage?.estimate) return
@@ -101,11 +109,21 @@ function AppContent() {
   }
 
   async function startSession() {
-    const all = await db.schedules.where('direction').equals(settings.direction).toArray()
+    const now = new Date()
+    const [all, reviews] = await Promise.all([
+      db.schedules.where('direction').equals(settings.direction).toArray(),
+      db.reviews.filter((item) => item.direction === settings.direction).toArray()
+    ])
     const catalogOrder = new Map(catalog.map((item, index) => [item.id, index]))
     all.sort((a, b) => (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER))
-    const session = orderSession(all, new Date(), settings.dailyNew)
-    setQueue(session); setAnswer(''); setRevealed(false); setScreen(session.length ? 'session' : 'complete')
+    const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
+    const session = orderSession(all, now, remainingNew, catalogThemes)
+    if (!session.length) {
+      setNotice('Aucune carte à réviser ou découvrir pour le moment.')
+      setScreen('home')
+      return
+    }
+    setQueue(session); setSessionTotal(session.length); setAnswer(''); setRevealed(false); setScreen('session')
   }
 
   async function rate(rating: Rating) {
@@ -173,7 +191,7 @@ function AppContent() {
   )
 
   if (screen === 'home') {
-    const planned = progress.dueCount + Math.min(progress.newCount, settings.dailyNew)
+    const planned = progress.dueCount + Math.min(progress.newCount, newRemainingToday)
     const hasSession = planned > 0
     const estimate = hasSession ? Math.max(1, Math.ceil(planned * 0.5)) : 0
     return (
@@ -182,8 +200,9 @@ function AppContent() {
         <section className="hero-card"><span className="status"><span aria-hidden="true">●</span> <FormattedMessage id={offlineReady ? 'offlineReady' : 'preparingOffline'} /></span><h2><FormattedMessage id="tagline" /></h2>
           <p><FormattedMessage id="due" values={{ count: progress.dueCount }} />{hasSession ? ` · environ ${estimate} min (estimation)` : ' · aucune séance planifiée'}</p>
           {progress.dueCount > 0 && <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>}
-          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && <button className="primary large" onClick={startSession}>Découvrir maintenant</button>}
+          {progress.dueCount === 0 && progress.newCount > 0 && newRemainingToday > 0 && <button className="primary large" onClick={startSession}>Découvrir maintenant</button>}
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}>Modifier le quota de nouveaux mots</button>}
+          {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper">Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.</p>}
           {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper">Rien à réviser pour le moment. Revenez à la prochaine échéance.</p>}
         </section>
         <section className="stats" aria-label="Progression">
@@ -191,7 +210,7 @@ function AppContent() {
           <div><strong>{progress.consolidatedCount}</strong><span>Consolidées (intervalle ≥ 21 j)</span></div><div><strong>{progress.coveragePercent} %</strong><span>Catalogue A1 étudié</span></div>
           <div><strong>{progress.recallRate30d === null ? '—' : `${progress.recallRate30d} %`}</strong><span>Rappels corrects sur 30 j</span></div><div><strong>{progress.effortPoints}</strong><span>Points d’effort · 1 par rappel</span></div>
         </section>
-        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress, settings.dailyNew)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
+        <section className="panel motivation"><h2>Pour aujourd’hui</h2><p>{challenge(progress, settings.dailyNew, newRemainingToday)}</p><p>{progress.activeDays7} jour{progress.activeDays7 > 1 ? 's' : ''} actif{progress.activeDays7 > 1 ? 's' : ''} sur les 7 derniers · aucune série à perdre.</p>{progress.consolidatedCount > 0 && <p className="badge">Badge : premier rappel consolidé</p>}</section>
         <p className="privacy"><FormattedMessage id="privacy" /></p>
       </main>
     )
@@ -215,7 +234,7 @@ function AppContent() {
   if (screen === 'complete') return <main className="shell centered">{updateBanner}<div className={`success${settings.motionEnabled ? ' pulse' : ''}`} aria-hidden="true">✓</div><h1><FormattedMessage id="finish" /></h1><p><FormattedMessage id="finishDetail" /></p>{lastReview && <button className="secondary" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}<button className="primary" onClick={() => setScreen('home')}>Retour à l’accueil</button></main>
 
   return (
-    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only">Fermer la séance</span></button><progress value={Math.max(1, settings.dailyNew - queue.length + 1)} max={Math.max(1, settings.dailyNew)} aria-label="Progression de la séance"/><span>{queue.length}</span></header>
+    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only">Fermer la séance</span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label="Progression de la séance"/><span>{queue.length}</span></header>
       {lastReview && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {entry && current && <section className="flashcard" aria-live="polite"><span className="direction-label">{current.direction === 'fr-es' ? 'Traduisez en espagnol' : 'Traduisez en français'}</span><h1>{prompt}</h1><label htmlFor="answer">Votre réponse</label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} />
         {!revealed ? <button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button> : <div className="correction"><p className={answerMatches ? 'answer-ok' : 'answer-review'}>{answerMatches ? 'Réponse identique ✓' : 'Comparez votre réponse'}</p><h2>{expected[0]}</h2><p>{entry.exampleEs}<br/><span>{entry.exampleFr}</span></p><fieldset><legend>Comment s’est passé ce rappel ?</legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset></div>}

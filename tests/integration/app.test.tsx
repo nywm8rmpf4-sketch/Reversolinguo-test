@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from '../../src/app/App'
 import { ensureCatalogSchedules } from '../../src/app/bootstrap'
+import { initialSchedule } from '../../src/domain/scheduler'
+import type { ReviewEvent } from '../../src/domain/model'
 import { db, defaultSettings } from '../../src/storage/database'
 
 const MANO_ID = '69046998-47e6-5570-b469-5a5cc961a97e'
@@ -68,5 +70,34 @@ describe('accessible learning flow', () => {
     expect(screen.getByRole('button', { name: 'Modifier le quota de nouveaux mots' })).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Réviser maintenant' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer a sixth new card after the daily allowance has been used', async () => {
+    const now = new Date()
+    await db.settings.put({ ...defaultSettings, onboarded: true, dailyNew: 5 })
+    await ensureCatalogSchedules(db)
+    const reviews: ReviewEvent[] = Array.from({ length: 5 }, (_, index) => {
+      const previousState = initialSchedule(`already-introduced-${index}`, 'fr-es', now)
+      return {
+        id: `daily-${index}`,
+        scheduleKey: previousState.key,
+        entryId: previousState.entryId,
+        direction: 'fr-es',
+        rating: 2,
+        reviewedAt: now.toISOString(),
+        previousDueAt: previousState.dueAt,
+        nextDueAt: now.toISOString(),
+        appVersion: '0.1.0',
+        catalogVersion: 'test',
+        schedulerVersion: 'srs-1',
+        previousState
+      }
+    })
+    await db.reviews.bulkAdd(reviews)
+
+    render(<App />)
+    expect(await screen.findByText('Quota de nouveaux mots atteint pour aujourd’hui. Revenez demain ou attendez les prochaines révisions.')).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
+    expect(screen.getByText(/aucune séance planifiée/u)).toBeVisible()
   })
 })
