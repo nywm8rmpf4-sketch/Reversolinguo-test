@@ -402,3 +402,5 @@ jobs:
             echo "- publication_tree: $EXPECTED_TREE"
             echo '- rebuild: NO'
           } >> "$GITHUB_STEP_SUMMARY"
+
+# OPT-CERT-3 bootstrap QA marker; process-only, no product impact.
