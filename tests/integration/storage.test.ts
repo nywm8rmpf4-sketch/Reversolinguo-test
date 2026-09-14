@@ -24,12 +24,15 @@ describe('local progress', () => {
   it('exports and restores a valid snapshot atomically', async () => {
     const source = new ReversolinguoDatabase(`source-${crypto.randomUUID()}`); names.push(source.name)
     await source.schedules.put(initialSchedule('card-1', 'fr-es', new Date('2026-09-13T08:00:00Z')))
-    await source.settings.put({ ...defaultSettings, onboarded: true, direction: 'fr-es' })
+    await source.settings.put({ ...defaultSettings, onboarded: true, direction: 'fr-es', soundMode: 'on' })
     const raw = await exportProgress(source)
+    const exported = JSON.parse(raw) as { settings: Array<Record<string, unknown>> }
+    expect(exported.settings[0]).toMatchObject({ soundMode: 'on' })
+    expect(exported.settings[0]).not.toHaveProperty('soundEnabled')
     const target = new ReversolinguoDatabase(`target-${crypto.randomUUID()}`); names.push(target.name)
     await importProgress(raw, target)
     expect(await target.schedules.count()).toBe(1)
-    expect((await target.settings.get('settings'))?.onboarded).toBe(true)
+    expect(await target.settings.get('settings')).toMatchObject({ onboarded: true, soundMode: 'on' })
   })
 
   it('normalizes a legacy valid export with new settings and catalog ids', async () => {
@@ -45,9 +48,19 @@ describe('local progress', () => {
       settings: [{ id: 'settings', onboarded: true, direction: 'es-fr', dailyNew: 3 }]
     })
     await importProgress(raw, target)
-    expect(await target.settings.get('settings')).toMatchObject({ direction: 'es-fr', dailyNew: 3, dailyGoalMinutes: 10, soundEnabled: false, vibrationEnabled: false })
+    expect(await target.settings.get('settings')).toMatchObject({ direction: 'es-fr', dailyNew: 3, dailyGoalMinutes: 10, soundMode: 'off', vibrationEnabled: false })
     expect(await target.schedules.get('a1-mano:fr-es')).toBeUndefined()
     expect(await target.schedules.get('69046998-47e6-5570-b469-5a5cc961a97e:fr-es')).toMatchObject({ entryId: '69046998-47e6-5570-b469-5a5cc961a97e', intervalDays: 21 })
+  })
+
+  it('maps the historical soundEnabled preference without changing user intent', async () => {
+    const enabled = new ReversolinguoDatabase(`legacy-sound-on-${crypto.randomUUID()}`); names.push(enabled.name)
+    const disabled = new ReversolinguoDatabase(`legacy-sound-off-${crypto.randomUUID()}`); names.push(disabled.name)
+    const base = { schemaVersion: 1, exportedAt: '2026-09-13T08:00:00.000Z', schedules: [], reviews: [] }
+    await importProgress(JSON.stringify({ ...base, settings: [{ id: 'settings', onboarded: true, direction: 'fr-es', dailyNew: 5, soundEnabled: true }] }), enabled)
+    await importProgress(JSON.stringify({ ...base, settings: [{ id: 'settings', onboarded: true, direction: 'fr-es', dailyNew: 5, soundEnabled: false }] }), disabled)
+    expect((await enabled.settings.get('settings'))?.soundMode).toBe('on')
+    expect((await disabled.settings.get('settings'))?.soundMode).toBe('off')
   })
 
   it('rejects an invalid snapshot without erasing existing data', async () => {

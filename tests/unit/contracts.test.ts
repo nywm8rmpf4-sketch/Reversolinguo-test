@@ -3,13 +3,13 @@ import validEntry from '../fixtures/lexical-entry.valid.json'
 import invalidEntry from '../fixtures/lexical-entry.invalid.json'
 import { validateLexicalEntry, validateProgressExport } from '../../src/content/contracts'
 
-function emptyExport(direction = 'fr-es') {
+function emptyExport(direction = 'fr-es', settings: Record<string, unknown> = {}) {
   return {
     schemaVersion: 1,
     exportedAt: new Date().toISOString(),
     schedules: [],
     reviews: [],
-    settings: [{ id: 'settings', onboarded: true, direction, dailyNew: 5 }]
+    settings: [{ id: 'settings', onboarded: true, direction, dailyNew: 5, ...settings }]
   }
 }
 
@@ -27,6 +27,11 @@ describe('shared executable contracts', () => {
   })
   it('keeps the existing FR-ES export contract valid', () => {
     expect(validateProgressExport(emptyExport('fr-es'))).toEqual({ valid: true, errors: [] })
+  })
+  it('accepts both the normalized sound mode and the historical sound flag', () => {
+    expect(validateProgressExport(emptyExport('fr-es', { soundMode: 'subtle' })).valid).toBe(true)
+    expect(validateProgressExport(emptyExport('fr-es', { soundEnabled: true })).valid).toBe(true)
+    expect(validateProgressExport(emptyExport('fr-es', { soundMode: 'loud' })).valid).toBe(false)
   })
   it('accepts a future configured direction id without changing historical data', () => {
     expect(validateProgressExport(emptyExport('fr-de'))).toEqual({ valid: true, errors: [] })

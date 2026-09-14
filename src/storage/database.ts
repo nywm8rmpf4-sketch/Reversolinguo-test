@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 import { legacyEntryIdMap } from '../content/legacyIds'
 import type { Direction, ReviewEvent, ScheduleState } from '../domain/model'
+import { defaultSoundMode, soundModeFromPersisted, type SoundMode } from '../audio/model'
 
 export interface SettingsRecord {
   id: 'settings'
@@ -9,20 +10,28 @@ export interface SettingsRecord {
   dailyNew: number
   dailyGoalMinutes: number
   motionEnabled: boolean
-  soundEnabled: boolean
+  soundMode: SoundMode
   vibrationEnabled: boolean
 }
 
+type PersistedSettingsInput = Partial<SettingsRecord> & { soundEnabled?: boolean }
+
 export const defaultSettings: SettingsRecord = {
   id: 'settings', onboarded: false, direction: 'fr-es', dailyNew: 5, dailyGoalMinutes: 10,
-  motionEnabled: true, soundEnabled: false, vibrationEnabled: false
+  motionEnabled: true, soundMode: defaultSoundMode, vibrationEnabled: false
 }
 
 const maxImportBytes = 2_000_000
 const forbiddenActiveContent = /(?:<[^>]+>|javascript\s*:|data\s*:\s*text\/html)/iu
 
-function completeSettings(value?: Partial<SettingsRecord>): SettingsRecord {
-  return { ...defaultSettings, ...value, id: 'settings' }
+function completeSettings(value?: PersistedSettingsInput): SettingsRecord {
+  const { soundEnabled, ...current } = value ?? {}
+  return {
+    ...defaultSettings,
+    ...current,
+    soundMode: soundModeFromPersisted(current.soundMode, soundEnabled),
+    id: 'settings'
+  }
 }
 
 function migratedEntryId(entryId: string): string {
@@ -59,13 +68,14 @@ export class ReversolinguoDatabase extends Dexie {
 
   constructor(name = 'reversolinguo') {
     super(name)
+    const stores = { schedules: '&key, entryId, direction, state, dueAt', reviews: '&id, scheduleKey, reviewedAt, canceledAt', settings: '&id' }
     this.version(1).stores({ schedules: '&key, entryId, direction, state, dueAt', reviews: '&id, scheduleKey, reviewedAt', settings: '&id' })
-    this.version(2).stores({ schedules: '&key, entryId, direction, state, dueAt', reviews: '&id, scheduleKey, reviewedAt, canceledAt', settings: '&id' })
+    this.version(2).stores(stores)
       .upgrade(async (transaction) => {
-        const settings = await transaction.table('settings').get('settings') as Partial<SettingsRecord> | undefined
+        const settings = await transaction.table('settings').get('settings') as PersistedSettingsInput | undefined
         if (settings) await transaction.table('settings').put(completeSettings(settings))
       })
-    this.version(3).stores({ schedules: '&key, entryId, direction, state, dueAt', reviews: '&id, scheduleKey, reviewedAt, canceledAt', settings: '&id' })
+    this.version(3).stores(stores)
       .upgrade(async (transaction) => {
         const schedules = transaction.table('schedules')
         for (const value of await schedules.toArray() as ScheduleState[]) {
@@ -81,9 +91,14 @@ export class ReversolinguoDatabase extends Dexie {
           if (migrated !== value) await reviews.put(migrated)
         }
       })
-    this.version(4).stores({ schedules: '&key, entryId, direction, state, dueAt', reviews: '&id, scheduleKey, reviewedAt, canceledAt', settings: '&id' })
+    this.version(4).stores(stores)
       .upgrade(async (transaction) => {
-        const settings = await transaction.table('settings').get('settings') as Partial<SettingsRecord> | undefined
+        const settings = await transaction.table('settings').get('settings') as PersistedSettingsInput | undefined
+        if (settings) await transaction.table('settings').put(completeSettings(settings))
+      })
+    this.version(5).stores(stores)
+      .upgrade(async (transaction) => {
+        const settings = await transaction.table('settings').get('settings') as PersistedSettingsInput | undefined
         if (settings) await transaction.table('settings').put(completeSettings(settings))
       })
   }
@@ -101,7 +116,7 @@ export async function importProgress(raw: string, database = db): Promise<void> 
   if (containsForbiddenActiveContent(data)) throw new Error('Contenu actif interdit dans la sauvegarde.')
   const { validateProgressExport } = await import('../content/contracts')
   if (!validateProgressExport(data).valid) throw new Error('Format de sauvegarde invalide.')
-  const validData = data as { schedules: ScheduleState[]; reviews: ReviewEvent[]; settings: Partial<SettingsRecord>[] }
+  const validData = data as { schedules: ScheduleState[]; reviews: ReviewEvent[]; settings: PersistedSettingsInput[] }
   const normalizedSchedules = validData.schedules.map(migrateSchedule)
   const normalizedReviews = validData.reviews.map(migrateReview)
   const normalizedSettings = validData.settings.map((value) => completeSettings(value))

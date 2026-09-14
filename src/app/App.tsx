@@ -14,6 +14,8 @@ import { activeLanguagePair, examplesFor, expectedFor, getDirectionConfig, promp
 import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
 import { messages } from '../i18n/messages'
 import { applyServiceWorkerUpdate } from '../pwa/update'
+import { playSound } from '../audio/engine'
+import { isSoundMode, type SoundEvent } from '../audio/model'
 import '../ui/styles.css'
 
 type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'vocabulary' | 'complete'
@@ -23,6 +25,7 @@ type MessageId = keyof typeof messages
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
 const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
 const catalogEntryIds = new Set(catalog.map((item) => item.id))
+const ratingSound: Record<Rating, SoundEvent> = { 0: 'forgotten', 1: 'hard', 2: 'correct', 3: 'easy' }
 
 function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number, freeReviewAvailable: boolean): { id: MessageId; values?: { count: number } } {
   if (summary.dueCount > 0) return { id: 'challengeDue', values: { count: Math.min(3, summary.dueCount) } }
@@ -33,18 +36,9 @@ function challenge(summary: ProgressSummary, configuredDailyNew: number, remaini
   return { id: 'challengeNone' }
 }
 
-function successFeedback(settings: SettingsRecord) {
+function completionFeedback(settings: SettingsRecord) {
   if (settings.vibrationEnabled && 'vibrate' in navigator) navigator.vibrate(35)
-  if (settings.soundEnabled && 'AudioContext' in window) {
-    const context = new AudioContext()
-    const oscillator = context.createOscillator()
-    const gain = context.createGain()
-    oscillator.frequency.value = 523
-    gain.gain.value = 0.035
-    oscillator.connect(gain); gain.connect(context.destination)
-    oscillator.start(); oscillator.stop(context.currentTime + 0.08)
-    oscillator.addEventListener('ended', () => void context.close())
-  }
+  playSound('sessionComplete', settings.soundMode)
 }
 
 function AppContent() {
@@ -210,16 +204,24 @@ function AppContent() {
     openSession(session, 'exploration')
   }
 
-  function advanceUnscheduled() {
-    const rest = queue.slice(1)
+  function finishOrAdvance(rest: ScheduleState[], rating: Rating) {
     setQueue(rest); setAnswer(''); setRevealed(false); setUnknownAnswer(false); setNotice('')
-    if (!rest.length) { successFeedback(settings); setScreen('complete') }
+    if (!rest.length) {
+      completionFeedback(settings)
+      setScreen('complete')
+      return
+    }
+    playSound(ratingSound[rating], settings.soundMode)
+  }
+
+  function advanceUnscheduled(rating: Rating) {
+    finishOrAdvance(queue.slice(1), rating)
   }
 
   async function rate(rating: Rating) {
     if (!current) return
     if (sessionMode !== 'scheduled') {
-      advanceUnscheduled()
+      advanceUnscheduled(rating)
       return
     }
     const now = new Date()
@@ -238,13 +240,17 @@ function AppContent() {
       setNotice(intl.formatMessage({ id: 'saveReviewError' }))
       return
     }
-    setLastReview(event); setNotice('')
-    const rest = queue.slice(1)
-    setQueue(rest); setAnswer(''); setRevealed(false); setUnknownAnswer(false)
-    if (!rest.length) { successFeedback(settings); setScreen('complete') }
+    setLastReview(event)
+    finishOrAdvance(queue.slice(1), rating)
+  }
+
+  function revealAnswer() {
+    playSound('cardFlip', settings.soundMode)
+    setRevealed(true)
   }
 
   function revealUnknown() {
+    playSound('cardFlip', settings.soundMode)
     setAnswer('')
     setUnknownAnswer(true)
     setRevealed(true)
@@ -335,7 +341,8 @@ function AppContent() {
         <label htmlFor="daily-new"><FormattedMessage id="dailyNew" values={{ count: settings.dailyNew }} /></label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
         <label htmlFor="daily-goal-settings"><FormattedMessage id="dailyGoalSettings" /></label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
         <label className="check"><input type="checkbox" checked={settings.motionEnabled} onChange={(event) => void persistSettings({ motionEnabled: event.target.checked })} /> <FormattedMessage id="motionSetting" /></label>
-        <label className="check"><input type="checkbox" checked={settings.soundEnabled} onChange={(event) => void persistSettings({ soundEnabled: event.target.checked })} /> <FormattedMessage id="soundSetting" /></label>
+        <label htmlFor="sound-mode"><FormattedMessage id="soundSetting" /></label><select id="sound-mode" value={settings.soundMode} onChange={(event) => { if (isSoundMode(event.target.value)) void persistSettings({ soundMode: event.target.value }) }}><option value="off"><FormattedMessage id="soundModeOff" /></option><option value="subtle"><FormattedMessage id="soundModeSubtle" /></option><option value="on"><FormattedMessage id="soundModeOn" /></option></select>
+        <span className="helper"><FormattedMessage id="soundModeHelper" /></span>
         <label className="check"><input type="checkbox" checked={settings.vibrationEnabled} onChange={(event) => void persistSettings({ vibrationEnabled: event.target.checked })} /> <FormattedMessage id="vibrationSetting" /></label>
         <button className="secondary" onClick={downloadExport}><FormattedMessage id="export" /></button><label className="file-button"><FormattedMessage id="import" /><input type="file" accept="application/json" onChange={(event) => uploadImport(event.target.files?.[0])} /></label><button className="danger" onClick={erase}><FormattedMessage id="reset" /></button>
         <p><FormattedMessage id="storage" values={{ size: storageSize ?? intl.formatMessage({ id: 'storageUnavailable' }) }} /></p><p className="notice" aria-live="polite">{notice}</p>
@@ -356,7 +363,7 @@ function AppContent() {
       {lastReview && sessionMode === 'scheduled' && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {notice && <p className="notice" role="alert">{notice}</p>}
       {entry && current && directionConfig && examples && <section className="flashcard" aria-live="polite"><span className="direction-label">{modePrefix}<FormattedMessage id={directionConfig.promptMessageId} /></span><h1 lang={directionConfig.promptLanguage} dir="auto">{prompt}</h1><label htmlFor="answer"><FormattedMessage id="answerLabel" /></label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} lang={directionConfig.answerLanguage} />
-        {!revealed ? <><button className="primary" onClick={() => setRevealed(true)} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={unknownAnswer ? 'answer-review' : answerMatches ? 'answer-ok' : 'answer-review'}>{unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? <FormattedMessage id="answerExact" /> : <FormattedMessage id="answerCompare" />}</p>{!unknownAnswer && !answerMatches && <div className="answer-difference"><p><FormattedMessage id="answerGiven" values={{ answer }} /></p><p><strong><FormattedMessage id={differenceMessage} /></strong></p><p><FormattedMessage id="answerExpected" values={{ expected: comparison.expected }} /></p></div>}<h2 lang={directionConfig.answerLanguage} dir="auto">{comparison.expected || expected[0]}</h2><p><span lang={directionConfig.promptLanguage} dir="auto">{examples.prompt}</span><br/><span lang={directionConfig.answerLanguage} dir="auto">{examples.answer}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend><FormattedMessage id="recallRating" /></legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
+        {!revealed ? <><button className="primary" onClick={revealAnswer} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={unknownAnswer ? 'answer-review' : answerMatches ? 'answer-ok' : 'answer-review'}>{unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? <FormattedMessage id="answerExact" /> : <FormattedMessage id="answerCompare" />}</p>{!unknownAnswer && !answerMatches && <div className="answer-difference"><p><FormattedMessage id="answerGiven" values={{ answer }} /></p><p><strong><FormattedMessage id={differenceMessage} /></strong></p><p><FormattedMessage id="answerExpected" values={{ expected: comparison.expected }} /></p></div>}<h2 lang={directionConfig.answerLanguage} dir="auto">{comparison.expected || expected[0]}</h2><p><span lang={directionConfig.promptLanguage} dir="auto">{examples.prompt}</span><br/><span lang={directionConfig.answerLanguage} dir="auto">{examples.answer}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend><FormattedMessage id="recallRating" /></legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
       </section>}
     </main>
   )
