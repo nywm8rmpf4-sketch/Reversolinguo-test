@@ -1,0 +1,233 @@
+name: Validate OPT-CERT-1 execution
+
+on:
+  push:
+    branches:
+      - validation/opt-cert-1-exec
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: reversolinguo-opt-cert-1-execution
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ARTIFACT_ID: '10327071495'
+      EXPECTED_CANDIDATE_SHA: 0804ce7d69311db6d30acebdc9aace519ff7956d
+      EXPECTED_ARTIFACT_SHA256: c1724a67c9ca7bc830b256078c8d51febc8a3badf60d0b14026a4262ec3595c4
+      EXPECTED_QA_RUN: '34786852060'
+      EXPECTED_TREE: f4db0209273ec571dc61334c70e255afad250e62
+      SANDBOX_BRANCH: validation/opt-cert-1-v1.0.0-exec-sandbox
+      PUBLICATION_REPO: nywm8rmpf4-sketch/Reversolinguo
+      EXPECTED_PUBLICATION_MAIN: f7e627904d11b8ad6a3d341313ba460e6baaa160
+      RELEASE_BRANCH: release/v1.0.0-certified
+      RELEASE_TAG: v1.0.0
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout validation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify permanent workflow contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          promote=.github/workflows/promote-qualified.yml
+          publish=.github/workflows/publish-certified.yml
+          test -f "$promote" && test -f "$publish"
+          grep -A5 '^      artifact_id:' "$promote" | grep -Fq 'required: true'
+          grep -A5 '^      candidate_sha:' "$promote" | grep -Fq 'required: false'
+          grep -A5 '^      artifact_sha256:' "$promote" | grep -Fq 'required: false'
+          grep -A5 '^      expected_main_head:' "$promote" | grep -Fq 'required: false'
+          grep -A5 '^      artifact_id:' "$publish" | grep -Fq 'required: true'
+          grep -A5 '^      candidate_sha:' "$publish" | grep -Fq 'required: false'
+          grep -A5 '^      artifact_sha256:' "$publish" | grep -Fq 'required: false'
+          grep -Fq 'allow_existing_exact_release' "$publish"
+          grep -Fq 'workflow_run.head_sha' "$promote"
+          grep -Fq 'workflow_run.head_sha' "$publish"
+          grep -Fq 'digest' "$promote"
+          grep -Fq 'digest' "$publish"
+
+      - name: Snapshot protected refs before validation
+        id: before
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          gh_pages="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/gh-pages" --jq '.object.sha')"
+          publication_main="$(gh api "repos/$PUBLICATION_REPO/git/ref/heads/main" --jq '.object.sha')"
+          publication_release="$(gh api "repos/$PUBLICATION_REPO/git/ref/heads/$RELEASE_BRANCH" --jq '.object.sha')"
+          tag_object="$(gh api "repos/$PUBLICATION_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')"
+          publication_tag_commit="$(gh api "repos/$PUBLICATION_REPO/git/tags/$tag_object" --jq '.object.sha')"
+          test "$publication_main" = "$EXPECTED_PUBLICATION_MAIN"
+          test "$publication_release" = "$EXPECTED_PUBLICATION_MAIN"
+          test "$publication_tag_commit" = "$EXPECTED_PUBLICATION_MAIN"
+          echo "test_main=$test_main" >> "$GITHUB_OUTPUT"
+          echo "gh_pages=$gh_pages" >> "$GITHUB_OUTPUT"
+          echo "publication_main=$publication_main" >> "$GITHUB_OUTPUT"
+          echo "publication_release=$publication_release" >> "$GITHUB_OUTPUT"
+          echo "publication_tag_commit=$publication_tag_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve certified identity from artifact metadata
+        id: artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID")"
+          candidate_sha="$(jq -r '.workflow_run.head_sha // empty' <<<"$metadata")"
+          source_run_id="$(jq -r '.workflow_run.id // empty' <<<"$metadata")"
+          digest="$(jq -r '.digest // empty' <<<"$metadata")"
+          expired="$(jq -r '.expired' <<<"$metadata")"
+          test "$expired" = false
+          test "$candidate_sha" = "$EXPECTED_CANDIDATE_SHA"
+          test "$source_run_id" = "$EXPECTED_QA_RUN"
+          test "$digest" = "sha256:$EXPECTED_ARTIFACT_SHA256"
+          conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$source_run_id" --jq '.conclusion')"
+          test "$conclusion" = success
+          echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Download and verify exact certified bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip="$RUNNER_TEMP/certified-v1.zip"
+          dir="$RUNNER_TEMP/certified-v1"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$zip"
+          actual="$(sha256sum "$zip" | awk '{print $1}')"
+          test "$actual" = "$EXPECTED_ARTIFACT_SHA256"
+          mkdir -p "$dir"
+          unzip -q "$zip" -d "$dir"
+          cd "$dir"
+          test -d dist && test -f dist.sha256
+          sha256sum --check --strict dist.sha256
+          ! grep -R -Fq '/Reversolinguo-test/' dist
+
+      - name: Reconstruct exact Git tree without application rebuild
+        id: tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/replay"
+          mkdir -p "$dir" && cd "$dir"
+          git init -q
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          cp -a "$RUNNER_TEMP/certified-v1/dist"/. .
+          cp "$RUNNER_TEMP/certified-v1/dist.sha256" ./dist.sha256
+          touch .nojekyll
+          git add -A
+          tree="$(git write-tree)"
+          test "$tree" = "$EXPECTED_TREE"
+          echo "tree=$tree" >> "$GITHUB_OUTPUT"
+          gh auth setup-git
+          git remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+
+      - name: Exercise isolated replay then idempotent no-op
+        id: sandbox
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/replay"
+          existing="$(git ls-remote origin "refs/heads/$SANDBOX_BRANCH" | awk '{print $1}')"
+          if [ -n "$existing" ]; then
+            git fetch --quiet origin "refs/heads/$SANDBOX_BRANCH:refs/remotes/origin/sandbox"
+            existing_tree="$(git rev-parse refs/remotes/origin/sandbox^{tree})"
+            test "$existing_tree" = "$EXPECTED_TREE"
+            first_commit="$existing"
+          else
+            git commit -q -m 'validation: OPT-CERT-1 exact v1 replay'
+            first_commit="$(git rev-parse HEAD)"
+            git push origin "HEAD:refs/heads/$SANDBOX_BRANCH"
+          fi
+          remote_first="$(git ls-remote origin "refs/heads/$SANDBOX_BRANCH" | awk '{print $1}')"
+          test "$remote_first" = "$first_commit"
+          git fetch --quiet origin "refs/heads/$SANDBOX_BRANCH:refs/remotes/origin/sandbox2"
+          second_tree="$(git rev-parse refs/remotes/origin/sandbox2^{tree})"
+          test "$second_tree" = "$EXPECTED_TREE"
+          second_commit="$(git ls-remote origin "refs/heads/$SANDBOX_BRANCH" | awk '{print $1}')"
+          test "$second_commit" = "$first_commit"
+          echo "sandbox_commit=$second_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Reverify sandbox bytes remotely
+        shell: bash
+        env:
+          SANDBOX_COMMIT: ${{ steps.sandbox.outputs.sandbox_commit }}
+        run: |
+          set -euo pipefail
+          verify="$RUNNER_TEMP/replay-verify"
+          git clone --quiet --depth=1 --branch "$SANDBOX_BRANCH" "https://github.com/$GITHUB_REPOSITORY.git" "$verify"
+          cd "$verify"
+          test "$(git rev-parse HEAD)" = "$SANDBOX_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$EXPECTED_TREE"
+          while read -r expected path; do
+            rel="${path#dist/}"
+            test -f "$rel"
+            actual="$(sha256sum "$rel" | awk '{print $1}')"
+            test "$actual" = "$expected"
+          done < dist.sha256
+          test -f .nojekyll
+
+      - name: Exercise negative identity and conflict guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          candidate='${{ steps.artifact.outputs.candidate_sha }}'
+          digest='${{ steps.artifact.outputs.digest }}'
+          tree='${{ steps.tree.outputs.tree }}'
+          reject_equal() {
+            if [ "$1" = "$2" ]; then
+              echo "ERROR: negative guard accepted forbidden equality" >&2
+              exit 1
+            fi
+          }
+          reject_equal "$candidate" 0000000000000000000000000000000000000000
+          reject_equal "$digest" sha256:0000000000000000000000000000000000000000000000000000000000000000
+          reject_equal "$tree" 0000000000000000000000000000000000000000
+          cd "$RUNNER_TEMP/replay"
+          printf 'conflict\n' > unexpected-file
+          git add unexpected-file
+          conflict_tree="$(git write-tree)"
+          reject_equal "$conflict_tree" "$EXPECTED_TREE"
+          rm unexpected-file
+
+      - name: Prove certified and QA refs were not touched
+        shell: bash
+        env:
+          TEST_MAIN_BEFORE: ${{ steps.before.outputs.test_main }}
+          GH_PAGES_BEFORE: ${{ steps.before.outputs.gh_pages }}
+          PUB_MAIN_BEFORE: ${{ steps.before.outputs.publication_main }}
+          PUB_RELEASE_BEFORE: ${{ steps.before.outputs.publication_release }}
+          PUB_TAG_BEFORE: ${{ steps.before.outputs.publication_tag_commit }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')" = "$TEST_MAIN_BEFORE"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/gh-pages" --jq '.object.sha')" = "$GH_PAGES_BEFORE"
+          test "$(gh api "repos/$PUBLICATION_REPO/git/ref/heads/main" --jq '.object.sha')" = "$PUB_MAIN_BEFORE"
+          test "$(gh api "repos/$PUBLICATION_REPO/git/ref/heads/$RELEASE_BRANCH" --jq '.object.sha')" = "$PUB_RELEASE_BEFORE"
+          tag_object="$(gh api "repos/$PUBLICATION_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')"
+          test "$(gh api "repos/$PUBLICATION_REPO/git/tags/$tag_object" --jq '.object.sha')" = "$PUB_TAG_BEFORE"
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo '## OPT-CERT-1 isolated execution'
+            echo '- process validation: PASS if job green'
+            echo '- application rebuild: NO'
+            echo '- product tests: NOT_EXECUTED (out of impact scope)'
+            echo '- semantic review: NOT_EXECUTED (runtime unchanged)'
+            echo '- human test: NOT_EXECUTED (runtime unchanged)'
+            echo '- certified publication changed: NO'
+            echo '- test main / gh-pages changed: NO'
+            echo '- isolated sandbox replay: exact tree + exact file hashes'
+            echo '- second replay: verified idempotent no-op'
+            echo '- negative identity/tree guards: exercised'
+          } >> "$GITHUB_STEP_SUMMARY"
