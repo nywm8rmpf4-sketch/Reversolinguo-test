@@ -2,6 +2,9 @@ name: Request certified publication
 
 on:
   create:
+  push:
+    branches:
+      - 'certify/**'
 
 permissions:
   contents: read
@@ -13,34 +16,40 @@ concurrency:
 
 jobs:
   request:
-    if: ${{ github.event.ref_type == 'branch' && startsWith(github.event.ref, 'certify/v') }}
+    if: ${{ (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'certify/v')) || (github.event_name == 'push' && startsWith(github.ref_name, 'certify/v')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       GH_TOKEN: ${{ github.token }}
-      CREATED_REF: ${{ github.event.ref }}
-      CREATED_REF_TYPE: ${{ github.event.ref_type }}
+      CREATED_REF: ${{ github.event.ref || '' }}
+      CREATED_REF_TYPE: ${{ github.event.ref_type || '' }}
+      PUSH_REF_NAME: ${{ github.ref_name }}
     steps:
       - name: Resolve exact certification request
         id: request
         shell: bash
         run: |
           set -euo pipefail
-          test "$CREATED_REF_TYPE" = 'branch'
-          case "$CREATED_REF" in
+
+          if [ "$GITHUB_EVENT_NAME" = 'create' ]; then
+            test "$CREATED_REF_TYPE" = 'branch'
+            request_ref="$CREATED_REF"
+          elif [ "$GITHUB_EVENT_NAME" = 'push' ]; then
+            request_ref="$PUSH_REF_NAME"
+          else
+            echo "ERROR: unsupported trigger $GITHUB_EVENT_NAME" >&2
+            exit 1
+          fi
+
+          case "$request_ref" in
             certify/v*) ;;
             *) echo 'ERROR: certification request must use certify/v*' >&2; exit 1 ;;
           esac
 
-          payload="${CREATED_REF#certify/}"
-          release_tag="${payload%%/retry-*}"
+          release_tag="${request_ref#certify/}"
           [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]
-          if [ "$payload" != "$release_tag" ]; then
-            retry_suffix="${payload#"$release_tag"/retry-}"
-            [[ "$retry_suffix" =~ ^[0-9]+$ ]]
-          fi
 
-          candidate_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$CREATED_REF" --jq '.object.sha')"
+          candidate_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$request_ref" --jq '.object.sha')"
           test_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
           test -n "$candidate_sha"
           if [ "$candidate_sha" != "$test_main" ]; then
@@ -83,10 +92,13 @@ jobs:
             exit 1
           fi
 
+          echo "request_ref=$request_ref" >> "$GITHUB_OUTPUT"
           echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
           echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
           echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
           echo "source_run_id=$source_run_id" >> "$GITHUB_OUTPUT"
+          echo "trigger_mode=$GITHUB_EVENT_NAME" >> "$GITHUB_OUTPUT"
+          echo "resolved request: $request_ref"
           echo "resolved release: $release_tag"
           echo "resolved candidate: $candidate_sha"
           echo "resolved artifact: $artifact_id"
@@ -107,6 +119,8 @@ jobs:
       - name: Request summary
         shell: bash
         env:
+          REQUEST_REF: ${{ steps.request.outputs.request_ref }}
+          TRIGGER_MODE: ${{ steps.request.outputs.trigger_mode }}
           RELEASE_TAG: ${{ steps.request.outputs.release_tag }}
           CANDIDATE_SHA: ${{ steps.request.outputs.candidate_sha }}
           ARTIFACT_ID: ${{ steps.request.outputs.artifact_id }}
@@ -114,7 +128,8 @@ jobs:
         run: |
           {
             echo '## Automated certification request'
-            echo "- certify_ref: $CREATED_REF"
+            echo "- trigger_mode: $TRIGGER_MODE"
+            echo "- certify_ref: $REQUEST_REF"
             echo "- release: $RELEASE_TAG"
             echo "- candidate_sha: $CANDIDATE_SHA"
             echo "- artifact_id: $ARTIFACT_ID"
