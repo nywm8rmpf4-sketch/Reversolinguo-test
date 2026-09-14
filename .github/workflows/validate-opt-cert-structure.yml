@@ -33,22 +33,29 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          promote = Path('.github/workflows/promote-qualified.yml').read_text()
-          publish = Path('.github/workflows/publish-certified.yml').read_text()
-          assert 'candidate_sha:' not in promote
-          assert 'artifact_sha256:' not in promote
-          assert 'expected_main_head:' not in promote
-          assert 'artifact_id:' in promote
-          assert 'candidate_sha:' not in publish
-          assert 'artifact_sha256:' not in publish
-          assert 'expected_publication_head:' not in publish
-          assert 'release_branch:' not in publish
-          assert 'artifact_id:' in publish
-          assert 'release_tag:' in publish
-          assert 'workflow_run.head_sha' in promote and '.digest' in promote
-          assert 'workflow_run.head_sha' in publish and '.digest' in publish
-          assert 'REVERSOLINGUO_PUBLICATION_TOKEN' in publish
-          assert "GH_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}" in publish
+          import yaml
+
+          def load(path):
+              return yaml.load(Path(path).read_text(), Loader=yaml.BaseLoader)
+
+          promote = load('.github/workflows/promote-qualified.yml')
+          publish = load('.github/workflows/publish-certified.yml')
+
+          promote_inputs = promote['on']['workflow_dispatch']['inputs']
+          publish_inputs = publish['on']['workflow_dispatch']['inputs']
+          assert set(promote_inputs) == {'artifact_id'}, promote_inputs
+          assert set(publish_inputs) == {'artifact_id', 'release_tag'}, publish_inputs
+
+          promote_text = Path('.github/workflows/promote-qualified.yml').read_text()
+          publish_text = Path('.github/workflows/publish-certified.yml').read_text()
+          assert 'workflow_run.head_sha' in promote_text and '.digest' in promote_text
+          assert 'workflow_run.head_sha' in publish_text and '.digest' in publish_text
+
+          publish_env = publish['jobs']['publish']['env']
+          assert publish_env.get('PUBLICATION_TOKEN')
+          assert publish_env.get('GH_TOKEN')
+          assert 'REVERSOLINGUO_PUBLICATION_TOKEN' in publish_env['PUBLICATION_TOKEN']
+          assert 'REVERSOLINGUO_PUBLICATION_TOKEN' in publish_env['GH_TOKEN']
           print('manual input and credential contracts: PASS')
           PY
 
@@ -58,7 +65,7 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          import yaml, subprocess, tempfile
+          import yaml, subprocess
           for f in ['.github/workflows/promote-qualified.yml', '.github/workflows/publish-certified.yml']:
               doc = yaml.safe_load(Path(f).read_text())
               for job_name, job in doc.get('jobs', {}).items():
@@ -66,7 +73,6 @@ jobs:
                       script = step.get('run')
                       if not script:
                           continue
-                      # GitHub expressions appear in env/with, not in these run blocks.
                       p = subprocess.run(['bash', '-n'], input=script, text=True, capture_output=True)
                       if p.returncode:
                           raise SystemExit(f'{f} {job_name} step {i} shell syntax FAIL: {p.stderr}')
