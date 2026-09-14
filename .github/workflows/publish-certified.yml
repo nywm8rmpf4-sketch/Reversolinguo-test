@@ -1,4 +1,4 @@
-name: Publish certified artifact v1.0 exact r1 retry
+name: Publish certified artifact v1.0 exact r1 retry2
 
 on:
   push:
@@ -24,6 +24,7 @@ jobs:
       RELEASE_TAG: v1.0.0
       QA_TOKEN: ${{ github.token }}
       PUBLICATION_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
+      GH_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
       PUBLICATION_REPO: nywm8rmpf4-sketch/Reversolinguo
     steps:
       - name: Require dedicated publication credential
@@ -73,14 +74,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          GH_TOKEN="$PUBLICATION_TOKEN" gh auth setup-git
+          gh auth setup-git
 
       - name: Guard publication refs
         shell: bash
         run: |
           set -euo pipefail
           publication_dir="$RUNNER_TEMP/publication"
-          GH_TOKEN="$PUBLICATION_TOKEN" git clone "https://github.com/$PUBLICATION_REPO.git" "$publication_dir"
+          git clone "https://github.com/$PUBLICATION_REPO.git" "$publication_dir"
           cd "$publication_dir"
           current_main="$(git rev-parse HEAD)"
           echo "publication main before: $current_main"
@@ -122,7 +123,7 @@ jobs:
           git push origin "HEAD:refs/heads/$RELEASE_BRANCH"
           remote_release="$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | awk '{print $1}')"
           test "$remote_release" = "$PUBLICATION_COMMIT"
-          GH_TOKEN="$PUBLICATION_TOKEN" git clone --depth=1 --branch "$RELEASE_BRANCH" "https://github.com/$PUBLICATION_REPO.git" "$verify_dir"
+          git clone --depth=1 --branch "$RELEASE_BRANCH" "https://github.com/$PUBLICATION_REPO.git" "$verify_dir"
           cd "$verify_dir"
           while read -r expected path; do
             rel="${path#dist/}"
