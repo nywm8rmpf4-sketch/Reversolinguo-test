@@ -111,7 +111,7 @@ jobs:
           RELEASE_TAG: ${{ steps.request.outputs.release_tag }}
         run: |
           set -euo pipefail
-          gh workflow run publish-certified.yml --ref main \
+          gh workflow run publish-certified.yml --repo "$GITHUB_REPOSITORY" --ref main \
             -f artifact_id="$ARTIFACT_ID" \
             -f release_tag="$RELEASE_TAG"
           echo "dispatched publish-certified.yml for $RELEASE_TAG / artifact $ARTIFACT_ID"
