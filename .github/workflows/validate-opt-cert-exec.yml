@@ -42,18 +42,27 @@ jobs:
           promote=.github/workflows/promote-qualified.yml
           publish=.github/workflows/publish-certified.yml
           test -f "$promote" && test -f "$publish"
-          grep -A5 '^      artifact_id:' "$promote" | grep -Fq 'required: true'
-          grep -A5 '^      candidate_sha:' "$promote" | grep -Fq 'required: false'
-          grep -A5 '^      artifact_sha256:' "$promote" | grep -Fq 'required: false'
-          grep -A5 '^      expected_main_head:' "$promote" | grep -Fq 'required: false'
-          grep -A5 '^      artifact_id:' "$publish" | grep -Fq 'required: true'
-          grep -A5 '^      candidate_sha:' "$publish" | grep -Fq 'required: false'
-          grep -A5 '^      artifact_sha256:' "$publish" | grep -Fq 'required: false'
-          grep -Fq 'allow_existing_exact_release' "$publish"
+          promote_header="$(sed -n '1,22p' "$promote")"
+          publish_header="$(sed -n '1,28p' "$publish")"
+          grep -Fq 'artifact_id:' <<<"$promote_header"
+          ! grep -Fq 'candidate_sha:' <<<"$promote_header"
+          ! grep -Fq 'artifact_sha256:' <<<"$promote_header"
+          ! grep -Fq 'expected_main_head:' <<<"$promote_header"
+          grep -Fq 'artifact_id:' <<<"$publish_header"
+          grep -Fq 'release_tag:' <<<"$publish_header"
+          ! grep -Fq 'candidate_sha:' <<<"$publish_header"
+          ! grep -Fq 'artifact_sha256:' <<<"$publish_header"
+          ! grep -Fq 'expected_publication_head:' <<<"$publish_header"
           grep -Fq 'workflow_run.head_sha' "$promote"
           grep -Fq 'workflow_run.head_sha' "$publish"
-          grep -Fq 'digest' "$promote"
-          grep -Fq 'digest' "$publish"
+          grep -Fq 'source_conclusion' "$promote"
+          grep -Fq 'source_conclusion' "$publish"
+          grep -Fq 'expected_name="reversolinguo-tested-dist-$candidate_sha"' "$promote"
+          grep -Fq 'expected_name="reversolinguo-tested-dist-$candidate_sha"' "$publish"
+          grep -Fq 'gh-pages already contains the exact qualified tree; no-op' "$promote"
+          grep -Fq 'release branch already contains the exact certified tree; reusing it' "$publish"
+          grep -Fq 'publication main already points to the certified commit; no-op' "$publish"
+          grep -Fq 'release tag already resolves to the certified commit; no-op' "$publish"
 
       - name: Snapshot protected refs before validation
         id: before
@@ -84,13 +93,18 @@ jobs:
           candidate_sha="$(jq -r '.workflow_run.head_sha // empty' <<<"$metadata")"
           source_run_id="$(jq -r '.workflow_run.id // empty' <<<"$metadata")"
           digest="$(jq -r '.digest // empty' <<<"$metadata")"
+          artifact_name="$(jq -r '.name // empty' <<<"$metadata")"
           expired="$(jq -r '.expired' <<<"$metadata")"
           test "$expired" = false
           test "$candidate_sha" = "$EXPECTED_CANDIDATE_SHA"
           test "$source_run_id" = "$EXPECTED_QA_RUN"
           test "$digest" = "sha256:$EXPECTED_ARTIFACT_SHA256"
-          conclusion="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$source_run_id" --jq '.conclusion')"
+          test "$artifact_name" = "reversolinguo-tested-dist-$candidate_sha"
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$source_run_id")"
+          conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
+          run_head="$(jq -r '.head_sha // empty' <<<"$run_json")"
           test "$conclusion" = success
+          test "$run_head" = "$candidate_sha"
           echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
 
@@ -191,6 +205,8 @@ jobs:
           reject_equal "$candidate" 0000000000000000000000000000000000000000
           reject_equal "$digest" sha256:0000000000000000000000000000000000000000000000000000000000000000
           reject_equal "$tree" 0000000000000000000000000000000000000000
+          reject_equal "reversolinguo-tested-dist-$candidate" "wrong-artifact-name"
+          reject_equal success failure
           cd "$RUNNER_TEMP/replay"
           printf 'conflict\n' > unexpected-file
           git add unexpected-file
