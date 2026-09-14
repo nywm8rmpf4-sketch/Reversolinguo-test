@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { catalogEntries } from '../../src/content/catalog'
+import { catalog } from '../../src/content/catalog'
 import { adultPackId } from '../../src/content/adultReference'
 import {
   pack6A1DraftAssignmentProposals,
@@ -12,8 +12,8 @@ import { voyagePackId } from '../../src/content/themePaths'
 
 describe('PACK-6A lexical editorial staging', () => {
   it('keeps the certified runtime catalog at exactly 24 entries', () => {
-    expect(catalogEntries).toHaveLength(24)
-    const runtimeIds = new Set(catalogEntries.map((entry) => entry.entry_id))
+    expect(catalog).toHaveLength(24)
+    const runtimeIds = new Set(catalog.map((entry) => entry.id))
     expect(pack6A1DraftEntries.some((entry) => runtimeIds.has(entry.entry_id))).toBe(false)
   })
 
