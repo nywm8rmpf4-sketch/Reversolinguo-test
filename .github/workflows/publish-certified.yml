@@ -29,6 +29,7 @@ jobs:
       RELEASE_TAG: ${{ inputs.release_tag }}
       QA_TOKEN: ${{ github.token }}
       PUBLICATION_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
+      GH_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
       PUBLICATION_REPO: nywm8rmpf4-sketch/Reversolinguo
     steps:
       - name: Validate release label and credential
@@ -152,7 +153,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          GH_TOKEN="$PUBLICATION_TOKEN" gh auth setup-git
+          gh auth setup-git
 
       - name: Prepare exact publication tree
         id: publication
@@ -277,8 +278,8 @@ jobs:
           EXPECTED_TREE: ${{ steps.tree.outputs.expected_tree }}
         run: |
           set -euo pipefail
-          remote_release="$(GH_TOKEN="$PUBLICATION_TOKEN" gh api "repos/$PUBLICATION_REPO/git/ref/heads/$RELEASE_BRANCH" --jq '.object.sha')"
-          remote_main="$(GH_TOKEN="$PUBLICATION_TOKEN" gh api "repos/$PUBLICATION_REPO/git/ref/heads/main" --jq '.object.sha')"
+          remote_release="$(gh api "repos/$PUBLICATION_REPO/git/ref/heads/$RELEASE_BRANCH" --jq '.object.sha')"
+          remote_main="$(gh api "repos/$PUBLICATION_REPO/git/ref/heads/main" --jq '.object.sha')"
           test "$remote_release" = "$PUBLICATION_COMMIT"
           test "$remote_main" = "$PUBLICATION_COMMIT"
           {
