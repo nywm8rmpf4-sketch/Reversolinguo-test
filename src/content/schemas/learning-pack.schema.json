@@ -67,7 +67,14 @@
   "allOf": [
     {
       "if": { "properties": { "audience": { "const": "school" } }, "required": ["audience"] },
-      "then": { "required": ["school_year", "grade", "track"] }
+      "then": {
+        "properties": {
+          "school_year": {},
+          "grade": {},
+          "track": {}
+        },
+        "required": ["school_year", "grade", "track"]
+      }
     }
   ]
 }
