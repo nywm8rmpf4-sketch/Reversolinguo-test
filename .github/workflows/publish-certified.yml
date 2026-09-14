@@ -64,12 +64,24 @@ jobs:
             *) echo 'ERROR: artifact has no authoritative sha256 digest' >&2; exit 1 ;;
           esac
           test "${#artifact_sha256}" -eq 64
+          expected_name="reversolinguo-tested-dist-$candidate_sha"
+          if [ "$artifact_name" != "$expected_name" ]; then
+            echo "ERROR: unexpected QA artifact name: $artifact_name" >&2
+            exit 1
+          fi
+          source_run="$(GH_TOKEN="$QA_TOKEN" gh api "repos/$GITHUB_REPOSITORY/actions/runs/$source_run_id")"
+          source_conclusion="$(jq -r '.conclusion // empty' <<<"$source_run")"
+          source_head="$(jq -r '.head_sha // empty' <<<"$source_run")"
+          if [ "$source_conclusion" != "success" ] || [ "$source_head" != "$candidate_sha" ]; then
+            echo 'ERROR: artifact provenance does not resolve to a successful QA run for the candidate' >&2
+            exit 1
+          fi
           echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
           echo "source_run_id=$source_run_id" >> "$GITHUB_OUTPUT"
           echo "artifact_sha256=$artifact_sha256" >> "$GITHUB_OUTPUT"
           echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
           echo "resolved candidate: $candidate_sha"
-          echo "source QA run: $source_run_id"
+          echo "source QA run: $source_run_id ($source_conclusion)"
           echo "artifact digest: sha256:$artifact_sha256"
 
       - name: Checkout exact certified candidate for provenance
