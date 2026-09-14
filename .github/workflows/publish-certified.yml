@@ -1,4 +1,4 @@
-name: Publish certified artifact v1.0 exact r1
+name: Publish certified artifact v1.0 exact r1 retry
 
 on:
   push:
