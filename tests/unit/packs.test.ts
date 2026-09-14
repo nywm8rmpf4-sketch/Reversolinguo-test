@@ -17,8 +17,9 @@ function entry(entry_id: string, priority: number, role: PackEntry['role'] = 'co
 }
 
 function pack(overrides: Partial<LearningPack> & Pick<LearningPack, 'pack_id'>): LearningPack {
+  const { pack_id, ...rest } = overrides
   return {
-    pack_id: overrides.pack_id,
+    pack_id,
     pack_version: '2026.1',
     audience: 'adult',
     language_pair: 'fr-es',
@@ -31,7 +32,7 @@ function pack(overrides: Partial<LearningPack> & Pick<LearningPack, 'pack_id'>):
     sources: ['https://www.coe.int/en/web/common-european-framework-reference-languages'],
     status: 'draft',
     human_review: 'NOT_EXECUTED',
-    ...overrides
+    ...rest
   }
 }
 
