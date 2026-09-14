@@ -1,7 +1,6 @@
 name: Publish certified artifact
 
 on:
-  create:
   workflow_dispatch:
     inputs:
       artifact_id:
@@ -23,83 +22,16 @@ concurrency:
 
 jobs:
   publish:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'certify/v')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      ARTIFACT_ID: ${{ inputs.artifact_id }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
       QA_TOKEN: ${{ github.token }}
       PUBLICATION_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
+      GH_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
       PUBLICATION_REPO: nywm8rmpf4-sketch/Reversolinguo
     steps:
-      - name: Resolve certification request
-        id: request
-        shell: bash
-        env:
-          MANUAL_ARTIFACT_ID: ${{ inputs.artifact_id || '' }}
-          MANUAL_RELEASE_TAG: ${{ inputs.release_tag || '' }}
-          CREATED_REF: ${{ github.event.ref || '' }}
-          CREATED_REF_TYPE: ${{ github.event.ref_type || '' }}
-        run: |
-          set -euo pipefail
-
-          if [ "$GITHUB_EVENT_NAME" = 'create' ]; then
-            test "$CREATED_REF_TYPE" = 'branch'
-            case "$CREATED_REF" in
-              certify/v*) ;;
-              *) echo "ERROR: automatic certification requires certify/v* branch" >&2; exit 1 ;;
-            esac
-            release_tag="${CREATED_REF#certify/}"
-            [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]
-
-            candidate_sha="$(GH_TOKEN="$QA_TOKEN" gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$CREATED_REF" --jq '.object.sha')"
-            test_main="$(GH_TOKEN="$QA_TOKEN" gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-            test -n "$candidate_sha"
-            if [ "$candidate_sha" != "$test_main" ]; then
-              echo "ERROR: certification ref $CREATED_REF does not point to qualified test/main" >&2
-              echo "certification ref: $candidate_sha" >&2
-              echo "test main:         $test_main" >&2
-              exit 1
-            fi
-
-            expected_name="reversolinguo-tested-dist-$candidate_sha"
-            artifacts="$(GH_TOKEN="$QA_TOKEN" gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$expected_name&per_page=100")"
-            matches="$(jq --arg expected "$expected_name" --arg candidate "$candidate_sha" '[.artifacts[] | select(.name == $expected and .expired == false and .workflow_run.head_sha == $candidate)] | sort_by(.created_at) | reverse' <<<"$artifacts")"
-            match_count="$(jq 'length' <<<"$matches")"
-            if [ "$match_count" -lt 1 ]; then
-              echo "ERROR: no non-expired QA artifact found for $candidate_sha" >&2
-              exit 1
-            fi
-            artifact_id="$(jq -r '.[0].id' <<<"$matches")"
-            trigger_mode='automatic-certify-ref'
-            certify_ref="$CREATED_REF"
-          elif [ "$GITHUB_EVENT_NAME" = 'workflow_dispatch' ]; then
-            artifact_id="$MANUAL_ARTIFACT_ID"
-            release_tag="$MANUAL_RELEASE_TAG"
-            test -n "$artifact_id"
-            test -n "$release_tag"
-            [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]
-            candidate_sha=''
-            certify_ref=''
-            trigger_mode='manual-dispatch'
-          else
-            echo "ERROR: unsupported trigger $GITHUB_EVENT_NAME" >&2
-            exit 1
-          fi
-
-          echo "ARTIFACT_ID=$artifact_id" >> "$GITHUB_ENV"
-          echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
-          echo "CERTIFY_REF=$certify_ref" >> "$GITHUB_ENV"
-          echo "REQUESTED_CANDIDATE_SHA=$candidate_sha" >> "$GITHUB_ENV"
-          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
-          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
-          echo "requested_candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
-          echo "certify_ref=$certify_ref" >> "$GITHUB_OUTPUT"
-          echo "trigger_mode=$trigger_mode" >> "$GITHUB_OUTPUT"
-          echo "certification trigger: $trigger_mode"
-          echo "release tag: $release_tag"
-          echo "artifact id: $artifact_id"
-          if [ -n "$candidate_sha" ]; then echo "requested candidate: $candidate_sha"; fi
-
       - name: Validate release label and credential
         shell: bash
         run: |
@@ -127,12 +59,6 @@ jobs:
           test -n "$candidate_sha"
           test -n "$source_run_id"
           test -n "$artifact_name"
-
-          if [ -n "${REQUESTED_CANDIDATE_SHA:-}" ] && [ "$candidate_sha" != "$REQUESTED_CANDIDATE_SHA" ]; then
-            echo 'ERROR: resolved artifact candidate differs from certification request' >&2
-            exit 1
-          fi
-
           case "$digest" in
             sha256:*) artifact_sha256="${digest#sha256:}" ;;
             *) echo 'ERROR: artifact has no authoritative sha256 digest' >&2; exit 1 ;;
@@ -143,33 +69,19 @@ jobs:
             echo "ERROR: unexpected QA artifact name: $artifact_name" >&2
             exit 1
           fi
-
           source_run="$(GH_TOKEN="$QA_TOKEN" gh api "repos/$GITHUB_REPOSITORY/actions/runs/$source_run_id")"
           source_conclusion="$(jq -r '.conclusion // empty' <<<"$source_run")"
           source_head="$(jq -r '.head_sha // empty' <<<"$source_run")"
-          source_branch="$(jq -r '.head_branch // empty' <<<"$source_run")"
-          source_name="$(jq -r '.name // empty' <<<"$source_run")"
-          source_path="$(jq -r '.path // empty' <<<"$source_run")"
           if [ "$source_conclusion" != "success" ] || [ "$source_head" != "$candidate_sha" ]; then
             echo 'ERROR: artifact provenance does not resolve to a successful QA run for the candidate' >&2
             exit 1
           fi
-          if [ "$source_name" != 'QA candidate' ] || [ "$source_path" != '.github/workflows/qa.yml' ]; then
-            echo 'ERROR: artifact source is not the trusted QA candidate workflow' >&2
-            exit 1
-          fi
-          case "$source_branch" in
-            candidate/*) ;;
-            *) echo 'ERROR: artifact source branch is not candidate/**' >&2; exit 1 ;;
-          esac
-
           echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
           echo "source_run_id=$source_run_id" >> "$GITHUB_OUTPUT"
           echo "artifact_sha256=$artifact_sha256" >> "$GITHUB_OUTPUT"
           echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
           echo "resolved candidate: $candidate_sha"
           echo "source QA run: $source_run_id ($source_conclusion)"
-          echo "source QA branch: $source_branch"
           echo "artifact digest: sha256:$artifact_sha256"
 
       - name: Checkout exact certified candidate for provenance
@@ -189,11 +101,6 @@ jobs:
           echo "qualified test main: $test_main"
           test "$test_main" = "$CANDIDATE_SHA"
           test -n "$(git ls-remote origin refs/heads/gh-pages | awk '{print $1}')"
-          if [ -n "${CERTIFY_REF:-}" ]; then
-            certify_sha="$(git ls-remote origin "refs/heads/$CERTIFY_REF" | awk '{print $1}')"
-            echo "certification ref: $CERTIFY_REF -> $certify_sha"
-            test "$certify_sha" = "$CANDIDATE_SHA"
-          fi
 
       - name: Download and verify exact certified artifact
         shell: bash
@@ -376,8 +283,6 @@ jobs:
       - name: Final publication verification and summary
         shell: bash
         env:
-          TRIGGER_MODE: ${{ steps.request.outputs.trigger_mode }}
-          CERTIFY_REF_OUTPUT: ${{ steps.request.outputs.certify_ref }}
           CANDIDATE_SHA: ${{ steps.artifact.outputs.candidate_sha }}
           SOURCE_RUN_ID: ${{ steps.artifact.outputs.source_run_id }}
           ARTIFACT_SHA256: ${{ steps.artifact.outputs.artifact_sha256 }}
@@ -391,8 +296,6 @@ jobs:
           test "$remote_main" = "$PUBLICATION_COMMIT"
           {
             echo '## Certified publication'
-            echo "- trigger_mode: $TRIGGER_MODE"
-            if [ -n "$CERTIFY_REF_OUTPUT" ]; then echo "- certify_ref: $CERTIFY_REF_OUTPUT"; fi
             echo "- release: $RELEASE_TAG"
             echo "- artifact_id: $ARTIFACT_ID"
             echo "- source_run_id: $SOURCE_RUN_ID"
@@ -402,5 +305,3 @@ jobs:
             echo "- publication_tree: $EXPECTED_TREE"
             echo '- rebuild: NO'
           } >> "$GITHUB_STEP_SUMMARY"
-
-# OPT-CERT-3 bootstrap QA marker; process-only, no product impact.

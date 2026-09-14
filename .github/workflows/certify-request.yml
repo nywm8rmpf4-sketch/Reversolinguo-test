@@ -1,0 +1,123 @@
+name: Request certified publication
+
+on:
+  create:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: reversolinguo-certification-request
+  cancel-in-progress: false
+
+jobs:
+  request:
+    if: ${{ github.event.ref_type == 'branch' && startsWith(github.event.ref, 'certify/v') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CREATED_REF: ${{ github.event.ref }}
+      CREATED_REF_TYPE: ${{ github.event.ref_type }}
+    steps:
+      - name: Resolve exact certification request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CREATED_REF_TYPE" = 'branch'
+          case "$CREATED_REF" in
+            certify/v*) ;;
+            *) echo 'ERROR: certification request must use certify/v*' >&2; exit 1 ;;
+          esac
+
+          payload="${CREATED_REF#certify/}"
+          release_tag="${payload%%/retry-*}"
+          [[ "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]
+          if [ "$payload" != "$release_tag" ]; then
+            retry_suffix="${payload#"$release_tag"/retry-}"
+            [[ "$retry_suffix" =~ ^[0-9]+$ ]]
+          fi
+
+          candidate_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$CREATED_REF" --jq '.object.sha')"
+          test_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          test -n "$candidate_sha"
+          if [ "$candidate_sha" != "$test_main" ]; then
+            echo 'ERROR: certification request does not point to qualified test/main' >&2
+            echo "request: $candidate_sha" >&2
+            echo "main:    $test_main" >&2
+            exit 1
+          fi
+
+          expected_name="reversolinguo-tested-dist-$candidate_sha"
+          artifacts="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$expected_name&per_page=100")"
+          matches="$(jq --arg expected "$expected_name" --arg candidate "$candidate_sha" '[.artifacts[] | select(.name == $expected and .expired == false and .workflow_run.head_sha == $candidate)] | sort_by(.created_at) | reverse' <<<"$artifacts")"
+          match_count="$(jq 'length' <<<"$matches")"
+          if [ "$match_count" -lt 1 ]; then
+            echo "ERROR: no non-expired qualified artifact found for $candidate_sha" >&2
+            exit 1
+          fi
+
+          artifact_id=""
+          source_run_id=""
+          for id in $(jq -r '.[].id' <<<"$matches"); do
+            metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$id")"
+            run_id="$(jq -r '.workflow_run.id // empty' <<<"$metadata")"
+            test -n "$run_id" || continue
+            run="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id")"
+            conclusion="$(jq -r '.conclusion // empty' <<<"$run")"
+            head="$(jq -r '.head_sha // empty' <<<"$run")"
+            branch="$(jq -r '.head_branch // empty' <<<"$run")"
+            name="$(jq -r '.name // empty' <<<"$run")"
+            path="$(jq -r '.path // empty' <<<"$run")"
+            if [ "$conclusion" = 'success' ] && [ "$head" = "$candidate_sha" ] && [ "$name" = 'QA candidate' ] && [ "$path" = '.github/workflows/qa.yml' ]; then
+              case "$branch" in
+                candidate/*) artifact_id="$id"; source_run_id="$run_id"; break ;;
+              esac
+            fi
+          done
+
+          if [ -z "$artifact_id" ]; then
+            echo 'ERROR: no artifact with trusted QA candidate provenance was found' >&2
+            exit 1
+          fi
+
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "candidate_sha=$candidate_sha" >> "$GITHUB_OUTPUT"
+          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+          echo "source_run_id=$source_run_id" >> "$GITHUB_OUTPUT"
+          echo "resolved release: $release_tag"
+          echo "resolved candidate: $candidate_sha"
+          echo "resolved artifact: $artifact_id"
+          echo "source QA run: $source_run_id"
+
+      - name: Dispatch trusted certified publication workflow
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.request.outputs.artifact_id }}
+          RELEASE_TAG: ${{ steps.request.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          gh workflow run publish-certified.yml --ref main \
+            -f artifact_id="$ARTIFACT_ID" \
+            -f release_tag="$RELEASE_TAG"
+          echo "dispatched publish-certified.yml for $RELEASE_TAG / artifact $ARTIFACT_ID"
+
+      - name: Request summary
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.request.outputs.release_tag }}
+          CANDIDATE_SHA: ${{ steps.request.outputs.candidate_sha }}
+          ARTIFACT_ID: ${{ steps.request.outputs.artifact_id }}
+          SOURCE_RUN_ID: ${{ steps.request.outputs.source_run_id }}
+        run: |
+          {
+            echo '## Automated certification request'
+            echo "- certify_ref: $CREATED_REF"
+            echo "- release: $RELEASE_TAG"
+            echo "- candidate_sha: $CANDIDATE_SHA"
+            echo "- artifact_id: $ARTIFACT_ID"
+            echo "- source_run_id: $SOURCE_RUN_ID"
+            echo '- owner_intervention: NONE'
+          } >> "$GITHUB_STEP_SUMMARY"
