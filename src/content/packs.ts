@@ -106,7 +106,8 @@ export function resolveLearningPack(packId: string, packs: LearningPack[]): Pack
 
 export function validateLearningPackGraph(
   packs: LearningPack[],
-  lexicalEntryIds?: ReadonlySet<string>
+  lexicalEntryIds?: ReadonlySet<string>,
+  allowedThemeIds?: ReadonlySet<string>
 ): PackGraphValidationResult {
   const errors: string[] = []
   const ids = new Set<string>()
@@ -118,12 +119,19 @@ export function validateLearningPackGraph(
     if (ids.has(pack.pack_id)) errors.push(`duplicate-pack-id:${pack.pack_id}`)
     ids.add(pack.pack_id)
 
+    if (allowedThemeIds) {
+      for (const theme of pack.themes) {
+        if (!allowedThemeIds.has(theme)) errors.push(`unknown-pack-theme:${pack.pack_id}:${theme}`)
+      }
+    }
+
     const directEntries = new Set<string>()
     for (const entry of pack.entries) {
       if (directEntries.has(entry.entry_id)) errors.push(`duplicate-direct-entry:${pack.pack_id}:${entry.entry_id}`)
       directEntries.add(entry.entry_id)
       if (!pack.themes.includes(entry.theme)) errors.push(`entry-theme-not-declared:${pack.pack_id}:${entry.entry_id}:${entry.theme}`)
       if (lexicalEntryIds && !lexicalEntryIds.has(entry.entry_id)) errors.push(`unknown-entry:${pack.pack_id}:${entry.entry_id}`)
+      if (allowedThemeIds && !allowedThemeIds.has(entry.theme)) errors.push(`unknown-entry-theme:${pack.pack_id}:${entry.entry_id}:${entry.theme}`)
     }
   }
 
