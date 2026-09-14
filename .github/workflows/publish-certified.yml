@@ -1,34 +1,11 @@
-name: Publish certified artifact
+name: Publish certified artifact v1.0 exact r1
 
 on:
-  workflow_dispatch:
-    inputs:
-      candidate_sha:
-        description: Exact candidate commit associated with the certified artifact
-        required: true
-        type: string
-      artifact_id:
-        description: Exact PASS QA artifact ID
-        required: true
-        type: string
-      artifact_sha256:
-        description: Expected SHA-256 of the artifact ZIP
-        required: true
-        type: string
-      expected_publication_head:
-        description: Expected current Reversolinguo/main HEAD before publication
-        required: true
-        type: string
-      release_branch:
-        description: Target certified release branch
-        required: true
-        default: release/v1.0.0-certified
-        type: string
-      release_tag:
-        description: Immutable release tag to create
-        required: true
-        default: v1.0.0
-        type: string
+  push:
+    branches:
+      - publication/v1.0.0-exact-r1
+    paths:
+      - .github/workflows/publish-certified.yml
 
 permissions:
   contents: read
@@ -39,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      CANDIDATE_SHA: ${{ inputs.candidate_sha }}
-      ARTIFACT_ID: ${{ inputs.artifact_id }}
-      ARTIFACT_SHA256: ${{ inputs.artifact_sha256 }}
-      EXPECTED_PUBLICATION_HEAD: ${{ inputs.expected_publication_head }}
-      RELEASE_BRANCH: ${{ inputs.release_branch }}
-      RELEASE_TAG: ${{ inputs.release_tag }}
+      CANDIDATE_SHA: 0804ce7d69311db6d30acebdc9aace519ff7956d
+      ARTIFACT_ID: '10327071495'
+      ARTIFACT_SHA256: c1724a67c9ca7bc830b256078c8d51febc8a3badf60d0b14026a4262ec3595c4
+      EXPECTED_PUBLICATION_HEAD: fc05bb4dedc147112be3827f2d246037d341208d
+      RELEASE_BRANCH: release/v1.0.0-certified
+      RELEASE_TAG: v1.0.0
       QA_TOKEN: ${{ github.token }}
       PUBLICATION_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}
       PUBLICATION_REPO: nywm8rmpf4-sketch/Reversolinguo
@@ -54,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${PUBLICATION_TOKEN:-}" ]; then
-            echo 'REVERSESOLINGUO publication credential is not configured.' >&2
+            echo 'Reversolinguo publication credential is not configured.' >&2
             echo 'Expected secret: REVERSOLINGUO_PUBLICATION_TOKEN' >&2
             exit 1
           fi
@@ -63,7 +40,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.candidate_sha }}
+          ref: ${{ env.CANDIDATE_SHA }}
 
       - name: Verify candidate identity
         shell: bash
@@ -76,8 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           artifact_zip="$RUNNER_TEMP/certified-artifact.zip"
-          QA_TOKEN_VALUE="$QA_TOKEN"
-          GH_TOKEN="$QA_TOKEN_VALUE" gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$artifact_zip"
+          GH_TOKEN="$QA_TOKEN" gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$artifact_zip"
           actual="$(sha256sum "$artifact_zip" | awk '{print $1}')"
           echo "artifact sha256: $actual"
           test "$actual" = "$ARTIFACT_SHA256"
@@ -104,7 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           publication_dir="$RUNNER_TEMP/publication"
-          git clone "https://github.com/$PUBLICATION_REPO.git" "$publication_dir"
+          GH_TOKEN="$PUBLICATION_TOKEN" git clone "https://github.com/$PUBLICATION_REPO.git" "$publication_dir"
           cd "$publication_dir"
           current_main="$(git rev-parse HEAD)"
           echo "publication main before: $current_main"
@@ -146,7 +122,7 @@ jobs:
           git push origin "HEAD:refs/heads/$RELEASE_BRANCH"
           remote_release="$(git ls-remote origin "refs/heads/$RELEASE_BRANCH" | awk '{print $1}')"
           test "$remote_release" = "$PUBLICATION_COMMIT"
-          git clone --depth=1 --branch "$RELEASE_BRANCH" "https://github.com/$PUBLICATION_REPO.git" "$verify_dir"
+          GH_TOKEN="$PUBLICATION_TOKEN" git clone --depth=1 --branch "$RELEASE_BRANCH" "https://github.com/$PUBLICATION_REPO.git" "$verify_dir"
           cd "$verify_dir"
           while read -r expected path; do
             rel="${path#dist/}"
