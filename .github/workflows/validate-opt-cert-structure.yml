@@ -1,0 +1,74 @@
+name: Validate OPT-CERT workflow structure
+
+on:
+  push:
+    branches:
+      - process/opt-cert-1-r1
+
+permissions:
+  contents: read
+
+jobs:
+  structure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout WIP workflow definitions
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Parse workflow YAML
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e "require 'yaml'; ARGV.each { |f| YAML.parse_file(f); puts \"parsed: #{f}\" }" \
+            .github/workflows/promote-qualified.yml \
+            .github/workflows/publish-certified.yml \
+            .github/workflows/validate-opt-cert.yml
+
+      - name: Enforce reduced manual input contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          promote = Path('.github/workflows/promote-qualified.yml').read_text()
+          publish = Path('.github/workflows/publish-certified.yml').read_text()
+          assert 'candidate_sha:' not in promote
+          assert 'artifact_sha256:' not in promote
+          assert 'expected_main_head:' not in promote
+          assert 'artifact_id:' in promote
+          assert 'candidate_sha:' not in publish
+          assert 'artifact_sha256:' not in publish
+          assert 'expected_publication_head:' not in publish
+          assert 'release_branch:' not in publish
+          assert 'artifact_id:' in publish
+          assert 'release_tag:' in publish
+          assert 'workflow_run.head_sha' in promote and '.digest' in promote
+          assert 'workflow_run.head_sha' in publish and '.digest' in publish
+          assert 'REVERSOLINGUO_PUBLICATION_TOKEN' in publish
+          assert "GH_TOKEN: ${{ secrets.REVERSOLINGUO_PUBLICATION_TOKEN }}" in publish
+          print('manual input and credential contracts: PASS')
+          PY
+
+      - name: Shell syntax check embedded scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import yaml, subprocess, tempfile
+          for f in ['.github/workflows/promote-qualified.yml', '.github/workflows/publish-certified.yml']:
+              doc = yaml.safe_load(Path(f).read_text())
+              for job_name, job in doc.get('jobs', {}).items():
+                  for i, step in enumerate(job.get('steps', []), 1):
+                      script = step.get('run')
+                      if not script:
+                          continue
+                      # GitHub expressions appear in env/with, not in these run blocks.
+                      p = subprocess.run(['bash', '-n'], input=script, text=True, capture_output=True)
+                      if p.returncode:
+                          raise SystemExit(f'{f} {job_name} step {i} shell syntax FAIL: {p.stderr}')
+          print('embedded bash syntax: PASS')
+          PY
