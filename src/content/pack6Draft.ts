@@ -1,6 +1,6 @@
 import draftEntriesJson from '../../catalogs/fr-es/a1/drafts/pack6-a1-candidates-r2.json'
 import certifiedEntriesJson from '../../catalogs/fr-es/a1/catalog.json'
-import { catalogEntries } from './catalog'
+import { catalog } from './catalog'
 import { adultPackId, adultPacksInitial } from './adultReference'
 import { validateLexicalEntry } from './contracts'
 import { schoolPacks2026_2027 } from './schoolReference'
@@ -25,7 +25,7 @@ export const pack6A1DraftEntries: Pack6DraftEntry[] = draftEntriesJson
 
 const certifiedIds = new Set(certifiedEntriesJson.map((entry) => entry.entry_id))
 const certifiedSemanticKeys = new Set(certifiedEntriesJson.map((entry) => semanticKey(entry.language_tag, entry.lemma)))
-const runtimeIds = new Set(catalogEntries.map((entry) => entry.entry_id))
+const runtimeIds = new Set(catalog.map((entry) => entry.id))
 
 const adultA1Id = adultPackId('A1')
 const school6ePackIds = schoolPacks2026_2027
@@ -102,7 +102,7 @@ export function validatePack6A1Draft(): Pack6DraftValidationResult {
 
   if (pack6A1DraftEntries.length !== 36) errors.push(`unexpected-draft-count:${pack6A1DraftEntries.length}`)
   if (certifiedEntriesJson.length !== 24) errors.push(`certified-baseline-count-changed:${certifiedEntriesJson.length}`)
-  if (catalogEntries.length !== 24) errors.push(`runtime-baseline-count-changed:${catalogEntries.length}`)
+  if (catalog.length !== 24) errors.push(`runtime-baseline-count-changed:${catalog.length}`)
 
   for (const [index, entry] of pack6A1DraftEntries.entries()) {
     const schema = validateLexicalEntry(entry)
