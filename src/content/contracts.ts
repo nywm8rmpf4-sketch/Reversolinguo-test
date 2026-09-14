@@ -2,6 +2,7 @@ import Ajv, { type ErrorObject } from 'ajv'
 import addFormats from 'ajv-formats'
 import lexicalEntrySchema from './schemas/lexical-entry.schema.json'
 import catalogManifestSchema from './schemas/catalog-manifest.schema.json'
+import learningPackSchema from './schemas/learning-pack.schema.json'
 import progressExportSchema from './schemas/progress-export.schema.json'
 
 const ajv = new Ajv({ allErrors: true, strict: true })
@@ -9,6 +10,7 @@ addFormats(ajv)
 
 const lexicalValidator = ajv.compile(lexicalEntrySchema)
 const catalogManifestValidator = ajv.compile(catalogManifestSchema)
+const learningPackValidator = ajv.compile(learningPackSchema)
 const progressValidator = ajv.compile(progressExportSchema)
 
 export interface ValidationResult { valid: boolean; errors: ErrorObject[] }
@@ -28,6 +30,10 @@ export function validateLexicalEntry(value: unknown): ValidationResult {
 
 export function validateCatalogManifest(value: unknown): ValidationResult {
   return result(catalogManifestValidator(value), catalogManifestValidator.errors)
+}
+
+export function validateLearningPack(value: unknown): ValidationResult {
+  return result(learningPackValidator(value), learningPackValidator.errors)
 }
 
 export function validateProgressExport(value: unknown): ValidationResult {
