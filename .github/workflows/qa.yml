@@ -2,7 +2,6 @@
 name: QA candidate
 
 on:
-  create:
   push:
     branches:
       - 'candidate/**'
@@ -12,7 +11,7 @@ permissions:
 
 jobs:
   qa:
-    if: ${{ (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'candidate/')) || (github.event_name == 'push' && startsWith(github.ref_name, 'candidate/')) }}
+    if: ${{ startsWith(github.ref_name, 'candidate/') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -20,35 +19,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'create' && github.event.ref || github.sha }}
 
       - name: Enforce immutable candidate branch contract
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          CREATED_REF: ${{ github.event.ref || '' }}
-          CREATED_REF_TYPE: ${{ github.event.ref_type || '' }}
           PUSH_REF: ${{ github.ref_name }}
           PUSH_CREATED: ${{ github.event.created || false }}
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" = 'create' ]; then
-            test "$CREATED_REF_TYPE" = 'branch'
-            candidate_ref="$CREATED_REF"
-          elif [ "$EVENT_NAME" = 'push' ]; then
-            candidate_ref="$PUSH_REF"
-            if [ "$PUSH_CREATED" != 'true' ]; then
-              echo 'ERROR: candidate/** is immutable; create a new candidate revision instead of updating it.' >&2
-              exit 1
-            fi
-          else
+          if [ "$EVENT_NAME" != 'push' ]; then
             echo "ERROR: unsupported candidate event $EVENT_NAME" >&2
             exit 1
           fi
+          candidate_ref="$PUSH_REF"
           case "$candidate_ref" in
             candidate/*) ;;
             *) echo "ERROR: QA candidate requires candidate/**, got $candidate_ref" >&2; exit 1 ;;
           esac
+          if [ "$PUSH_CREATED" != 'true' ]; then
+            echo 'ERROR: candidate/** is immutable; create a new candidate revision instead of updating it.' >&2
+            exit 1
+          fi
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
 
       - name: Classify diff and verify runtime campaign before costly QA
