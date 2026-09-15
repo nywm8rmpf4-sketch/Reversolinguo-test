@@ -45,7 +45,14 @@
         "motionEnabled": { "type": "boolean" },
         "soundMode": { "enum": ["off", "subtle", "on"] },
         "soundEnabled": { "type": "boolean" },
-        "vibrationEnabled": { "type": "boolean" }
+        "vibrationEnabled": { "type": "boolean" },
+        "pathAudience": { "enum": ["school", "adult", "theme"] },
+        "selectedPackIds": { "type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 200 } },
+        "selectedThemeIds": { "type": "array", "maxItems": 20, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 80 } },
+        "reviewScope": { "enum": ["all-due", "selection-only"] },
+        "primaryPackId": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "focusThemeIds": { "type": "array", "maxItems": 20, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 80 } },
+        "adultScope": { "enum": ["cumulative", "new-only"] }
       }
     }
   }
