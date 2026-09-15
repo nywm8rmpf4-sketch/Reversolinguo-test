@@ -1,0 +1,331 @@
+[
+  {
+    "entry_id": "5d8ea089-a3e5-5493-9342-00cb1ba93b7e",
+    "language_tag": "es",
+    "lemma": "los padres",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "les parents"
+        ],
+        "example_source": "Mis padres viven aquí.",
+        "example_target": "Mes parents habitent ici."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "49b4b00a-a742-53a1-9008-0f6af8131fac",
+    "language_tag": "es",
+    "lemma": "el hijo / la hija",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le fils / la fille"
+        ],
+        "example_source": "El hijo estudia y la hija juega.",
+        "example_target": "Le fils étudie et la fille joue.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "d511eebf-3731-53dc-ab47-2707aac9d9d7",
+    "language_tag": "es",
+    "lemma": "el abuelo / la abuela",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le grand-père / la grand-mère"
+        ],
+        "example_source": "El abuelo cocina y la abuela lee.",
+        "example_target": "Le grand-père cuisine et la grand-mère lit.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "9047bbb7-79f0-55ec-93c9-dccdd18bd7fa",
+    "language_tag": "es",
+    "lemma": "el nieto / la nieta",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le petit-fils / la petite-fille"
+        ],
+        "example_source": "El nieto juega con la nieta.",
+        "example_target": "Le petit-fils joue avec la petite-fille.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "77ac98e4-6486-5975-9362-7b03b857e846",
+    "language_tag": "es",
+    "lemma": "el tío / la tía",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "l’oncle / la tante"
+        ],
+        "example_source": "El tío habla con la tía.",
+        "example_target": "L’oncle parle avec la tante.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "16d83193-c256-5707-a90f-742af96c9eea",
+    "language_tag": "es",
+    "lemma": "el sobrino / la sobrina",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le neveu / la nièce"
+        ],
+        "example_source": "El sobrino juega con la sobrina.",
+        "example_target": "Le neveu joue avec la nièce.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "9deac9d9-f0e1-57ed-8407-58cd8d419a4f",
+    "language_tag": "es",
+    "lemma": "el primo / la prima",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le cousin / la cousine"
+        ],
+        "example_source": "El primo habla con la prima.",
+        "example_target": "Le cousin parle avec la cousine.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "fc56093f-5b37-5e6a-8ed0-512ff453b097",
+    "language_tag": "es",
+    "lemma": "el marido",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le mari"
+        ],
+        "example_source": "Mi marido trabaja aquí.",
+        "example_target": "Mon mari travaille ici."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "a841aa1d-d542-5757-abd7-b44468613627",
+    "language_tag": "es",
+    "lemma": "la pareja",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le partenaire",
+          "la partenaire"
+        ],
+        "example_source": "Mi pareja vive aquí.",
+        "example_target": "Mon partenaire habite ici.",
+        "note": "Cette entrée cible « pareja » au sens de partenaire amoureux ; le sens collectif « le couple » est hors de ce draft."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "71d36426-1bec-5457-a6d4-de04f5df3c3a",
+    "language_tag": "es",
+    "lemma": "el novio / la novia",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le petit ami / la petite amie"
+        ],
+        "example_source": "El novio habla con la novia.",
+        "example_target": "Le petit ami parle avec la petite amie.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale. Cette entrée cible le sens relationnel « petit ami / petite amie » ; d’autres sens contextuels sont hors de ce draft."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "ac9676b8-8d71-500f-b3a9-80cc46241bac",
+    "language_tag": "es",
+    "lemma": "el compañero / la compañera",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "le camarade / la camarade"
+        ],
+        "example_source": "Mi compañero de clase se llama Pablo y mi compañera se llama Ana.",
+        "example_target": "Mon camarade de classe s’appelle Pablo et ma camarade s’appelle Ana.",
+        "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale. Cette entrée cible le sens scolaire/social « camarade » ; le sens professionnel « collègue » est hors de ce draft."
+      }
+    ],
+    "cefr_level": "A1",
+    "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
+    "themes": [
+      "famille-relations"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  }
+]

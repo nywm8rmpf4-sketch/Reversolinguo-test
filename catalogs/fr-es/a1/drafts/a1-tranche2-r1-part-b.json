@@ -1,0 +1,65 @@
+[
+  {
+    "entry_id": "274d9de5-d1ce-5aee-b6db-8ce6e2846b11",
+    "language_tag": "es",
+    "lemma": "el jefe / la jefa",
+    "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["le chef / la cheffe"], "example_source": "El jefe habla con la jefa.", "example_target": "Le chef parle avec la cheffe.", "note": "Cette unité apprend ensemble les formes masculine et féminine de la paire lexicale."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["famille-relations"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "1bd6732c-2a44-518d-b08c-4508cafc6baa", "language_tag": "es", "lemma": "la fiesta", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["la fête"], "example_source": "Hoy hay una fiesta.", "example_target": "Il y a une fête aujourd’hui."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["famille-relations"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "50b43deb-1037-50a9-9ee5-7c3927b93cac", "language_tag": "es", "lemma": "conocer", "part_of_speech": "verb",
+    "senses": [{"sense_id": "s1", "translations": ["connaître"], "example_source": "Conozco a Ana.", "example_target": "Je connais Ana.", "note": "Cette entrée cible le sens « connaître » ; le sens événementiel « faire connaissance » est hors de ce draft."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["famille-relations"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "9e8c9378-4ad0-58f1-85f6-402cdd340085", "language_tag": "es", "lemma": "presentar", "part_of_speech": "verb",
+    "senses": [{"sense_id": "s1", "translations": ["présenter"], "example_source": "Te presento a Ana.", "example_target": "Je te présente Ana."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["famille-relations"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "9d0aedb7-8d74-54d3-9c93-d0f1e52ed58d", "language_tag": "es", "lemma": "el piso", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["l’appartement"], "example_source": "Vivo en un piso pequeño.", "example_target": "J’habite dans un petit appartement.", "note": "Cette entrée cible le sens « appartement », courant notamment en Espagne ; dans d’autres contextes, « piso » peut signifier « étage »."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "regional-variation",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "abefc84c-d2fd-570d-ba0c-13737ab0b720", "language_tag": "es", "lemma": "el apartamento", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["l’appartement"], "example_source": "El apartamento está cerca.", "example_target": "L’appartement est près d’ici."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "777d1d7c-4a13-5946-87d7-f801881c57bd", "language_tag": "es", "lemma": "el estudio", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["le studio"], "example_source": "Vivo en un estudio.", "example_target": "J’habite dans un studio.", "note": "Cette entrée cible le logement « studio » ; les sens « étude » et « bureau » sont hors de ce draft."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "82fd4d60-5f0a-5178-8e76-d593785c53d2", "language_tag": "es", "lemma": "el dormitorio", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["la chambre à coucher"], "example_source": "Hay una cama en el dormitorio.", "example_target": "Il y a un lit dans la chambre à coucher."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "52d62204-fee4-5781-8353-caa6d8d569da", "language_tag": "es", "lemma": "el salón", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["le salon"], "example_source": "El salón es grande.", "example_target": "Le salon est grand."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "37f9ddf4-ec94-5b49-acea-909aa540e5e6", "language_tag": "es", "lemma": "la sala de estar", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["le séjour", "le salon"], "example_source": "La sala de estar está junto a la cocina.", "example_target": "Le séjour est à côté de la cuisine."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  }
+]

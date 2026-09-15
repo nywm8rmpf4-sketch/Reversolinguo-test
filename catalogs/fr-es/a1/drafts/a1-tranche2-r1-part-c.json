@@ -1,0 +1,62 @@
+[
+  {
+    "entry_id": "b8b35fcc-fd5a-5e83-8989-b56b8547fd45", "language_tag": "es", "lemma": "el jardín", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["le jardin"], "example_source": "El jardín es pequeño.", "example_target": "Le jardin est petit."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "6d0ce1fd-82b5-5171-8dc2-4863668fa1cc", "language_tag": "es", "lemma": "la terraza", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["la terrasse"], "example_source": "La terraza está junto al salón.", "example_target": "La terrasse est à côté du salon."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "02db3cff-de13-5185-89a9-dc94d70bb21b", "language_tag": "es", "lemma": "la puerta", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["la porte"], "example_source": "Cierra la puerta.", "example_target": "Ferme la porte."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "b5aa6166-bf5a-592b-9b21-d122a5cbb675", "language_tag": "es", "lemma": "la ventana", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["la fenêtre"], "example_source": "Abre la ventana.", "example_target": "Ouvre la fenêtre."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "bccdd31f-b889-5550-82c9-6f24c51aa6cc", "language_tag": "es", "lemma": "la escalera", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["l’escalier"], "example_source": "La escalera está aquí.", "example_target": "L’escalier est ici."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "6b67d923-8300-569a-a942-4a46fb01fc96", "language_tag": "es", "lemma": "el ascensor", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["l’ascenseur"], "example_source": "El ascensor está aquí.", "example_target": "L’ascenseur est ici."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "0c7b2309-99e3-5787-b0c0-e7cb78053b31", "language_tag": "es", "lemma": "el garaje", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["le garage"], "example_source": "El coche está en el garaje.", "example_target": "La voiture est dans le garage."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "245ed995-bbeb-543d-b9a6-76dfa885955d", "language_tag": "es", "lemma": "la mesa", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["la table"], "example_source": "El libro está sobre la mesa.", "example_target": "Le livre est sur la table."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "4d07d97b-3666-5526-9082-228cc03a7a9b", "language_tag": "es", "lemma": "la silla", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["la chaise"], "example_source": "La silla está junto a la mesa.", "example_target": "La chaise est à côté de la table."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "6ccd040d-c74b-5437-a997-b72a7457c18a", "language_tag": "es", "lemma": "la cama", "part_of_speech": "noun",
+    "senses": [{"sense_id": "s1", "translations": ["le lit"], "example_source": "La cama está en el dormitorio.", "example_target": "Le lit est dans la chambre à coucher."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
+    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  }
+]
