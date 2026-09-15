@@ -27,12 +27,6 @@
     "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
   },
   {
-    "entry_id": "9d0aedb7-8d74-54d3-9c93-d0f1e52ed58d", "language_tag": "es", "lemma": "el piso", "part_of_speech": "noun",
-    "senses": [{"sense_id": "s1", "translations": ["l’appartement"], "example_source": "Vivo en un piso pequeño.", "example_target": "J’habite dans un petit appartement.", "note": "Cette entrée cible le sens « appartement », courant notamment en Espagne ; dans d’autres contextes, « piso » peut signifier « étage »."}],
-    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "regional-variation",
-    "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
-  },
-  {
     "entry_id": "abefc84c-d2fd-570d-ba0c-13737ab0b720", "language_tag": "es", "lemma": "el apartamento", "part_of_speech": "noun",
     "senses": [{"sense_id": "s1", "translations": ["l’appartement"], "example_source": "El apartamento está cerca.", "example_target": "L’appartement est près d’ici."}],
     "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
@@ -58,7 +52,7 @@
   },
   {
     "entry_id": "37f9ddf4-ec94-5b49-acea-909aa540e5e6", "language_tag": "es", "lemma": "la sala de estar", "part_of_speech": "noun",
-    "senses": [{"sense_id": "s1", "translations": ["le séjour", "le salon"], "example_source": "La sala de estar está junto a la cocina.", "example_target": "Le séjour est à côté de la cuisine."}],
+    "senses": [{"sense_id": "s1", "translations": ["le séjour"], "example_source": "La sala de estar está junto a la cocina.", "example_target": "Le séjour est à côté de la cuisine.", "note": "Cette entrée utilise « le séjour » comme cue français afin de la distinguer pédagogiquement de « el salón » → « le salon »."}],
     "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["maison"], "variety": "pan-hispanic-common",
     "provenance": {"source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing", "license": "CC BY 4.0", "authored_by": "Reversolinguo project editorial draft"}, "status": "draft", "version": 1
   }
