@@ -48,10 +48,11 @@ describe('A1 tranche 1 non-runtime staging', () => {
 
   it('does not encode slash-separated answer alternatives unless the source is an explicit paired lexical unit', () => {
     for (const entry of entries) {
-      for (const translation of entry.senses[0].translations) {
+      const sense = entry.senses[0] as { translations: string[]; note?: string }
+      for (const translation of sense.translations) {
         if (!translation.includes(' / ')) continue
         expect(entry.lemma, `unexpected slash alternative in ${entry.lemma}: ${translation}`).toContain(' / ')
-        expect(entry.senses[0].note ?? '', `paired unit ${entry.lemma} must be explicitly documented`).toContain('paire lexicale')
+        expect(sense.note ?? '', `paired unit ${entry.lemma} must be explicitly documented`).toContain('paire lexicale')
       }
     }
   })
@@ -86,7 +87,7 @@ describe('A1 tranche 1 non-runtime staging', () => {
     }))
 
     const result = await prepareLexicalBatch({
-      batch_id: 'a1-tranche1-r2',
+      batch_id: 'a1-tranche1-r3',
       source_language: 'es',
       target_language: 'fr',
       cefr_level: 'A1',
