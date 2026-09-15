@@ -46,6 +46,16 @@ describe('A1 tranche 1 non-runtime staging', () => {
     }
   })
 
+  it('does not encode slash-separated answer alternatives unless the source is an explicit paired lexical unit', () => {
+    for (const entry of entries) {
+      for (const translation of entry.senses[0].translations) {
+        if (!translation.includes(' / ')) continue
+        expect(entry.lemma, `unexpected slash alternative in ${entry.lemma}: ${translation}`).toContain(' / ')
+        expect(entry.senses[0].note ?? '', `paired unit ${entry.lemma} must be explicitly documented`).toContain('paire lexicale')
+      }
+    }
+  })
+
   it('uses the exact deterministic ADR-025 UUID for every new lemma', async () => {
     for (const entry of entries) {
       expect(entry.entry_id).toBe(await stableLexicalUuid('es', 'fr', entry.lemma, subtle))
@@ -76,7 +86,7 @@ describe('A1 tranche 1 non-runtime staging', () => {
     }))
 
     const result = await prepareLexicalBatch({
-      batch_id: 'a1-tranche1-r1',
+      batch_id: 'a1-tranche1-r2',
       source_language: 'es',
       target_language: 'fr',
       cefr_level: 'A1',
