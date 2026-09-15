@@ -1,11 +1,10 @@
-# Portable-release candidate QA: build once, validate once, promote exact artifact.
+# Portable-release candidate QA: classify first, build once, validate once, promote exact artifact.
 name: QA candidate
 
 on:
   push:
     branches:
       - 'candidate/**'
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,6 +18,37 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Enforce immutable candidate branch contract
+        shell: bash
+        env:
+          CANDIDATE_REF: ${{ github.ref_name }}
+          CANDIDATE_CREATED: ${{ github.event.created }}
+        run: |
+          set -euo pipefail
+          case "$CANDIDATE_REF" in
+            candidate/*) ;;
+            *) echo "ERROR: QA candidate requires candidate/**" >&2; exit 1 ;;
+          esac
+          if [ "$CANDIDATE_CREATED" != 'true' ]; then
+            echo 'ERROR: candidate/** is immutable; create a new candidate revision instead of updating it.' >&2
+            exit 1
+          fi
+
+      - name: Classify diff and verify runtime campaign before costly QA
+        id: impact
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --quiet
+          node tools/qa-governance.mjs plan \
+            --base origin/main \
+            --head HEAD \
+            --branch "$GITHUB_REF_NAME" \
+            --campaign runtime_full \
+            --plan-file qa-selection.json \
+            --github-output "$GITHUB_OUTPUT"
+          cat qa-selection.json
 
       - name: Use baseline Node
         uses: actions/setup-node@v4
@@ -98,11 +128,27 @@ jobs:
       - name: Browser, offline and automated accessibility QA on portable build under QA subpath
         run: npm run test:e2e
 
-      - name: Upload exact tested artifact
+      - name: Upload exact tested artifact and selection proof
         uses: actions/upload-artifact@v4
         with:
           name: reversolinguo-tested-dist-${{ github.sha }}
           path: |
             dist/
             dist.sha256
+            qa-selection.json
           if-no-files-found: error
+
+      - name: QA selection summary
+        shell: bash
+        env:
+          PROFILE: ${{ steps.impact.outputs.validation_profile }}
+          CAMPAIGN: ${{ steps.impact.outputs.campaign }}
+          REQUIRED: ${{ steps.impact.outputs.required_controls }}
+        run: |
+          {
+            echo '## Executable QA selection'
+            echo "- validation_profile: $PROFILE"
+            echo "- campaign: $CAMPAIGN"
+            echo "- required_controls: $REQUIRED"
+            echo '- runtime_artifact: YES'
+          } >> "$GITHUB_STEP_SUMMARY"
