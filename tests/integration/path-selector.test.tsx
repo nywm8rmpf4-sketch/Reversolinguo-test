@@ -1,10 +1,12 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { IntlProvider } from 'react-intl'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PathSelector } from '../../src/app/PathSelector'
 import { adultPackIdFor, defaultPathPreferences, type PathPreferences } from '../../src/domain/pathSelection'
 import { messages } from '../../src/i18n/messages'
+
+afterEach(() => cleanup())
 
 function renderSelector(onSave = vi.fn<(preferences: PathPreferences) => void>()) {
   render(
