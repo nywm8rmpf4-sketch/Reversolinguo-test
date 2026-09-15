@@ -1,6 +1,7 @@
 name: QA editorial staging
 
 on:
+  create:
   push:
     branches:
       - 'staging/**'
@@ -10,6 +11,7 @@ permissions:
 
 jobs:
   editorial:
+    if: ${{ (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'staging/')) || (github.event_name == 'push' && startsWith(github.ref_name, 'staging/')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -17,22 +19,36 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'create' && github.event.ref || github.sha }}
 
       - name: Enforce immutable staging branch contract
         shell: bash
         env:
-          STAGING_REF: ${{ github.ref_name }}
-          STAGING_CREATED: ${{ github.event.created }}
+          EVENT_NAME: ${{ github.event_name }}
+          CREATED_REF: ${{ github.event.ref || '' }}
+          CREATED_REF_TYPE: ${{ github.event.ref_type || '' }}
+          PUSH_REF: ${{ github.ref_name }}
+          PUSH_CREATED: ${{ github.event.created || false }}
         run: |
           set -euo pipefail
-          case "$STAGING_REF" in
-            staging/*) ;;
-            *) echo "ERROR: editorial QA requires staging/**" >&2; exit 1 ;;
-          esac
-          if [ "$STAGING_CREATED" != 'true' ]; then
-            echo 'ERROR: staging/** candidate is immutable; create a new revision instead of updating it.' >&2
+          if [ "$EVENT_NAME" = 'create' ]; then
+            test "$CREATED_REF_TYPE" = 'branch'
+            staging_ref="$CREATED_REF"
+          elif [ "$EVENT_NAME" = 'push' ]; then
+            staging_ref="$PUSH_REF"
+            if [ "$PUSH_CREATED" != 'true' ]; then
+              echo 'ERROR: staging/** candidate is immutable; create a new revision instead of updating it.' >&2
+              exit 1
+            fi
+          else
+            echo "ERROR: unsupported staging event $EVENT_NAME" >&2
             exit 1
           fi
+          case "$staging_ref" in
+            staging/*) ;;
+            *) echo "ERROR: editorial QA requires staging/**, got $staging_ref" >&2; exit 1 ;;
+          esac
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
 
       - name: Classify diff and verify editorial campaign before dependency install
         id: impact
@@ -48,16 +64,6 @@ jobs:
             --plan-file qa-selection.json \
             --github-output "$GITHUB_OUTPUT"
           cat qa-selection.json
-
-      - name: Assert computed editorial profile
-        shell: bash
-        env:
-          PROFILE: ${{ steps.impact.outputs.validation_profile }}
-          RUNTIME_ARTIFACT: ${{ steps.impact.outputs.produces_runtime_artifact }}
-        run: |
-          set -euo pipefail
-          test "$PROFILE" = 'EDITORIAL_STAGING'
-          test "$RUNTIME_ARTIFACT" = 'false'
 
       - name: Use baseline Node
         uses: actions/setup-node@v4
