@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import { legacyEntryIdMap } from '../content/legacyIds'
+import { validateProgressExportRuntime } from '../content/runtimeProgressValidation'
 import type { Direction, ReviewEvent, ScheduleState } from '../domain/model'
 import { defaultSoundMode, soundModeFromPersisted, type SoundMode } from '../audio/model'
 
@@ -162,8 +163,7 @@ export async function importProgress(raw: string, database = db): Promise<void> 
   if (new TextEncoder().encode(raw).byteLength > maxImportBytes) throw new Error('Fichier trop volumineux.')
   const data: unknown = JSON.parse(raw)
   if (containsForbiddenActiveContent(data)) throw new Error('Contenu actif interdit dans la sauvegarde.')
-  const { validateProgressExport } = await import('../content/contracts')
-  if (!validateProgressExport(data).valid) throw new Error('Format de sauvegarde invalide.')
+  if (!validateProgressExportRuntime(data).valid) throw new Error('Format de sauvegarde invalide.')
   const validData = data as { schedules: ScheduleState[]; reviews: ReviewEvent[]; settings: PersistedSettingsInput[] }
   const normalizedSchedules = validData.schedules.map(migrateSchedule)
   const normalizedReviews = validData.reviews.map(migrateReview)
