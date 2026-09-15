@@ -28,6 +28,15 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
   await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
   await expectNoWcagViolations(page, 'home')
 
+  await page.getByRole('button', { name: 'Modifier ma sélection' }).click()
+  await expect(page.getByRole('heading', { name: 'Choisir mes mots' })).toBeVisible()
+  await page.getByRole('checkbox', { name: 'A2' }).click()
+  await page.getByRole('checkbox', { name: /École et études/u }).click()
+  await page.getByRole('checkbox', { name: /Alimentation/u }).click()
+  await page.getByRole('radio', { name: 'Uniquement ma sélection' }).click()
+  await expectNoWcagViolations(page, 'multi-selection')
+  await page.getByRole('button', { name: 'Retour' }).click()
+
   await page.getByRole('button', { name: 'Voir tout le vocabulaire' }).click()
   await expect(page.getByRole('heading', { name: 'Vocabulaire', exact: true })).toBeVisible()
   await expect(page.getByRole('listitem')).toHaveCount(60)
@@ -38,8 +47,8 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
   await expectNoWcagViolations(page, 'vocabulary-es-fr')
   await page.getByRole('button', { name: /Retour/u }).click()
 
-  await page.getByRole('button', { name: 'Réglages' }).click()
-  await expect(page.getByRole('heading', { name: 'Réglages' })).toBeVisible()
+  await page.getByRole('button', { name: 'Données et réglages' }).click()
+  await expect(page.getByRole('heading', { name: 'Données et réglages' })).toBeVisible()
   await expectNoWcagViolations(page, 'settings')
 
   const dailyNew = page.locator('#daily-new')
