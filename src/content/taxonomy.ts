@@ -1,3 +1,5 @@
+import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
+
 export const canonicalThemes = [
   { id: 'identite', label_fr: 'Identité' },
   { id: 'famille-relations', label_fr: 'Famille et relations' },
@@ -26,6 +28,11 @@ export type CanonicalThemeId = (typeof canonicalThemes)[number]['id']
 export interface LexicalThemeAssignment {
   entry_id: string
   theme_ids: CanonicalThemeId[]
+}
+
+interface CanonicalThemeEntry {
+  entry_id: string
+  themes: string[]
 }
 
 export const v1_0_1ThemeAssignments: LexicalThemeAssignment[] = [
@@ -57,8 +64,18 @@ export const v1_0_1ThemeAssignments: LexicalThemeAssignment[] = [
 
 export const canonicalThemeIds = new Set<CanonicalThemeId>(canonicalThemes.map((theme) => theme.id))
 
+/**
+ * Historical v1.0.1 entries keep their qualified PACK-1 mapping even though
+ * their legacy lexical tags predate the canonical taxonomy. PACK-6B entries
+ * already carry canonical theme ids in the reviewed lexical object itself.
+ */
 export function themeIdsForEntry(entryId: string): CanonicalThemeId[] {
-  return v1_0_1ThemeAssignments.find((assignment) => assignment.entry_id === entryId)?.theme_ids ?? []
+  const historical = v1_0_1ThemeAssignments.find((assignment) => assignment.entry_id === entryId)
+  if (historical) return historical.theme_ids
+
+  const entry = (canonicalEntries as CanonicalThemeEntry[]).find((candidate) => candidate.entry_id === entryId)
+  if (!entry) return []
+  return entry.themes.filter((theme): theme is CanonicalThemeId => canonicalThemeIds.has(theme as CanonicalThemeId))
 }
 
 export interface TaxonomyValidationResult {
