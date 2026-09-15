@@ -1,0 +1,112 @@
+name: QA editorial staging
+
+on:
+  push:
+    branches:
+      - 'staging/**'
+
+permissions:
+  contents: read
+
+jobs:
+  editorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact staging candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce immutable staging branch contract
+        shell: bash
+        env:
+          STAGING_REF: ${{ github.ref_name }}
+          STAGING_CREATED: ${{ github.event.created }}
+        run: |
+          set -euo pipefail
+          case "$STAGING_REF" in
+            staging/*) ;;
+            *) echo "ERROR: editorial QA requires staging/**" >&2; exit 1 ;;
+          esac
+          if [ "$STAGING_CREATED" != 'true' ]; then
+            echo 'ERROR: staging/** candidate is immutable; create a new revision instead of updating it.' >&2
+            exit 1
+          fi
+
+      - name: Classify diff and verify editorial campaign before dependency install
+        id: impact
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --quiet
+          node tools/qa-governance.mjs plan \
+            --base origin/main \
+            --head HEAD \
+            --branch "$GITHUB_REF_NAME" \
+            --campaign editorial_targeted \
+            --plan-file qa-selection.json \
+            --github-output "$GITHUB_OUTPUT"
+          test "${{ steps.impact.outputs.validation_profile }}" = '' || true
+          cat qa-selection.json
+
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+
+      - name: Use baseline npm
+        run: |
+          npm install --global npm@11.9.0
+          node --version
+          npm --version
+
+      - name: Verify unchanged dependency lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git hash-object package-lock.json)"
+          expected="a22b8ebe265ee44c392967a615c949039a2890ad"
+          echo "package-lock blob: $actual"
+          test "$actual" = "$expected"
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Run lexical staging controls only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t staging_tests < <(find tests/unit -maxdepth 1 -type f -name '*staging.test.ts' | sort)
+          test "${#staging_tests[@]}" -gt 0
+          npx vitest run \
+            tests/unit/catalog-integrity.test.ts \
+            tests/unit/taxonomy.test.ts \
+            tests/unit/editorial-intake.test.ts \
+            tests/unit/lexical-batch.test.ts \
+            "${staging_tests[@]}"
+
+      - name: Preserve structured selection proof only
+        uses: actions/upload-artifact@v4
+        with:
+          name: reversolinguo-editorial-qa-proof-${{ github.sha }}
+          path: qa-selection.json
+          if-no-files-found: error
+
+      - name: Editorial QA selection summary
+        shell: bash
+        env:
+          PROFILE: ${{ steps.impact.outputs.validation_profile }}
+          CAMPAIGN: ${{ steps.impact.outputs.campaign }}
+          REQUIRED: ${{ steps.impact.outputs.required_controls }}
+        run: |
+          {
+            echo '## Editorial staging QA'
+            echo "- validation_profile: $PROFILE"
+            echo "- campaign: $CAMPAIGN"
+            echo "- required_controls: $REQUIRED"
+            echo '- build_runtime: NOT_EXECUTED'
+            echo '- playwright_install: NOT_EXECUTED'
+            echo '- e2e_offline_accessibility: NOT_EXECUTED'
+            echo '- runtime_artifact: NOT_EXECUTED'
+          } >> "$GITHUB_STEP_SUMMARY"
