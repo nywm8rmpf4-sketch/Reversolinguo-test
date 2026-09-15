@@ -12,6 +12,12 @@ import {
 } from '../../src/content/lexicalBatch'
 import { canonicalThemeIds } from '../../src/content/taxonomy'
 
+interface CueCollisionException {
+  target_cue: string
+  source_lemmas: string[]
+  rationale: string
+}
+
 interface BulkManifest {
   schema_version: string
   validation_profile: string
@@ -20,6 +26,7 @@ interface BulkManifest {
   target_language: string
   expected_license: string
   canonical_catalog: string
+  allowed_target_cue_collisions?: CueCollisionException[]
   policy: {
     exact_source_coverage: boolean
     cross_tranche_uniqueness: boolean
@@ -55,6 +62,11 @@ interface SourceMap {
   excluded: SourceMapRow[]
 }
 
+interface CueOccurrence {
+  lemma: string
+  source: 'canonical' | 'staging'
+}
+
 const subtle = webcrypto.subtle as unknown as SubtleCrypto
 const root = process.cwd()
 
@@ -67,6 +79,14 @@ const canonicalEntries = readJson<PreparedLexicalEntry[]>(manifest.canonical_cat
 
 function semanticKey(languageTag: string, lemma: string): string {
   return `${languageTag.normalize('NFC').trim().toLocaleLowerCase('es')}:${lemma.normalize('NFC').trim().toLocaleLowerCase('es')}`
+}
+
+function normalizedCue(cue: string): string {
+  return cue.normalize('NFC').trim().toLocaleLowerCase('fr')
+}
+
+function normalizedLemma(lemma: string): string {
+  return lemma.normalize('NFC').trim().toLocaleLowerCase('es')
 }
 
 function exactRange([start, end]: [string, string]): string[] {
@@ -90,6 +110,10 @@ function loadEntries(files: string[]): PreparedLexicalEntry[] {
   return files.flatMap((file) => readJson<PreparedLexicalEntry[]>(file))
 }
 
+function stagedEntries(): PreparedLexicalEntry[] {
+  return manifest.tranches.flatMap((tranche) => loadEntries(tranche.entry_files))
+}
+
 function batchInput(entry: PreparedLexicalEntry): LexicalBatchEntryInput {
   return {
     lemma: entry.lemma,
@@ -102,6 +126,10 @@ function batchInput(entry: PreparedLexicalEntry): LexicalBatchEntryInput {
     ...(entry.variety === undefined ? {} : { variety: entry.variety }),
     provenance: entry.provenance
   }
+}
+
+function collisionKey(cue: string, lemmas: string[]): string {
+  return `${normalizedCue(cue)}::${lemmas.map(normalizedLemma).sort().join('|')}`
 }
 
 describe('manifest-driven editorial bulk staging', () => {
@@ -175,6 +203,58 @@ describe('manifest-driven editorial bulk staging', () => {
         }
       }
     }
+  })
+
+  it('rejects exact target-cue collisions involving staging unless explicitly justified', () => {
+    const byCue = new Map<string, CueOccurrence[]>()
+    const addEntry = (entry: PreparedLexicalEntry, source: CueOccurrence['source']) => {
+      for (const sense of entry.senses) {
+        for (const translation of sense.translations) {
+          const cue = normalizedCue(translation)
+          const occurrences = byCue.get(cue) ?? []
+          occurrences.push({ lemma: entry.lemma, source })
+          byCue.set(cue, occurrences)
+        }
+      }
+    }
+
+    canonicalEntries.forEach((entry) => addEntry(entry, 'canonical'))
+    stagedEntries().forEach((entry) => addEntry(entry, 'staging'))
+
+    const observed = new Map<string, { cue: string; lemmas: string[]; sources: string[] }>()
+    for (const [cue, occurrences] of byCue) {
+      const lemmaMap = new Map<string, { lemma: string; sources: Set<string> }>()
+      for (const occurrence of occurrences) {
+        const key = normalizedLemma(occurrence.lemma)
+        const current = lemmaMap.get(key) ?? { lemma: occurrence.lemma, sources: new Set<string>() }
+        current.sources.add(occurrence.source)
+        lemmaMap.set(key, current)
+      }
+      if (lemmaMap.size < 2) continue
+      if (![...lemmaMap.values()].some((item) => item.sources.has('staging'))) continue
+      const lemmas = [...lemmaMap.values()].map((item) => item.lemma).sort((a, b) => normalizedLemma(a).localeCompare(normalizedLemma(b), 'es'))
+      const sources = [...lemmaMap.values()].map((item) => `${item.lemma}[${[...item.sources].sort().join('+')}]`)
+      observed.set(collisionKey(cue, lemmas), { cue, lemmas, sources })
+    }
+
+    const allowed = new Map<string, CueCollisionException>()
+    for (const exception of manifest.allowed_target_cue_collisions ?? []) {
+      expect(exception.target_cue.trim(), 'collision exception target_cue must not be empty').not.toBe('')
+      expect(exception.rationale.trim(), `collision exception ${exception.target_cue} must have a rationale`).not.toBe('')
+      expect(new Set(exception.source_lemmas.map(normalizedLemma)).size, `collision exception ${exception.target_cue} must list at least two distinct lemmas`).toBeGreaterThan(1)
+      const key = collisionKey(exception.target_cue, exception.source_lemmas)
+      expect(allowed.has(key), `duplicate collision exception ${key}`).toBe(false)
+      allowed.set(key, exception)
+    }
+
+    const unexpected = [...observed.entries()].filter(([key]) => !allowed.has(key))
+    const stale = [...allowed.keys()].filter((key) => !observed.has(key))
+
+    expect(
+      unexpected.map(([, item]) => `${item.cue} -> ${item.sources.join(', ')}`),
+      'unjustified exact target-cue collisions involving staging'
+    ).toEqual([])
+    expect(stale, 'stale or partial target-cue collision exceptions').toEqual([])
   })
 
   it('enforces deterministic UUIDs and uniqueness across canonical content and all staged tranches', async () => {
