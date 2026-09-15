@@ -38,8 +38,8 @@
         "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-b.json",
         "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-c.json"
       ],
-      "expected_included": 31,
-      "expected_excluded": 4,
+      "expected_included": 30,
+      "expected_excluded": 5,
       "materializer_batch_id": "a1-tranche2-r1"
     },
     {
