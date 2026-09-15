@@ -45,7 +45,10 @@
         "motionEnabled": { "type": "boolean" },
         "soundMode": { "enum": ["off", "subtle", "on"] },
         "soundEnabled": { "type": "boolean" },
-        "vibrationEnabled": { "type": "boolean" }
+        "vibrationEnabled": { "type": "boolean" },
+        "primaryPackId": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "focusThemeIds": { "type": "array", "maxItems": 20, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 80 } },
+        "adultScope": { "enum": ["cumulative", "new-only"] }
       }
     }
   }
