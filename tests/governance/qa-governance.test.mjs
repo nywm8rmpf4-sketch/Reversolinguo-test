@@ -50,6 +50,28 @@ test('E - unknown path fails safe to strongest runtime profile', () => {
   assert.doesNotThrow(() => verifyCampaign(result, 'candidate/ambiguous-r1', 'runtime_full', policy));
 });
 
+test('all six named profiles have a direct representative classification', () => {
+  const representatives = [
+    ['EDITORIAL_STAGING', ['catalogs/fr-es/a1/drafts/a1-tranche3.json']],
+    ['INFRA_QA', ['documentation/governance/QA_IMPACT_POLICY.json']],
+    ['RUNTIME_CONTENT', ['catalogs/fr-es/a1/catalog.json']],
+    ['RUNTIME_CODE', ['src/domain/srsEngine.ts']],
+    ['UI_UX', ['src/components/VocabularyBrowser.tsx']],
+    ['RELEASE_ONLY', ['certification/v1.1.0.json']]
+  ];
+
+  for (const [expectedProfile, files] of representatives) {
+    const result = classify(files);
+    assert.equal(result.validation_profile, expectedProfile, `${files.join(', ')} should classify as ${expectedProfile}`);
+    assert.equal(result.transversal, false);
+  }
+
+  const infraPlan = verifyCampaign(classify(['documentation/governance/QA_IMPACT_POLICY.json']), 'qa/profile-coverage-r1', 'infra_targeted', policy);
+  assert.equal(infraPlan.produces_runtime_artifact, false);
+  const contentPlan = verifyCampaign(classify(['catalogs/fr-es/a1/catalog.json']), 'candidate/runtime-content-r1', 'runtime_full', policy);
+  assert.equal(contentPlan.produces_runtime_artifact, true);
+});
+
 test('mixed profiles fail safe to RUNTIME_CODE rather than composing weak assumptions', () => {
   const result = classify(['catalogs/fr-es/a1/drafts/a1-tranche3.json', 'catalogs/fr-es/a1/catalog.json']);
   assert.equal(result.validation_profile, 'RUNTIME_CODE');
