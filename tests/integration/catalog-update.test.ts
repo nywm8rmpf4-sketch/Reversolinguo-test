@@ -41,8 +41,8 @@ describe('catalog update migration', () => {
     expect(migratedEvent?.previousState.entryId).toBe(newId)
     expect(migratedEvent?.catalogVersion).toBe('a1-pilot-1')
 
-    expect(await ensureCatalogSchedules(current, new Date('2026-09-13T08:00:00Z'))).toBe(47)
-    expect(await current.schedules.count()).toBe(48)
+    expect(await ensureCatalogSchedules(current, new Date('2026-09-13T08:00:00Z'))).toBe(119)
+    expect(await current.schedules.count()).toBe(120)
     expect((await current.schedules.get(`${newId}:fr-es`))?.intervalDays).toBe(21)
     expect(await ensureCatalogSchedules(current, new Date('2026-09-13T08:00:00Z'))).toBe(0)
     current.close()
