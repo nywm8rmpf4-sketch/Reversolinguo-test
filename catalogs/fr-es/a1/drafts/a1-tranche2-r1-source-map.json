@@ -18,7 +18,6 @@
     {"review_id":"REV-A1-0049","entry_id":"1bd6732c-2a44-518d-b08c-4508cafc6baa","lemma":"la fiesta"},
     {"review_id":"REV-A1-0050","entry_id":"50b43deb-1037-50a9-9ee5-7c3927b93cac","lemma":"conocer"},
     {"review_id":"REV-A1-0051","entry_id":"9e8c9378-4ad0-58f1-85f6-402cdd340085","lemma":"presentar"},
-    {"review_id":"REV-A1-0052","entry_id":"9d0aedb7-8d74-54d3-9c93-d0f1e52ed58d","lemma":"el piso"},
     {"review_id":"REV-A1-0053","entry_id":"abefc84c-d2fd-570d-ba0c-13737ab0b720","lemma":"el apartamento"},
     {"review_id":"REV-A1-0054","entry_id":"777d1d7c-4a13-5946-87d7-f801881c57bd","lemma":"el estudio"},
     {"review_id":"REV-A1-0056","entry_id":"82fd4d60-5f0a-5178-8e76-d593785c53d2","lemma":"el dormitorio"},
@@ -37,6 +36,7 @@
   ],
   "excluded": [
     {"review_id":"REV-A1-0038","lemma":"el hermano / la hermana","reason":"RECONCILED_EXISTING_CANONICAL: source paired row is already represented by two reviewed canonical lexical identities; no new paired UUID created","canonical_entries":[{"entry_id":"d99ce5ca-6c21-573e-adfa-b5645fe9e7a1","lemma":"el hermano"},{"entry_id":"4f9d2815-6450-581c-8243-f1e4e6614767","lemma":"la hermana"}]},
+    {"review_id":"REV-A1-0052","lemma":"el piso","reason":"PEDAGOGICAL_REVERSE_AMBIGUITY: French recall cue 'l’appartement' duplicates pan-hispanic staged 'el apartamento'; regional alternative deferred until contextual or explicit synonym policy is available"},
     {"review_id":"REV-A1-0055","lemma":"la habitación","reason":"RECONCILED_EXISTING_CANONICAL: exact normalized lemma already reviewed in canonical catalog","canonical_entries":[{"entry_id":"7ccd66db-2565-51f1-ae67-e4eeb4a9656d","lemma":"la habitación"}]},
     {"review_id":"REV-A1-0059","lemma":"la cocina","reason":"RECONCILED_EXISTING_CANONICAL: exact normalized lemma already reviewed in canonical catalog","canonical_entries":[{"entry_id":"48e9e577-1c21-55ed-b849-c8e7a83aac4a","lemma":"la cocina"}]},
     {"review_id":"REV-A1-0060","lemma":"el baño","reason":"RECONCILED_EXISTING_CANONICAL: exact normalized lemma already reviewed in canonical catalog","canonical_entries":[{"entry_id":"fe984172-dd41-546e-ac2e-18f679281f6b","lemma":"el baño"}]}
