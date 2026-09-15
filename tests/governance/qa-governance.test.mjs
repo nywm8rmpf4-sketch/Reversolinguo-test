@@ -77,16 +77,20 @@ test('public workflow contract keeps heavy QA away from staging and guards quali
 
   assert.match(runtime, /candidate\/\*\*/);
   assert.doesNotMatch(runtime, /staging\/\*\*/);
-  assert.match(runtime, /create:/);
+  assert.match(runtime, /push:/);
+  assert.doesNotMatch(runtime, /^\s*create:/m);
   assert.match(runtime, /github\.event\.created/);
+  assert.match(runtime, /PUSH_CREATED/);
   assert.match(runtime, /qa-governance\.mjs plan/);
   assert.match(runtime, /--campaign runtime_full/);
   assert.ok(runtime.indexOf('immutable candidate branch contract') < runtime.indexOf('npm ci'));
   assert.ok(runtime.indexOf('qa-governance.mjs plan') < runtime.indexOf('playwright install'));
 
   assert.match(editorial, /staging\/\*\*/);
-  assert.match(editorial, /create:/);
+  assert.match(editorial, /push:/);
+  assert.doesNotMatch(editorial, /^\s*create:/m);
   assert.match(editorial, /github\.event\.created/);
+  assert.match(editorial, /PUSH_CREATED/);
   assert.match(editorial, /--campaign editorial_targeted/);
   for (const forbidden of ['playwright install', 'test:e2e', 'npm run build', 'reversolinguo-tested-dist-']) {
     assert.equal(editorial.includes(forbidden), false, `editorial workflow must exclude ${forbidden}`);
