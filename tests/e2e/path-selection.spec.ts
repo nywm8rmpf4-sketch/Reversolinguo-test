@@ -40,6 +40,53 @@ test('International selection combines levels and themes and persists recall sco
   await expect(page.getByRole('radio', { name: 'Uniquement ma sélection' })).toBeChecked()
 })
 
+test('R7 vocabulary follows saved A1+A2 themes and survives reload without all-due widening', async ({ page }) => {
+  await onboard(page)
+  await openSelection(page)
+
+  await page.getByRole('checkbox', { name: 'A2' }).click()
+  await page.getByRole('checkbox', { name: /École et études/u }).click()
+  await page.getByRole('checkbox', { name: /Alimentation/u }).click()
+  await expect(page.getByRole('radio', { name: 'Conserver tous les rappels dus' })).toBeChecked()
+  await page.getByRole('button', { name: 'Utiliser cette sélection' }).click()
+
+  await expect(page.getByText('International · A1 + A2')).toBeVisible()
+  const selectedCountText = page.getByText(/nouveaux mots dans votre sélection/u)
+  await expect(selectedCountText).toBeVisible()
+  const selectedCount = Number((await selectedCountText.textContent())?.match(/\d+/u)?.[0] ?? 0)
+  expect(selectedCount).toBeGreaterThan(0)
+  expect(selectedCount).toBeLessThan(60)
+
+  await page.getByRole('button', { name: 'Voir le vocabulaire' }).click()
+  await expect(page.getByText(`${selectedCount} entrées uniques sélectionnées.`)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Alphabétique' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('listitem')).toHaveCount(selectedCount)
+  const alphabeticalBeforeReload = await page.locator('.vocabulary-list > li').allTextContents()
+
+  await page.getByRole('button', { name: 'Par thèmes' }).click()
+  await expect(page.getByRole('button', { name: 'Par thèmes' })).toHaveAttribute('aria-pressed', 'true')
+  const themeZones = page.locator('details.vocabulary-level')
+  expect(await themeZones.count()).toBeGreaterThan(1)
+  await themeZones.first().locator('summary').click()
+  await expect(themeZones.first()).toHaveAttribute('open', '')
+
+  await page.reload()
+  await expect(page.getByText('International · A1 + A2')).toBeVisible()
+  await openSelection(page)
+  await expect(page.getByRole('checkbox', { name: 'A1' })).toBeChecked()
+  await expect(page.getByRole('checkbox', { name: 'A2' })).toBeChecked()
+  await expect(page.getByRole('checkbox', { name: /École et études/u })).toBeChecked()
+  await expect(page.getByRole('checkbox', { name: /Alimentation/u })).toBeChecked()
+  await expect(page.getByRole('radio', { name: 'Conserver tous les rappels dus' })).toBeChecked()
+  await page.getByRole('button', { name: 'Retour' }).click()
+
+  await page.getByRole('button', { name: 'Voir le vocabulaire' }).click()
+  await expect(page.getByText(`${selectedCount} entrées uniques sélectionnées.`)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Alphabétique' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('listitem')).toHaveCount(selectedCount)
+  expect(await page.locator('.vocabulary-list > li').allTextContents()).toEqual(alphabeticalBeforeReload)
+})
+
 test('school selection supports several classes and preserves them across LVA/LVB', async ({ page }) => {
   await onboard(page)
   await openSelection(page)
