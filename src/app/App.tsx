@@ -4,7 +4,7 @@ import { ensureCatalogSchedules } from './bootstrap'
 import { PathSelector } from './PathSelector'
 import { PrivacyNotice } from './PrivacyNotice'
 import { VocabularyBrowser } from './VocabularyBrowser'
-import { catalog, catalogManifest, catalogVersion } from '../content/catalog'
+import { catalog, catalogVersion } from '../content/catalog'
 import type { CanonicalThemeId } from '../content/taxonomy'
 import { appVersion } from '../config/version'
 import { bestAnswerDifference } from '../domain/answerDiff'
@@ -27,7 +27,6 @@ type SessionMode = 'scheduled' | 'free' | 'exploration'
 type MessageId = keyof typeof messages
 
 const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
-const catalogEntryIds = new Set(catalog.map((item) => item.id))
 const ratingSound: Record<Rating, SoundEvent> = { 0: 'forgotten', 1: 'hard', 2: 'correct', 3: 'easy' }
 
 function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number, freeReviewAvailable: boolean): { id: MessageId; values?: { count: number } } {
