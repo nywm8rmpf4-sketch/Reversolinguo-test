@@ -1,8 +1,21 @@
 import { expect, test } from '@playwright/test'
 
 async function onboard(page: import('@playwright/test').Page) {
-  await page.goto('./')
-  await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
+  const pageErrors: string[] = []
+  const consoleErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.stack ?? error.message))
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })
+
+  const response = await page.goto('./')
+  await page.waitForTimeout(100)
+  const diagnostics = {
+    url: page.url(),
+    status: response?.status() ?? null,
+    body: await page.locator('body').innerText().catch(() => '<body unavailable>'),
+    pageErrors,
+    consoleErrors
+  }
+  await expect(page.getByRole('heading', { name: 'Reversolinguo' }), `startup diagnostics: ${JSON.stringify(diagnostics)}`).toBeVisible()
   await page.getByRole('button', { name: 'Français vers espagnol' }).click()
   await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
 }
