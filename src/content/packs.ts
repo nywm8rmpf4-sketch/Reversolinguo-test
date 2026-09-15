@@ -1,5 +1,3 @@
-import { validateLearningPack } from './contracts'
-
 export type PackAudience = 'school' | 'adult' | 'theme'
 export type PackTrack = 'LVA' | 'LVB' | 'LVC'
 export type PackRole = 'core' | 'reinforcement' | 'extension' | 'optional'
@@ -104,6 +102,11 @@ export function resolveLearningPack(packId: string, packs: LearningPack[]): Pack
   return resolve(packId, [])
 }
 
+/**
+ * Validates graph-level invariants only. JSON-schema validation deliberately
+ * stays in the QA/editorial contract layer so AJV code generation is never
+ * pulled into the browser runtime by pack resolution.
+ */
 export function validateLearningPackGraph(
   packs: LearningPack[],
   lexicalEntryIds?: ReadonlySet<string>,
@@ -112,10 +115,7 @@ export function validateLearningPackGraph(
   const errors: string[] = []
   const ids = new Set<string>()
 
-  for (const [index, pack] of packs.entries()) {
-    const schema = validateLearningPack(pack)
-    if (!schema.valid) errors.push(`pack-schema:${index}:${pack.pack_id ?? 'unknown'}`)
-
+  for (const pack of packs) {
     if (ids.has(pack.pack_id)) errors.push(`duplicate-pack-id:${pack.pack_id}`)
     ids.add(pack.pack_id)
 
