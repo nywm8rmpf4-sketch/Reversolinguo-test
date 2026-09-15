@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FormattedMessage, IntlProvider, useIntl } from 'react-intl'
 import { ensureCatalogSchedules } from './bootstrap'
+import { PathSelector } from './PathSelector'
 import { PrivacyNotice } from './PrivacyNotice'
 import { VocabularyBrowser } from './VocabularyBrowser'
-import { catalog, catalogManifest, catalogVersion } from '../content/catalog'
+import { catalog, catalogVersion } from '../content/catalog'
+import type { CanonicalThemeId } from '../content/taxonomy'
 import { appVersion } from '../config/version'
 import { bestAnswerDifference } from '../domain/answerDiff'
 import { hasActiveReviewToday, randomExplorationSession } from '../domain/exploration'
+import { labelForPath, normalizePathPreferences, summarizePath } from '../domain/pathSelection'
 import { summarizeProgress, type ProgressSummary } from '../domain/progress'
-import { orderSession, remainingDailyNew, reviewSchedule } from '../domain/scheduler'
+import { remainingDailyNew, reviewSchedule } from '../domain/scheduler'
+import { entryIdsForReviewScope, orderSelectedSession, reviewsForSelection, statesForSelection } from '../domain/selectionSession'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
 import { activeLanguagePair, examplesFor, expectedFor, getDirectionConfig, promptFor } from '../i18n/languagePairs'
 import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
@@ -18,7 +22,7 @@ import { playSound } from '../audio/engine'
 import { isSoundMode, type SoundEvent } from '../audio/model'
 import '../ui/styles.css'
 
-type Screen = 'loading' | 'onboarding' | 'home' | 'session' | 'settings' | 'vocabulary' | 'complete'
+type Screen = 'loading' | 'onboarding' | 'home' | 'paths' | 'session' | 'settings' | 'vocabulary' | 'complete'
 type SessionMode = 'scheduled' | 'free' | 'exploration'
 type MessageId = keyof typeof messages
 
@@ -62,6 +66,15 @@ function AppContent() {
   const [storageSize, setStorageSize] = useState<string | null>(null)
   const [updateReady, setUpdateReady] = useState(false)
 
+  const pathPreferences = useMemo(() => normalizePathPreferences({
+    audience: settings.pathAudience,
+    selectedPackIds: settings.selectedPackIds,
+    selectedThemeIds: settings.selectedThemeIds as CanonicalThemeId[],
+    reviewScope: settings.reviewScope
+  }), [settings.pathAudience, settings.selectedPackIds, settings.selectedThemeIds, settings.reviewScope])
+  const pathSummary = useMemo(() => summarizePath(pathPreferences), [pathPreferences])
+  const reviewEntryIds = useMemo(() => entryIdsForReviewScope(pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope), [pathSummary, pathPreferences.reviewScope])
+
   useEffect(() => {
     let active = true
     db.settings.get('settings').then(async (saved) => {
@@ -92,16 +105,17 @@ function AppContent() {
       db.reviews.filter((item) => item.direction === settings.direction).toArray()
     ]).then(([states, reviews]) => {
       const now = new Date()
-      const activeStates = states.filter((state) => catalogEntryIds.has(state.entryId))
-      const summary = summarizeProgress(activeStates, reviews, now)
+      const activeStates = statesForSelection(states, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope)
+      const activeReviews = reviewsForSelection(reviews, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope)
+      const summary = summarizeProgress(activeStates, activeReviews, now)
       const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
       const planned = summary.dueCount + Math.min(summary.newCount, remainingNew)
       setProgress(summary)
       setNewRemainingToday(remainingNew)
       setFreeReviewAvailable(activeStates.some((state) => state.state !== 'NEW' && state.state !== 'SUSPENDED'))
-      setDailySessionCompleted(hasActiveReviewToday(reviews, settings.direction, catalogEntryIds, now) && planned === 0)
+      setDailySessionCompleted(hasActiveReviewToday(activeReviews, settings.direction, reviewEntryIds, now) && planned === 0)
     })
-  }, [screen, settings.direction, settings.dailyNew])
+  }, [screen, settings.direction, settings.dailyNew, pathSummary, pathPreferences.reviewScope, reviewEntryIds])
 
   useEffect(() => {
     if (screen !== 'settings' || !navigator.storage?.estimate) return
@@ -130,6 +144,17 @@ function AppContent() {
     setSettings(nextSettings); setNotice(''); setScreen('home')
   }
 
+  async function savePath(next: typeof pathPreferences) {
+    await persistSettings({
+      pathAudience: next.audience,
+      selectedPackIds: next.selectedPackIds,
+      selectedThemeIds: next.selectedThemeIds,
+      reviewScope: next.reviewScope
+    })
+    setNotice('')
+    setScreen('home')
+  }
+
   function openSession(session: ScheduleState[], mode: SessionMode) {
     setSessionMode(mode)
     setCompletedSessionKeys(session.map((state) => state.key))
@@ -149,11 +174,10 @@ function AppContent() {
       db.schedules.where('direction').equals(settings.direction).toArray(),
       db.reviews.filter((item) => item.direction === settings.direction).toArray()
     ])
-    const catalogOrder = new Map(catalog.map((item, index) => [item.id, index]))
-    const active = all.filter((state) => catalogEntryIds.has(state.entryId))
-    active.sort((a, b) => (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER))
+    const selectedOrder = new Map(pathSummary.selectedNewEntries.map((item, index) => [item.entry_id, index]))
+    all.sort((a, b) => (selectedOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (selectedOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER))
     const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
-    const session = orderSession(active, now, remainingNew, catalogThemes)
+    const session = orderSelectedSession(all, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope, now, remainingNew, catalogThemes)
     if (!session.length) {
       setNotice(intl.formatMessage({ id: 'noCardsAvailable' }))
       setScreen('home')
@@ -166,7 +190,7 @@ function AppContent() {
     const all = await db.schedules.where('direction').equals(settings.direction).toArray()
     const preferred = preferredKeys ? new Set(preferredKeys) : null
     const catalogOrder = new Map(catalog.map((item, index) => [item.id, index]))
-    const eligible = all.filter((state) => catalogEntryIds.has(state.entryId) && state.state !== 'NEW' && state.state !== 'SUSPENDED' && (!preferred || preferred.has(state.key)))
+    const eligible = all.filter((state) => reviewEntryIds.has(state.entryId) && state.state !== 'NEW' && state.state !== 'SUSPENDED' && (!preferred || preferred.has(state.key)))
     eligible.sort((a, b) => {
       const due = new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
       return due || (catalogOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (catalogOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER)
@@ -186,11 +210,12 @@ function AppContent() {
       db.schedules.where('direction').equals(settings.direction).toArray(),
       db.reviews.filter((item) => item.direction === settings.direction).toArray()
     ])
-    const active = all.filter((state) => catalogEntryIds.has(state.entryId))
-    const summary = summarizeProgress(active, reviews, now)
+    const active = statesForSelection(all, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope)
+    const activeReviews = reviewsForSelection(reviews, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope)
+    const summary = summarizeProgress(active, activeReviews, now)
     const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
     const planned = summary.dueCount + Math.min(summary.newCount, remainingNew)
-    if (!hasActiveReviewToday(reviews, settings.direction, catalogEntryIds, now) || planned > 0) {
+    if (!hasActiveReviewToday(activeReviews, settings.direction, reviewEntryIds, now) || planned > 0) {
       setNotice(intl.formatMessage({ id: 'explorationLocked' }))
       setScreen('home')
       return
@@ -301,6 +326,8 @@ function AppContent() {
     </main>
   )
 
+  if (screen === 'paths') return <PathSelector initial={pathPreferences} onSave={savePath} onBack={() => setScreen('home')} banner={updateBanner} />
+
   if (screen === 'home') {
     const planned = progress.dueCount + Math.min(progress.newCount, newRemainingToday)
     const hasSession = planned > 0
@@ -308,7 +335,8 @@ function AppContent() {
     const challengeInfo = challenge(progress, settings.dailyNew, newRemainingToday, freeReviewAvailable)
     return (
       <main className="shell">{updateBanner}
-        <header className="topbar"><div><span className="eyebrow">{activeLanguagePair.targetLanguage.toUpperCase()} · {activeLanguagePair.sourceLanguage.toUpperCase()} · {catalogManifest.cefr_level}</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
+        <header className="topbar"><div><span className="eyebrow">{activeLanguagePair.targetLanguage.toUpperCase()} · {activeLanguagePair.sourceLanguage.toUpperCase()} · {pathSummary.cefrTargets.join(' + ') || '—'}</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
+        <section className="panel path-current"><span className="eyebrow"><FormattedMessage id="pathCurrent" /></span><h2>{labelForPath(pathSummary)}</h2><p className="helper">{pathSummary.frameworks.join(' + ')} · {pathSummary.frameworkVersions.join(' + ')}</p><p><FormattedMessage id="pathSelectedNewCount" values={{ count: pathSummary.selectedNewCount }} /></p><p className="helper"><FormattedMessage id={pathPreferences.reviewScope === 'selection-only' ? 'pathReviewSelectionOnly' : 'pathReviewAllDue'} /></p><button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button></section>
         <section className="hero-card"><span className="status"><span aria-hidden="true">●</span> <FormattedMessage id={offlineReady ? 'offlineReady' : 'preparingOffline'} /></span><h2><FormattedMessage id="tagline" /></h2>
           <p><FormattedMessage id="due" values={{ count: progress.dueCount }} /> · {hasSession ? <FormattedMessage id="sessionEstimate" values={{ minutes: estimate }} /> : <FormattedMessage id="noScheduledSession" />}</p>
           {progress.dueCount > 0 && <button className="primary large" onClick={startSession}><FormattedMessage id="reviewNow" /></button>}
@@ -337,6 +365,7 @@ function AppContent() {
   if (screen === 'settings') return (
     <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>
       <section className="panel actions">
+        <button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button>
         <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value })}>{activeLanguagePair.directions.map((config) => <option key={config.id} value={config.id}>{intl.formatMessage({ id: config.displayMessageId })}</option>)}</select>
         <label htmlFor="daily-new"><FormattedMessage id="dailyNew" values={{ count: settings.dailyNew }} /></label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
         <label htmlFor="daily-goal-settings"><FormattedMessage id="dailyGoalSettings" /></label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
