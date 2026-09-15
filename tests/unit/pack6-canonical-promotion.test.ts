@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
 import { adultPackId } from '../../src/content/adultReference'
+import { validateLearningPack } from '../../src/content/contracts'
 import {
   pack6BAdultPacks,
   pack6BPromotedEntryIds,
@@ -67,7 +68,8 @@ describe('PACK-6B canonical lexical promotion', () => {
     expect(voyageA1.entries.some((entry) => entry.entry_id === sharedId)).toBe(true)
   })
 
-  it('passes the complete runtime graph and PACK-6B promotion validator', () => {
+  it('keeps AJV schema validation in QA while runtime graph validation stays CSP-safe', () => {
+    expect(pack6BRuntimePacks.every((pack) => validateLearningPack(pack).valid)).toBe(true)
     const ids = new Set(canonicalEntries.map((entry) => entry.entry_id))
     expect(validateLearningPackGraph(pack6BRuntimePacks, ids, canonicalThemeIds)).toEqual({ valid: true, errors: [] })
     expect(validatePack6BRuntime()).toEqual({ valid: true, errors: [] })
