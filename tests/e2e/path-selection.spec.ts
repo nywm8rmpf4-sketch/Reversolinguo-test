@@ -28,7 +28,7 @@ test('International selection combines levels and themes and persists recall sco
   await page.getByRole('button', { name: 'Utiliser cette sélection' }).click()
 
   await expect(page.getByText('International · A1 + A2')).toBeVisible()
-  await expect(page.getByText('2 thèmes')).toBeVisible()
+  await expect(page.getByText('Uniquement ma sélection')).toBeVisible()
 
   await page.reload()
   await expect(page.getByText('International · A1 + A2')).toBeVisible()
