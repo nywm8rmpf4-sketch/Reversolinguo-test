@@ -20,6 +20,11 @@ export interface ExternalThemeMappingValidationResult {
   errors: string[]
 }
 
+/**
+ * PACK-1 defines and validates the contract only.
+ * Concrete Education nationale / CEFR mappings are versioned data introduced
+ * with their respective packs in PACK-3 and PACK-4.
+ */
 export const externalThemeMappings: ExternalThemeMapping[] = []
 
 export function validateExternalThemeMapping(mapping: ExternalThemeMapping): ExternalThemeMappingValidationResult {
