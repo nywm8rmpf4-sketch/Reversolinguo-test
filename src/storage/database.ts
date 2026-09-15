@@ -12,13 +12,17 @@ export interface SettingsRecord {
   motionEnabled: boolean
   soundMode: SoundMode
   vibrationEnabled: boolean
+  primaryPackId: string
+  focusThemeIds: string[]
+  adultScope: 'cumulative' | 'new-only'
 }
 
 type PersistedSettingsInput = Partial<SettingsRecord> & { soundEnabled?: boolean }
 
 export const defaultSettings: SettingsRecord = {
   id: 'settings', onboarded: false, direction: 'fr-es', dailyNew: 5, dailyGoalMinutes: 10,
-  motionEnabled: true, soundMode: defaultSoundMode, vibrationEnabled: false
+  motionEnabled: true, soundMode: defaultSoundMode, vibrationEnabled: false,
+  primaryPackId: 'fr-es-adult-cefr-a1', focusThemeIds: [], adultScope: 'cumulative'
 }
 
 const maxImportBytes = 2_000_000
@@ -26,9 +30,15 @@ const forbiddenActiveContent = /(?:<[^>]+>|javascript\s*:|data\s*:\s*text\/html)
 
 function completeSettings(value?: PersistedSettingsInput): SettingsRecord {
   const { soundEnabled, ...current } = value ?? {}
+  const primaryPackId = typeof current.primaryPackId === 'string' && current.primaryPackId.trim() ? current.primaryPackId : defaultSettings.primaryPackId
+  const focusThemeIds = Array.isArray(current.focusThemeIds) ? current.focusThemeIds.filter((item): item is string => typeof item === 'string') : []
+  const adultScope = current.adultScope === 'new-only' ? 'new-only' : 'cumulative'
   return {
     ...defaultSettings,
     ...current,
+    primaryPackId,
+    focusThemeIds,
+    adultScope,
     soundMode: soundModeFromPersisted(current.soundMode, soundEnabled),
     id: 'settings'
   }
