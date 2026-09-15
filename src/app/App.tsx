@@ -360,13 +360,13 @@ function AppContent() {
     )
   }
 
-  if (screen === 'vocabulary') return <VocabularyBrowser entries={catalog} initialDirection={settings.direction} onBack={() => setScreen('home')} banner={updateBanner} />
+  if (screen === 'vocabulary') return <VocabularyBrowser entries={catalog.filter((entry) => pathSummary.selectedNewEntries.some((selected) => selected.entry_id === entry.id))} initialDirection={settings.direction} onBack={() => setScreen('home')} onEditSelection={() => setScreen('paths')} banner={updateBanner} />
 
   if (screen === 'settings') return (
     <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>
       <section className="panel actions">
         <button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button>
-        <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value })}>{activeLanguagePair.directions.map((config) => <option key={config.id} value={config.id}>{intl.formatMessage({ id: config.displayMessageId })}</option>)}</select>
+        <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value as Direction })}>{activeLanguagePair.directions.map((config) => <option key={config.id} value={config.id}>{intl.formatMessage({ id: config.displayMessageId })}</option>)}</select>
         <label htmlFor="daily-new"><FormattedMessage id="dailyNew" values={{ count: settings.dailyNew }} /></label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
         <label htmlFor="daily-goal-settings"><FormattedMessage id="dailyGoalSettings" /></label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
         <label className="check"><input type="checkbox" checked={settings.motionEnabled} onChange={(event) => void persistSettings({ motionEnabled: event.target.checked })} /> <FormattedMessage id="motionSetting" /></label>
