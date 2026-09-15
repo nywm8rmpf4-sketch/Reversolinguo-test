@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "validation_profile": "EDITORIAL_STAGING",
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "source_language": "es",
+  "target_language": "fr",
+  "expected_license": "CC BY 4.0",
+  "canonical_catalog": "catalogs/fr-es/a1/catalog.json",
+  "policy": {
+    "exact_source_coverage": true,
+    "cross_tranche_uniqueness": true,
+    "deterministic_uuid": true,
+    "slash_translation_requires_explicit_pair": true,
+    "fail_closed": true
+  },
+  "tranches": [
+    {
+      "tranche_id": "a1-tranche1-r1",
+      "cefr_level": "A1",
+      "source_range": ["REV-A1-0001", "REV-A1-0035"],
+      "source_map": "catalogs/fr-es/a1/drafts/a1-tranche1-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-a.json",
+        "catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-b.json",
+        "catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-c.json"
+      ],
+      "expected_included": 33,
+      "expected_excluded": 2,
+      "materializer_batch_id": "a1-tranche1-r3"
+    },
+    {
+      "tranche_id": "a1-tranche2-r1",
+      "cefr_level": "A1",
+      "source_range": ["REV-A1-0036", "REV-A1-0070"],
+      "source_map": "catalogs/fr-es/a1/drafts/a1-tranche2-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-a.json",
+        "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-b.json",
+        "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-c.json"
+      ],
+      "expected_included": 31,
+      "expected_excluded": 4,
+      "materializer_batch_id": "a1-tranche2-r1"
+    }
+  ]
+}
