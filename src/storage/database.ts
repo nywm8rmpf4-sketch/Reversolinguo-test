@@ -12,23 +12,66 @@ export interface SettingsRecord {
   motionEnabled: boolean
   soundMode: SoundMode
   vibrationEnabled: boolean
+  pathAudience: 'school' | 'adult' | 'theme'
+  selectedPackIds: string[]
+  selectedThemeIds: string[]
+  reviewScope: 'all-due' | 'selection-only'
 }
 
-type PersistedSettingsInput = Partial<SettingsRecord> & { soundEnabled?: boolean }
+type PersistedSettingsInput = Partial<SettingsRecord> & {
+  soundEnabled?: boolean
+  primaryPackId?: string
+  focusThemeIds?: string[]
+  adultScope?: 'cumulative' | 'new-only'
+}
 
 export const defaultSettings: SettingsRecord = {
   id: 'settings', onboarded: false, direction: 'fr-es', dailyNew: 5, dailyGoalMinutes: 10,
-  motionEnabled: true, soundMode: defaultSoundMode, vibrationEnabled: false
+  motionEnabled: true, soundMode: defaultSoundMode, vibrationEnabled: false,
+  pathAudience: 'adult', selectedPackIds: ['fr-es-adult-cefr-a1'], selectedThemeIds: [], reviewScope: 'all-due'
 }
 
 const maxImportBytes = 2_000_000
 const forbiddenActiveContent = /(?:<[^>]+>|javascript\s*:|data\s*:\s*text\/html)/iu
 
+function audienceFromPackId(packId?: string): SettingsRecord['pathAudience'] | undefined {
+  if (!packId) return undefined
+  if (packId.includes('-school-')) return 'school'
+  if (packId.includes('-theme-')) return 'theme'
+  if (packId.includes('-adult-')) return 'adult'
+  return undefined
+}
+
 function completeSettings(value?: PersistedSettingsInput): SettingsRecord {
-  const { soundEnabled, ...current } = value ?? {}
+  const {
+    soundEnabled,
+    primaryPackId,
+    focusThemeIds,
+    ...current
+  } = value ?? {}
+
+  const legacyAudience = audienceFromPackId(primaryPackId)
+  const requestedAudience = current.pathAudience === 'school' || current.pathAudience === 'theme' || current.pathAudience === 'adult'
+    ? current.pathAudience
+    : legacyAudience ?? defaultSettings.pathAudience
+
+  const selectedPackIds = Array.isArray(current.selectedPackIds)
+    ? current.selectedPackIds.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+    : typeof primaryPackId === 'string' && primaryPackId.trim() ? [primaryPackId] : [...defaultSettings.selectedPackIds]
+
+  const selectedThemeIds = Array.isArray(current.selectedThemeIds)
+    ? current.selectedThemeIds.filter((item): item is string => typeof item === 'string')
+    : Array.isArray(focusThemeIds) ? focusThemeIds.filter((item): item is string => typeof item === 'string') : []
+
+  const reviewScope = current.reviewScope === 'selection-only' ? 'selection-only' : 'all-due'
+
   return {
     ...defaultSettings,
     ...current,
+    pathAudience: requestedAudience,
+    selectedPackIds: selectedPackIds.length ? [...new Set(selectedPackIds)] : [...defaultSettings.selectedPackIds],
+    selectedThemeIds: [...new Set(selectedThemeIds)],
+    reviewScope,
     soundMode: soundModeFromPersisted(current.soundMode, soundEnabled),
     id: 'settings'
   }
@@ -101,6 +144,11 @@ export class ReversolinguoDatabase extends Dexie {
         const settings = await transaction.table('settings').get('settings') as PersistedSettingsInput | undefined
         if (settings) await transaction.table('settings').put(completeSettings(settings))
       })
+    this.version(6).stores(stores)
+      .upgrade(async (transaction) => {
+        const settings = await transaction.table('settings').get('settings') as PersistedSettingsInput | undefined
+        if (settings) await transaction.table('settings').put(completeSettings(settings))
+      })
   }
 }
 
@@ -119,7 +167,7 @@ export async function importProgress(raw: string, database = db): Promise<void> 
   const validData = data as { schedules: ScheduleState[]; reviews: ReviewEvent[]; settings: PersistedSettingsInput[] }
   const normalizedSchedules = validData.schedules.map(migrateSchedule)
   const normalizedReviews = validData.reviews.map(migrateReview)
-  const normalizedSettings = validData.settings.map((value) => completeSettings(value))
+  const normalizedSettings = validData.settings.map((item) => completeSettings(item))
   await database.transaction('rw', database.schedules, database.reviews, database.settings, async () => {
     await Promise.all([database.schedules.clear(), database.reviews.clear(), database.settings.clear()])
     await database.schedules.bulkPut(normalizedSchedules)
