@@ -76,7 +76,7 @@ describe('vocabulary browser', () => {
 
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Voir tout le vocabulaire' }))
-    expect(await screen.findByText('24 entrées actives, classées par niveau CECRL puis par ordre alphabétique.')).toBeVisible()
+    expect(await screen.findByText('60 entrées actives, classées par niveau CECRL puis par ordre alphabétique.')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Espagnol → français' }))
     expect(screen.getByText('Cette consultation ne modifie ni votre sens d’apprentissage ni votre progression.')).toBeVisible()
     await user.click(screen.getByRole('button', { name: /Retour/u }))
