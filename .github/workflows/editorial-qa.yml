@@ -47,8 +47,17 @@ jobs:
             --campaign editorial_targeted \
             --plan-file qa-selection.json \
             --github-output "$GITHUB_OUTPUT"
-          test "${{ steps.impact.outputs.validation_profile }}" = '' || true
           cat qa-selection.json
+
+      - name: Assert computed editorial profile
+        shell: bash
+        env:
+          PROFILE: ${{ steps.impact.outputs.validation_profile }}
+          RUNTIME_ARTIFACT: ${{ steps.impact.outputs.produces_runtime_artifact }}
+        run: |
+          set -euo pipefail
+          test "$PROFILE" = 'EDITORIAL_STAGING'
+          test "$RUNTIME_ARTIFACT" = 'false'
 
       - name: Use baseline Node
         uses: actions/setup-node@v4
