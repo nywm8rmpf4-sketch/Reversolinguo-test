@@ -1,0 +1,88 @@
+name: QA governance tooling
+
+on:
+  push:
+    branches:
+      - 'qa/**'
+
+permissions:
+  contents: read
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact QA tooling candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+
+      - name: Classify diff and verify infrastructure campaign
+        id: impact
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --quiet
+          node tools/qa-governance.mjs plan \
+            --base origin/main \
+            --head HEAD \
+            --branch "$GITHUB_REF_NAME" \
+            --campaign infra_targeted \
+            --plan-file qa-selection.json \
+            --github-output "$GITHUB_OUTPUT"
+          cat qa-selection.json
+
+      - name: Assert computed infrastructure profile
+        shell: bash
+        env:
+          PROFILE: ${{ steps.impact.outputs.validation_profile }}
+          RUNTIME_ARTIFACT: ${{ steps.impact.outputs.produces_runtime_artifact }}
+        run: |
+          set -euo pipefail
+          test "$PROFILE" = 'INFRA_QA'
+          test "$RUNTIME_ARTIFACT" = 'false'
+
+      - name: Run governance process tests
+        run: node --test tests/governance/qa-governance.test.mjs
+
+      - name: Set up YAML parser runtime
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Parse all public workflow YAML
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load(File.read(f), aliases: true); puts "parsed #{f}" }'
+
+      - name: Preserve structured governance proof only
+        uses: actions/upload-artifact@v4
+        with:
+          name: reversolinguo-governance-qa-proof-${{ github.sha }}
+          path: qa-selection.json
+          if-no-files-found: error
+
+      - name: Governance QA summary
+        shell: bash
+        env:
+          PROFILE: ${{ steps.impact.outputs.validation_profile }}
+          CAMPAIGN: ${{ steps.impact.outputs.campaign }}
+          REQUIRED: ${{ steps.impact.outputs.required_controls }}
+        run: |
+          {
+            echo '## Executable governance QA'
+            echo "- validation_profile: $PROFILE"
+            echo "- campaign: $CAMPAIGN"
+            echo "- required_controls: $REQUIRED"
+            echo '- build_runtime: NOT_EXECUTED'
+            echo '- playwright_install: NOT_EXECUTED'
+            echo '- e2e_offline_accessibility: NOT_EXECUTED'
+            echo '- runtime_artifact: NOT_EXECUTED'
+          } >> "$GITHUB_STEP_SUMMARY"
