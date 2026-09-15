@@ -53,7 +53,7 @@ describe('accessible learning flow', () => {
 
     render(<App />)
     expect(await screen.findByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
-    expect(await db.schedules.count()).toBe(48)
+    expect(await db.schedules.count()).toBe(120)
   })
 
   it('offers free review instead of a fake scheduled session when every studied card is scheduled for later', async () => {
