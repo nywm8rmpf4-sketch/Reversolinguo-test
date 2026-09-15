@@ -45,6 +45,24 @@ describe('PACK-7 R6 selected session projection', () => {
     expect(outsideDue).toEqual(before)
   })
 
+  it('restores the exact due state when the selection is widened again', () => {
+    const selectedNew = initialSchedule('selected', 'fr-es', now)
+    const outsideDue = dueReview('outside')
+    const before = structuredClone(outsideDue)
+    const states = [selectedNew, outsideDue]
+
+    const narrowed = statesForSelection(states, [selectedEntry], catalogIds, 'selection-only')
+    expect(narrowed.map((state) => state.entryId)).toEqual(['selected'])
+
+    const outsideEntry: PackEntry = {
+      entry_id: 'outside', role: 'core', priority: 2, theme: 'voyage'
+    }
+    const widened = statesForSelection(states, [selectedEntry, outsideEntry], catalogIds, 'selection-only')
+    expect(widened.map((state) => state.entryId)).toEqual(['selected', 'outside'])
+    expect(widened.find((state) => state.entryId === 'outside')).toEqual(before)
+    expect(outsideDue).toEqual(before)
+  })
+
   it('all-due never introduces a NEW card outside the selected classes/levels/themes', () => {
     const selectedNew = initialSchedule('selected', 'fr-es', now)
     const outsideNew = initialSchedule('outside', 'fr-es', now)
