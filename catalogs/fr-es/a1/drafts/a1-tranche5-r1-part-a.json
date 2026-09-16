@@ -1,0 +1,73 @@
+[
+  {
+    "entry_id": "85cb4bf0-d6d3-543b-b33a-c57f14fee508",
+    "language_tag": "es",
+    "lemma": "la leche",
+    "part_of_speech": "noun",
+    "gender": "feminine",
+    "article": "la",
+    "senses": [{"sense_id":"s1","translations":["le lait"],"example_source":"La leche está fría.","example_target":"Le lait est froid."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "57a34138-51ab-5abf-9cfa-8c99909142db", "language_tag": "es", "lemma": "el té", "part_of_speech": "noun", "gender": "masculine", "article": "el",
+    "senses": [{"sense_id":"s1","translations":["le thé"],"example_source":"El té está caliente.","example_target":"Le thé est chaud."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "f080b628-3a7c-5d12-9d49-90eb0d4cc3c9", "language_tag": "es", "lemma": "el café", "part_of_speech": "noun", "gender": "masculine", "article": "el",
+    "senses": [{"sense_id":"s1","translations":["le café"],"example_source":"El café está en la mesa.","example_target":"Le café est sur la table."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "8c3be723-63b6-5f68-ab31-91175bfcb217", "language_tag": "es", "lemma": "la cerveza", "part_of_speech": "noun", "gender": "feminine", "article": "la",
+    "senses": [{"sense_id":"s1","translations":["la bière"],"example_source":"La cerveza figura en la carta.","example_target":"La bière figure sur la carte."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "2a9ccba2-da44-554b-93b5-92f6dfecf7c0", "language_tag": "es", "lemma": "el vino", "part_of_speech": "noun", "gender": "masculine", "article": "el",
+    "senses": [{"sense_id":"s1","translations":["le vin"],"example_source":"El vino está en la mesa.","example_target":"Le vin est sur la table."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "81f96337-e304-54dd-b0aa-45808713ec3e", "language_tag": "es", "lemma": "la carne", "part_of_speech": "noun", "gender": "feminine", "article": "la",
+    "senses": [{"sense_id":"s1","translations":["la viande"],"example_source":"La carne está en el plato.","example_target":"La viande est dans l’assiette."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "8c00a56b-ccf1-5750-8f4e-b10266eecd9c", "language_tag": "es", "lemma": "el pescado", "part_of_speech": "noun", "gender": "masculine", "article": "el",
+    "senses": [{"sense_id":"s1","translations":["le poisson"],"example_source":"El pescado está en el plato.","example_target":"Le poisson est dans l’assiette."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "00975898-2e7e-5c56-ba24-616eb3d6f2fc", "language_tag": "es", "lemma": "la verdura", "part_of_speech": "noun", "gender": "feminine", "article": "la",
+    "senses": [{"sense_id":"s1","translations":["le légume"],"example_source":"La verdura está fresca.","example_target":"Le légume est frais.","note":"Cette entrée cible le singulier « le légume » ; le pluriel sera reconnu par contexte ultérieur."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "812739ab-4d66-53b4-b26d-5002ad6f76dd", "language_tag": "es", "lemma": "el huevo", "part_of_speech": "noun", "gender": "masculine", "article": "el",
+    "senses": [{"sense_id":"s1","translations":["l’œuf"],"example_source":"El huevo está en el plato.","example_target":"L’œuf est dans l’assiette."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "b81032e2-936c-5388-8185-17456a545396", "language_tag": "es", "lemma": "el sándwich", "part_of_speech": "noun", "gender": "masculine", "article": "el",
+    "senses": [{"sense_id":"s1","translations":["le sandwich"],"example_source":"El sándwich está listo.","example_target":"Le sandwich est prêt."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  },
+  {
+    "entry_id": "7c39a709-cec3-5bb2-99cb-13044362edfd", "language_tag": "es", "lemma": "la hamburguesa", "part_of_speech": "noun", "gender": "feminine", "article": "la",
+    "senses": [{"sense_id":"s1","translations":["le hamburger"],"example_source":"La hamburguesa está lista.","example_target":"Le hamburger est prêt."}],
+    "cefr_level": "A1", "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider", "themes": ["alimentation"], "variety": "pan-hispanic-common",
+    "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"}, "status": "draft", "version": 1
+  }
+]
