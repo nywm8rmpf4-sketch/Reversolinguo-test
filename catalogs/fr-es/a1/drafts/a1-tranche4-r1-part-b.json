@@ -154,11 +154,10 @@
     "language_tag": "es",
     "lemma": "estar en paro",
     "part_of_speech": "expression",
-    "senses": [{"sense_id":"s1","translations":["être au chômage"],"example_source":"Ahora está en paro.","example_target":"Il est actuellement au chômage."}],
+    "senses": [{"sense_id":"s1","translations":["être au chômage"],"example_source":"Ahora está en paro.","example_target":"Il est actuellement au chômage.","note":"Expression particulièrement courante en Espagne ; ailleurs, « estar desempleado » est une formulation plus générale."}],
     "cefr_level": "A1",
     "cefr_rationale": "Candidat éditorial A1 — domaine CECRL/PCIC à valider",
     "themes": ["travail-metiers"],
-    "variety": "pan-hispanic-common",
     "provenance": {"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},
     "status": "draft",
     "version": 1
