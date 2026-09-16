@@ -14,61 +14,10 @@
     "fail_closed": true
   },
   "tranches": [
-    {
-      "tranche_id": "a1-tranche1-r1",
-      "cefr_level": "A1",
-      "source_range": ["REV-A1-0001", "REV-A1-0035"],
-      "source_map": "catalogs/fr-es/a1/drafts/a1-tranche1-r1-source-map.json",
-      "entry_files": [
-        "catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-a.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-b.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-c.json"
-      ],
-      "expected_included": 33,
-      "expected_excluded": 2,
-      "materializer_batch_id": "a1-tranche1-r3"
-    },
-    {
-      "tranche_id": "a1-tranche2-r1",
-      "cefr_level": "A1",
-      "source_range": ["REV-A1-0036", "REV-A1-0070"],
-      "source_map": "catalogs/fr-es/a1/drafts/a1-tranche2-r1-source-map.json",
-      "entry_files": [
-        "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-a.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-b.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-c.json"
-      ],
-      "expected_included": 30,
-      "expected_excluded": 5,
-      "materializer_batch_id": "a1-tranche2-r1"
-    },
-    {
-      "tranche_id": "a1-tranche3-r1",
-      "cefr_level": "A1",
-      "source_range": ["REV-A1-0071", "REV-A1-0105"],
-      "source_map": "catalogs/fr-es/a1/drafts/a1-tranche3-r1-source-map.json",
-      "entry_files": [
-        "catalogs/fr-es/a1/drafts/a1-tranche3-r1-part-a.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche3-r1-part-b.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche3-r1-part-c.json"
-      ],
-      "expected_included": 33,
-      "expected_excluded": 2,
-      "materializer_batch_id": "a1-tranche3-r1"
-    },
-    {
-      "tranche_id": "a1-tranche4-r1",
-      "cefr_level": "A1",
-      "source_range": ["REV-A1-0106", "REV-A1-0140"],
-      "source_map": "catalogs/fr-es/a1/drafts/a1-tranche4-r1-source-map.json",
-      "entry_files": [
-        "catalogs/fr-es/a1/drafts/a1-tranche4-r1-part-a.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche4-r1-part-b.json",
-        "catalogs/fr-es/a1/drafts/a1-tranche4-r1-part-c.json"
-      ],
-      "expected_included": 32,
-      "expected_excluded": 3,
-      "materializer_batch_id": "a1-tranche4-r1"
-    }
+    {"tranche_id":"a1-tranche1-r1","cefr_level":"A1","source_range":["REV-A1-0001","REV-A1-0035"],"source_map":"catalogs/fr-es/a1/drafts/a1-tranche1-r1-source-map.json","entry_files":["catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-a.json","catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-b.json","catalogs/fr-es/a1/drafts/a1-tranche1-r1-part-c.json"],"expected_included":33,"expected_excluded":2,"materializer_batch_id":"a1-tranche1-r3"},
+    {"tranche_id":"a1-tranche2-r1","cefr_level":"A1","source_range":["REV-A1-0036","REV-A1-0070"],"source_map":"catalogs/fr-es/a1/drafts/a1-tranche2-r1-source-map.json","entry_files":["catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-a.json","catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-b.json","catalogs/fr-es/a1/drafts/a1-tranche2-r1-part-c.json"],"expected_included":30,"expected_excluded":5,"materializer_batch_id":"a1-tranche2-r1"},
+    {"tranche_id":"a1-tranche3-r1","cefr_level":"A1","source_range":["REV-A1-0071","REV-A1-0105"],"source_map":"catalogs/fr-es/a1/drafts/a1-tranche3-r1-source-map.json","entry_files":["catalogs/fr-es/a1/drafts/a1-tranche3-r1-part-a.json","catalogs/fr-es/a1/drafts/a1-tranche3-r1-part-b.json","catalogs/fr-es/a1/drafts/a1-tranche3-r1-part-c.json"],"expected_included":33,"expected_excluded":2,"materializer_batch_id":"a1-tranche3-r1"},
+    {"tranche_id":"a1-tranche4-r1","cefr_level":"A1","source_range":["REV-A1-0106","REV-A1-0140"],"source_map":"catalogs/fr-es/a1/drafts/a1-tranche4-r1-source-map.json","entry_files":["catalogs/fr-es/a1/drafts/a1-tranche4-r1-part-a.json","catalogs/fr-es/a1/drafts/a1-tranche4-r1-part-b.json","catalogs/fr-es/a1/drafts/a1-tranche4-r1-part-c.json"],"expected_included":32,"expected_excluded":3,"materializer_batch_id":"a1-tranche4-r1"},
+    {"tranche_id":"a1-tranche5-r1","cefr_level":"A1","source_range":["REV-A1-0141","REV-A1-0175"],"source_map":"catalogs/fr-es/a1/drafts/a1-tranche5-r1-source-map.json","entry_files":["catalogs/fr-es/a1/drafts/a1-tranche5-r1-part-a.json","catalogs/fr-es/a1/drafts/a1-tranche5-r1-part-b.json","catalogs/fr-es/a1/drafts/a1-tranche5-r1-part-c.json"],"expected_included":32,"expected_excluded":3,"materializer_batch_id":"a1-tranche5-r1"}
   ]
 }
