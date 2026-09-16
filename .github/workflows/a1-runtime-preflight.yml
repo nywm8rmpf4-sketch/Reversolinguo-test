@@ -1,5 +1,6 @@
 name: A1 runtime assembly preflight
 
+# Fresh rerun after demonstrated stale-test corrections for A1 canonical promotion.
 on:
   push:
     branches:
