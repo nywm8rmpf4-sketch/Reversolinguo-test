@@ -1,0 +1,34 @@
+name: A1 runtime assembly preflight
+
+on:
+  push:
+    branches:
+      - 'assembly/a1-canonical-runtime-r1'
+    paths:
+      - '.github/workflows/a1-runtime-preflight.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact assembly
+        uses: actions/checkout@v4
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Use baseline npm
+        run: npm install --global npm@11.9.0
+      - name: Verify exact lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object package-lock.json)" = 'a22b8ebe265ee44c392967a615c949039a2890ad'
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Static unit integration and build preflight
+        run: npm run check
