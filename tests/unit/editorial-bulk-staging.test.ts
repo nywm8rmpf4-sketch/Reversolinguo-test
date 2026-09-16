@@ -97,13 +97,8 @@ function exactRange([start, end]: [string, string]): string[] {
   }
   const first = Number(startMatch[2])
   const last = Number(endMatch[2])
-  if (!Number.isInteger(first) || !Number.isInteger(last) || last < first) {
-    throw new Error(`invalid-source-range:${start}..${end}`)
-  }
-  return Array.from(
-    { length: last - first + 1 },
-    (_, index) => `${startMatch[1]}${String(first + index).padStart(startMatch[2].length, '0')}`
-  )
+  if (!Number.isInteger(first) || !Number.isInteger(last) || last < first) throw new Error(`invalid-source-range:${start}..${end}`)
+  return Array.from({ length: last - first + 1 }, (_, index) => `${startMatch[1]}${String(first + index).padStart(startMatch[2].length, '0')}`)
 }
 
 function loadEntries(files: string[]): PreparedLexicalEntry[] {
@@ -132,6 +127,19 @@ function collisionKey(cue: string, lemmas: string[]): string {
   return `${normalizedCue(cue)}::${lemmas.map(normalizedLemma).sort().join('|')}`
 }
 
+function promotionProjection(entry: PreparedLexicalEntry): Record<string, unknown> {
+  const clone = structuredClone(entry) as unknown as Record<string, unknown>
+  delete clone.status
+  const provenance = clone.provenance as Record<string, unknown>
+  delete provenance.reviewed_by
+  delete provenance.reviewed_at
+  return clone
+}
+
+const staged = stagedEntries()
+const stagedIds = new Set(staged.map((entry) => entry.entry_id))
+const prePromotionCanonicalEntries = canonicalEntries.filter((entry) => !stagedIds.has(entry.entry_id))
+
 describe('manifest-driven editorial bulk staging', () => {
   it('declares the fail-closed EDITORIAL_STAGING contract explicitly', () => {
     expect(manifest.schema_version).toBe('1.0')
@@ -152,17 +160,14 @@ describe('manifest-driven editorial bulk staging', () => {
     for (const tranche of manifest.tranches) {
       const sourceMap = readJson<SourceMap>(tranche.source_map)
       const entries = loadEntries(tranche.entry_files)
-
       expect(sourceMap.archive_id).toBe(manifest.archive_id)
       expect(sourceMap.tranche_id).toBe(tranche.tranche_id)
       expect(sourceMap.source_range).toEqual(tranche.source_range)
       expect(sourceMap.included).toHaveLength(tranche.expected_included)
       expect(sourceMap.excluded).toHaveLength(tranche.expected_excluded)
       expect(entries).toHaveLength(tranche.expected_included)
-
       const accounted = [...sourceMap.included, ...sourceMap.excluded].map((row) => row.review_id).sort()
       expect(accounted).toEqual(exactRange(tranche.source_range))
-
       const entriesById = new Map(entries.map((entry) => [entry.entry_id, entry]))
       expect(new Set(sourceMap.included.map((row) => row.entry_id))).toEqual(new Set(entriesById.keys()))
       for (const row of sourceMap.included) {
@@ -170,16 +175,13 @@ describe('manifest-driven editorial bulk staging', () => {
         expect(entry, `missing staged entry for ${row.review_id}`).toBeDefined()
         expect(entry?.lemma).toBe(row.lemma)
       }
-      for (const row of sourceMap.excluded) {
-        expect(row.reason?.trim(), `missing exclusion reason for ${row.review_id}`).not.toBe('')
-      }
+      for (const row of sourceMap.excluded) expect(row.reason?.trim(), `missing exclusion reason for ${row.review_id}`).not.toBe('')
     }
   })
 
-  it('validates all tranches with one lexical invariant set and no invented review provenance', () => {
+  it('validates all archived tranches with one lexical invariant set and no invented review provenance', () => {
     for (const tranche of manifest.tranches) {
-      const entries = loadEntries(tranche.entry_files)
-      for (const entry of entries) {
+      for (const entry of loadEntries(tranche.entry_files)) {
         const validation = validateLexicalEntry(entry)
         expect(validation.valid, `${tranche.tranche_id}/${entry.lemma}: ${JSON.stringify(validation.errors)}`).toBe(true)
         expect(entry.language_tag).toBe(manifest.source_language)
@@ -191,7 +193,6 @@ describe('manifest-driven editorial bulk staging', () => {
         expect(entry.provenance).not.toHaveProperty('reviewed_at')
         expect(entry.senses.every((sense) => sense.example_source.trim() !== '' && sense.example_target.trim() !== '')).toBe(true)
         expect(entry.themes.every((theme) => canonicalThemeIds.has(theme as never))).toBe(true)
-
         if (manifest.policy.slash_translation_requires_explicit_pair) {
           for (const sense of entry.senses) {
             for (const translation of sense.translations) {
@@ -205,7 +206,7 @@ describe('manifest-driven editorial bulk staging', () => {
     }
   })
 
-  it('rejects exact target-cue collisions involving staging unless explicitly justified', () => {
+  it('rejects exact target-cue collisions against the pre-promotion canonical baseline unless explicitly justified', () => {
     const byCue = new Map<string, CueOccurrence[]>()
     const addEntry = (entry: PreparedLexicalEntry, source: CueOccurrence['source']) => {
       for (const sense of entry.senses) {
@@ -217,9 +218,8 @@ describe('manifest-driven editorial bulk staging', () => {
         }
       }
     }
-
-    canonicalEntries.forEach((entry) => addEntry(entry, 'canonical'))
-    stagedEntries().forEach((entry) => addEntry(entry, 'staging'))
+    prePromotionCanonicalEntries.forEach((entry) => addEntry(entry, 'canonical'))
+    staged.forEach((entry) => addEntry(entry, 'staging'))
 
     const observed = new Map<string, { cue: string; lemmas: string[]; sources: string[] }>()
     for (const [cue, occurrences] of byCue) {
@@ -239,62 +239,52 @@ describe('manifest-driven editorial bulk staging', () => {
 
     const allowed = new Map<string, CueCollisionException>()
     for (const exception of manifest.allowed_target_cue_collisions ?? []) {
-      expect(exception.target_cue.trim(), 'collision exception target_cue must not be empty').not.toBe('')
-      expect(exception.rationale.trim(), `collision exception ${exception.target_cue} must have a rationale`).not.toBe('')
-      expect(new Set(exception.source_lemmas.map(normalizedLemma)).size, `collision exception ${exception.target_cue} must list at least two distinct lemmas`).toBeGreaterThan(1)
+      expect(exception.target_cue.trim()).not.toBe('')
+      expect(exception.rationale.trim()).not.toBe('')
+      expect(new Set(exception.source_lemmas.map(normalizedLemma)).size).toBeGreaterThan(1)
       const key = collisionKey(exception.target_cue, exception.source_lemmas)
-      expect(allowed.has(key), `duplicate collision exception ${key}`).toBe(false)
+      expect(allowed.has(key)).toBe(false)
       allowed.set(key, exception)
     }
-
-    const unexpected = [...observed.entries()].filter(([key]) => !allowed.has(key))
-    const stale = [...allowed.keys()].filter((key) => !observed.has(key))
-
-    expect(
-      unexpected.map(([, item]) => `${item.cue} -> ${item.sources.join(', ')}`),
-      'unjustified exact target-cue collisions involving staging'
-    ).toEqual([])
-    expect(stale, 'stale or partial target-cue collision exceptions').toEqual([])
+    expect([...observed.entries()].filter(([key]) => !allowed.has(key)).map(([, item]) => `${item.cue} -> ${item.sources.join(', ')}`)).toEqual([])
+    expect([...allowed.keys()].filter((key) => !observed.has(key))).toEqual([])
   })
 
-  it('enforces deterministic UUIDs and uniqueness across canonical content and all staged tranches', async () => {
-    const ids = new Set(canonicalEntries.map((entry) => entry.entry_id))
-    const semantics = new Set(canonicalEntries.map((entry) => semanticKey(entry.language_tag, entry.lemma)))
-
-    for (const tranche of manifest.tranches) {
-      for (const entry of loadEntries(tranche.entry_files)) {
-        expect(entry.entry_id).toBe(
-          await stableLexicalUuid(manifest.source_language, manifest.target_language, entry.lemma, subtle)
-        )
-        expect(ids.has(entry.entry_id), `duplicate UUID ${entry.entry_id}`).toBe(false)
-        expect(semantics.has(semanticKey(entry.language_tag, entry.lemma)), `duplicate semantic ${entry.lemma}`).toBe(false)
-        ids.add(entry.entry_id)
-        semantics.add(semanticKey(entry.language_tag, entry.lemma))
-      }
+  it('proves deterministic UUIDs and exact identity-preserving promotion of all 415 staged entries', async () => {
+    expect(staged).toHaveLength(415)
+    expect(stagedIds.size).toBe(415)
+    expect(prePromotionCanonicalEntries).toHaveLength(60)
+    const stagingSemantics = new Set<string>()
+    for (const entry of staged) {
+      expect(entry.entry_id).toBe(await stableLexicalUuid(manifest.source_language, manifest.target_language, entry.lemma, subtle))
+      const semantic = semanticKey(entry.language_tag, entry.lemma)
+      expect(stagingSemantics.has(semantic), `duplicate staged semantic ${entry.lemma}`).toBe(false)
+      stagingSemantics.add(semantic)
+      const promoted = canonicalEntries.find((candidate) => candidate.entry_id === entry.entry_id)
+      expect(promoted, `missing promoted entry ${entry.entry_id}`).toBeDefined()
+      expect(promoted?.status).toBe('reviewed')
+      expect(promotionProjection(promoted!)).toEqual(promotionProjection(entry))
     }
   })
 
-  it('verifies every canonical reconciliation target declared by source maps', () => {
-    const canonicalById = new Map(canonicalEntries.map((entry) => [entry.entry_id, entry]))
+  it('verifies every reconciliation target belongs to the 60-entry pre-promotion canonical baseline', () => {
+    const canonicalById = new Map(prePromotionCanonicalEntries.map((entry) => [entry.entry_id, entry]))
     for (const tranche of manifest.tranches) {
       const sourceMap = readJson<SourceMap>(tranche.source_map)
       for (const excluded of sourceMap.excluded) {
         for (const target of excluded.canonical_entries ?? []) {
-          expect(canonicalById.get(target.entry_id)).toEqual(
-            expect.objectContaining({ entry_id: target.entry_id, lemma: target.lemma })
-          )
+          expect(canonicalById.get(target.entry_id)).toEqual(expect.objectContaining({ entry_id: target.entry_id, lemma: target.lemma }))
         }
       }
     }
   })
 
-  it('reproduces every tranche exactly through ADR-025 while carrying prior tranches as collision references', async () => {
-    const existing: ExistingLexicalIdentity[] = canonicalEntries.map((entry) => ({
+  it('reproduces every tranche exactly through ADR-025 against the reconstructed pre-promotion baseline', async () => {
+    const existing: ExistingLexicalIdentity[] = prePromotionCanonicalEntries.map((entry) => ({
       entry_id: entry.entry_id,
       language_tag: entry.language_tag,
       lemma: entry.lemma
     }))
-
     for (const tranche of manifest.tranches) {
       const entries = loadEntries(tranche.entry_files)
       const result = await prepareLexicalBatch({
@@ -313,14 +303,9 @@ describe('manifest-driven editorial bulk staging', () => {
         existingEntries: existing,
         expectedLicense: manifest.expected_license
       })
-
       expect(result.valid, `${tranche.tranche_id}: ${result.errors.join('\n')}`).toBe(true)
       expect(result.entries).toEqual(entries)
-      existing.push(...entries.map((entry) => ({
-        entry_id: entry.entry_id,
-        language_tag: entry.language_tag,
-        lemma: entry.lemma
-      })))
+      existing.push(...entries.map((entry) => ({ entry_id: entry.entry_id, language_tag: entry.language_tag, lemma: entry.lemma })))
     }
   })
 })
