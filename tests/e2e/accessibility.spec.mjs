@@ -39,8 +39,8 @@ test('critical learning screens have no automated WCAG A/AA violations', async (
 
   await page.getByRole('button', { name: 'Voir le vocabulaire' }).click()
   await expect(page.getByRole('heading', { name: 'Vocabulaire', exact: true })).toBeVisible()
-  await expect(page.getByText('60 entrées uniques sélectionnées.')).toBeVisible()
-  await expect(page.getByRole('listitem')).toHaveCount(60)
+  await expect(page.getByText('475 entrées uniques sélectionnées.')).toBeVisible()
+  await expect(page.getByRole('listitem')).toHaveCount(475)
   await expect(page.getByRole('button', { name: 'Alphabétique' })).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('button', { name: 'Français → espagnol' })).toHaveAttribute('aria-pressed', 'true')
   await expectNoWcagViolations(page, 'vocabulary-fr-es')
