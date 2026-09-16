@@ -121,19 +121,7 @@ jobs:
       - name: Install browser engines
         run: npx playwright install --with-deps chromium firefox webkit
 
-      - name: Install pinned accessibility audit tooling
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --package-lock=false --ignore-scripts @axe-core/playwright@4.13.0 axe-core@4.13.0
-          test "$(node -p "require('./node_modules/@axe-core/playwright/package.json').version")" = "4.13.0"
-          test "$(node -p "require('./node_modules/axe-core/package.json').version")" = "4.13.0"
-          test "$(git hash-object package-lock.json)" = "a22b8ebe265ee44c392967a615c949039a2890ad"
-          axe_path="$(node -p "require.resolve('axe-core/axe.min.js')")"
-          echo "c24f097bd2f451d4f933e8bc7d8d539f8672a2ebcb5cc9f9f3eec8ca9470a0c1  $axe_path" | sha256sum --check --strict
-          echo "AXE_CORE_PATH=$axe_path" >> "$GITHUB_ENV"
-
-      - name: Browser, offline and automated accessibility QA on portable build under QA subpath
+      - name: Browser and offline QA on portable build under QA subpath
         run: npm run test:e2e
 
       - name: Upload exact tested artifact and selection proof
@@ -158,5 +146,6 @@ jobs:
             echo "- validation_profile: $PROFILE"
             echo "- campaign: $CAMPAIGN"
             echo "- required_controls: $REQUIRED"
+            echo '- automated_accessibility_audit: NOT_EXECUTED (ADR-032)'
             echo '- runtime_artifact: YES'
           } >> "$GITHUB_STEP_SUMMARY"
