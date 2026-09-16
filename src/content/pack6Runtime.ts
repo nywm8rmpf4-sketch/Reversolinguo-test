@@ -19,6 +19,7 @@ export interface Pack6BRuntimeValidationResult {
 }
 
 export const pack6BVersion = '2026.09-pack6b-r1'
+export const a1MacroRuntimeVersion = '2026.09-a1-macro-r1'
 
 export const pack6BPromotedEntryIds = [
   'd99ce5ca-6c21-573e-adfa-b5645fe9e7a1',
@@ -96,19 +97,22 @@ export const pack6BVoyageA1EntryIds = [
 
 const canonicalEntries = canonicalEntriesJson as CanonicalEntryForPack6B[]
 const canonicalEntryIds = new Set(canonicalEntries.map((entry) => entry.entry_id))
-const adultA1EntryIds = [
+const legacyAdultA1EntryIds = [
   ...v1_0_1ThemeAssignments.map((assignment) => assignment.entry_id),
   ...pack6BPromotedEntryIds
 ]
+export const a1MacroPromotedEntryIds = canonicalEntries.slice(legacyAdultA1EntryIds.length).map((entry) => entry.entry_id)
+const macroPromotedSet = new Set(a1MacroPromotedEntryIds)
+const adultA1EntryIds = canonicalEntries.filter((entry) => entry.status !== 'withdrawn').map((entry) => entry.entry_id)
 
-function relation(entry_id: string, priority: number, theme?: CanonicalThemeId): PackEntry {
+function relation(entry_id: string, priority: number, theme?: CanonicalThemeId, introducedIn = pack6BVersion): PackEntry {
   const resolvedTheme = theme ?? themeIdsForEntry(entry_id)[0]
-  if (!resolvedTheme) throw new Error(`PACK-6B entry has no canonical theme: ${entry_id}`)
+  if (!resolvedTheme) throw new Error(`A1 runtime entry has no canonical theme: ${entry_id}`)
   return {
     entry_id,
     role: 'core',
     priority,
-    introduced_in: pack6BVersion,
+    introduced_in: introducedIn,
     theme: resolvedTheme
   }
 }
@@ -117,9 +121,14 @@ export const pack6BAdultPacks: LearningPack[] = adultPacksInitial.map((pack) => 
   if (pack.pack_id !== adultPackId('A1')) return { ...pack, entries: [...pack.entries] }
   return {
     ...pack,
-    pack_version: pack6BVersion,
+    pack_version: a1MacroRuntimeVersion,
     themes: canonicalThemes.map((theme) => theme.id),
-    entries: adultA1EntryIds.map((entryId, index) => relation(entryId, index + 1))
+    entries: adultA1EntryIds.map((entryId, index) => relation(
+      entryId,
+      index + 1,
+      undefined,
+      macroPromotedSet.has(entryId) ? a1MacroRuntimeVersion : pack6BVersion
+    ))
   }
 })
 
@@ -151,10 +160,12 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
   const errors: string[] = []
   const promotedSet = new Set(pack6BPromotedEntryIds)
 
-  if (canonicalEntries.length !== 60) errors.push(`canonical-count:${canonicalEntries.length}`)
-  if (canonicalEntryIds.size !== 60) errors.push(`canonical-unique-count:${canonicalEntryIds.size}`)
+  if (canonicalEntries.length !== 475) errors.push(`canonical-count:${canonicalEntries.length}`)
+  if (canonicalEntryIds.size !== canonicalEntries.length) errors.push(`canonical-unique-count:${canonicalEntryIds.size}`)
   if (promotedSet.size !== 36) errors.push(`promoted-count:${promotedSet.size}`)
-  if (adultA1EntryIds.length !== 60 || new Set(adultA1EntryIds).size !== 60) errors.push('adult-a1-entry-set')
+  if (a1MacroPromotedEntryIds.length !== 415 || macroPromotedSet.size !== 415) errors.push(`a1-macro-promoted-count:${a1MacroPromotedEntryIds.length}`)
+  if (adultA1EntryIds.length !== 475 || new Set(adultA1EntryIds).size !== 475) errors.push('adult-a1-entry-set')
+  if (adultA1EntryIds.some((entryId) => !canonicalEntryIds.has(entryId))) errors.push('adult-a1-unknown-entry')
 
   for (const entryId of pack6BPromotedEntryIds) {
     const entry = canonicalEntries.find((candidate) => candidate.entry_id === entryId)
@@ -164,12 +175,20 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
     }
   }
 
+  for (const entryId of a1MacroPromotedEntryIds) {
+    const entry = canonicalEntries.find((candidate) => candidate.entry_id === entryId)
+    if (!entry) errors.push(`missing-a1-macro-entry:${entryId}`)
+    else if (entry.status !== 'reviewed' || entry.provenance.reviewed_at !== '2026-09-16') {
+      errors.push(`a1-macro-review-metadata:${entryId}`)
+    }
+  }
+
   const graph = validateLearningPackGraph(pack6BRuntimePacks, canonicalEntryIds, canonicalThemeIds)
   errors.push(...graph.errors.map((error) => `graph:${error}`))
 
   const adultA1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
-  if (!adultA1 || adultA1.entries.length !== 60) errors.push(`adult-a1-direct-count:${adultA1?.entries.length ?? 0}`)
-  else if (resolveLearningPack(adultA1.pack_id, pack6BAdultPacks).length !== 60) errors.push('adult-a1-effective-count')
+  if (!adultA1 || adultA1.entries.length !== 475) errors.push(`adult-a1-direct-count:${adultA1?.entries.length ?? 0}`)
+  else if (resolveLearningPack(adultA1.pack_id, pack6BAdultPacks).length !== 475) errors.push('adult-a1-effective-count')
 
   for (const track of ['LVA', 'LVB'] as const) {
     const school = pack6BSchoolPacks.find((pack) => pack.grade === '6e' && pack.track === track)
