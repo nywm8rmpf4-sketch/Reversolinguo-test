@@ -9,13 +9,13 @@ import {
 } from '../../src/domain/pathSelection'
 
 describe('PACK-7 R6 multi-selection', () => {
-  it('preserves the historical default as International A1 with all 60 canonical entries', () => {
+  it('preserves the historical default as International A1 with all 475 canonical entries', () => {
     const selected = summarizePath(defaultPathPreferences)
     expect(selected.audience).toBe('adult')
     expect(selected.selectedPacks.map((pack) => pack.cefr_target)).toEqual(['A1'])
-    expect(selected.sourceCount).toBe(60)
-    expect(selected.selectedNewCount).toBe(60)
-    expect(new Set(selected.selectedNewEntries.map((entry) => entry.entry_id)).size).toBe(60)
+    expect(selected.sourceCount).toBe(475)
+    expect(selected.selectedNewCount).toBe(475)
+    expect(new Set(selected.selectedNewEntries.map((entry) => entry.entry_id)).size).toBe(475)
   })
 
   it('combines several CEFR levels from their direct new vocabulary only', () => {
@@ -26,8 +26,8 @@ describe('PACK-7 R6 multi-selection', () => {
       reviewScope: 'all-due'
     })
     expect(selected.selectedPacks.map((pack) => pack.cefr_target)).toEqual(['A1', 'A2'])
-    expect(selected.sourceCount).toBe(60)
-    expect(selected.selectedNewCount).toBe(60)
+    expect(selected.sourceCount).toBe(475)
+    expect(selected.selectedNewCount).toBe(475)
   })
 
   it('combines several school classes without silently adding inherited vocabulary', () => {
@@ -59,9 +59,9 @@ describe('PACK-7 R6 multi-selection', () => {
     const all = summarizePath({ ...base, selectedThemeIds: [] })
     const school = summarizePath({ ...base, selectedThemeIds: ['ecole-etudes'] })
     const combined = summarizePath({ ...base, selectedThemeIds: ['ecole-etudes', 'alimentation'] })
-    expect(all.selectedNewCount).toBe(60)
+    expect(all.selectedNewCount).toBe(475)
     expect(school.selectedNewCount).toBeGreaterThan(0)
-    expect(school.selectedNewCount).toBeLessThan(60)
+    expect(school.selectedNewCount).toBeLessThan(475)
     expect(combined.selectedNewCount).toBeGreaterThanOrEqual(school.selectedNewCount)
     expect(new Set(combined.selectedNewEntries.map((entry) => entry.entry_id)).size).toBe(combined.selectedNewCount)
   })
