@@ -1,10 +1,10 @@
-export const catalogSigningKeyId = 'fr-es-a1-pack6b-2026-09-k4'
+export const catalogSigningKeyId = 'fr-es-a1-macro-2026-09-k5'
 
 export const catalogSigningPublicJwk: JsonWebKey = {
   kty: 'EC',
   crv: 'P-256',
-  x: 'fkYFCRy21nRf3C1pm6ed4hE3GU-IeqGpM0m7hdY18i8',
-  y: 'T2d900-JDo9i-6a1Ke57x0rFoZMFaHOLzFKR_tqsHIU',
+  x: 'szQ-sf_9G2tZusoFppwTifeWn6n8_tw3geMUCuMyAaU',
+  y: 'WtO5kXOktsSuMezIuYfrywwRZn05vJtXar3g-KteFwI',
   ext: true,
   key_ops: ['verify']
 }
