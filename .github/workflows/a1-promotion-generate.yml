@@ -28,5 +28,5 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24.19.0'
-      - name: Diagnose reconciliation against current canonical catalog
+      - name: Diagnose classified source-map reconciliation against current canonical catalog
         run: node tools/diagnose-a1-promotion.mjs
