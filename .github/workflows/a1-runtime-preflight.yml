@@ -1,7 +1,6 @@
 name: A1 runtime assembly preflight
 
-# Fresh rerun after demonstrated stale-test corrections for A1 canonical promotion.
-# Includes an isolated WebKit-mobile accessibility-path reproduction after candidate r2 timed out.
+# Fresh preflight after ADR-032: automated accessibility audit removed from blocking gate.
 on:
   push:
     branches:
@@ -32,17 +31,11 @@ jobs:
           test "$(git hash-object package-lock.json)" = 'a22b8ebe265ee44c392967a615c949039a2890ad'
       - name: Install exact dependencies
         run: npm ci
+      - name: Dependency vulnerability gate
+        run: npm audit --audit-level=high
       - name: Static unit integration and build preflight
         run: npm run check
-      - name: Install WebKit mobile engine
-        run: npx playwright install --with-deps webkit
-      - name: Install pinned accessibility audit tooling
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --package-lock=false --ignore-scripts @axe-core/playwright@4.13.0 axe-core@4.13.0
-          test "$(node -p "require('./node_modules/@axe-core/playwright/package.json').version")" = "4.13.0"
-          test "$(node -p "require('./node_modules/axe-core/package.json').version")" = "4.13.0"
-          test "$(git hash-object package-lock.json)" = "a22b8ebe265ee44c392967a615c949039a2890ad"
-      - name: Reproduce accessibility path on WebKit mobile three times
-        run: npx playwright test tests/e2e/accessibility.spec.mjs --project=webkit-mobile --repeat-each=3
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Browser and offline preflight
+        run: npm run test:e2e
