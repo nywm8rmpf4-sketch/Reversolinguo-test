@@ -1,6 +1,7 @@
 name: A1 runtime assembly preflight
 
 # Fresh rerun after demonstrated stale-test corrections for A1 canonical promotion.
+# Rerun 2026-09-16 after R7 E2E bound freshness correction.
 on:
   push:
     branches:
