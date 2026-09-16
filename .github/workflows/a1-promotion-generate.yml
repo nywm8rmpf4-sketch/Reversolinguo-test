@@ -1,4 +1,4 @@
-name: A1 promotion assembly diagnostic
+name: A1 promotion assembly generation
 
 on:
   push:
@@ -8,25 +8,69 @@ on:
       - '.github/workflows/a1-promotion-generate.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
+  generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout exact assembly
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Verify approved staging ancestry
         shell: bash
         run: |
           set -euo pipefail
-          git merge-base --is-ancestor 3076a602351ce9bc21b600f8119ae5b704f77f10 HEAD
+          approved='3076a602351ce9bc21b600f8119ae5b704f77f10'
+          git merge-base --is-ancestor "$approved" HEAD
+
       - name: Use Node 24
         uses: actions/setup-node@v4
         with:
           node-version: '24.19.0'
-      - name: Diagnose classified source-map reconciliation against current canonical catalog
-        run: node tools/diagnose-a1-promotion.mjs
+
+      - name: Generate fail-closed canonical promotion
+        run: node tools/promote-a1-macro.mjs
+
+      - name: Verify generated promotion invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'
+          import { createHash } from 'node:crypto'
+          const report = JSON.parse(fs.readFileSync('evidence/active/A1_CANONICAL_PROMOTION_GENERATION_REPORT.json', 'utf8'))
+          const catalogText = fs.readFileSync('catalogs/fr-es/a1/catalog.json', 'utf8')
+          const catalog = JSON.parse(catalogText)
+          const manifest = JSON.parse(fs.readFileSync('catalogs/fr-es/a1/manifest.json', 'utf8'))
+          if (report.base_count !== 60) throw new Error(`base_count:${report.base_count}`)
+          if (report.new_count !== 415) throw new Error(`new_count:${report.new_count}`)
+          if (report.final_count !== 475 || report.final_unique_count !== 475) throw new Error(`final:${report.final_count}/${report.final_unique_count}`)
+          if (report.uuid_overlap_count !== 0 || report.exact_lemma_overlap_count !== 0) throw new Error('unexpected direct overlap')
+          if (report.reconciled_source_rows !== 20 || report.reconciled_unique_canonical_ids !== 21) throw new Error('source-map reconciliation mismatch')
+          if (report.human_review !== 'PASS' || report.reviewed_at !== '2026-09-16') throw new Error('human review metadata mismatch')
+          if (catalog.length !== 475 || new Set(catalog.map((entry) => entry.entry_id)).size !== 475) throw new Error('catalog identity mismatch')
+          const hash = createHash('sha256').update(catalogText, 'utf8').digest('hex')
+          if (manifest.entry_count !== 475 || manifest.catalog_sha256 !== hash || manifest.human_review !== 'PASS') throw new Error('manifest mismatch')
+          const key = fs.readFileSync('src/content/catalogSigningKey.ts', 'utf8')
+          if (/\bd\s*:/.test(key)) throw new Error('private JWK member persisted')
+          NODE
+
+      - name: Commit exact generated canonical payload to assembly
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            catalogs/fr-es/a1/catalog.json \
+            catalogs/fr-es/a1/manifest.json \
+            catalogs/fr-es/a1/manifest.sig.json \
+            src/content/catalogSigningKey.ts \
+            evidence/active/A1_CANONICAL_PROMOTION_GENERATION_REPORT.json
+          test -n "$(git diff --cached --name-only)"
+          git commit -m 'content: materialize reviewed A1 canonical catalog'
+          git push origin HEAD:refs/heads/assembly/a1-canonical-runtime-r1
