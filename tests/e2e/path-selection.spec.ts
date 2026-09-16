@@ -45,6 +45,11 @@ test('R7 vocabulary follows saved A1+A2 themes and survives reload without all-d
   await openSelection(page)
 
   await page.getByRole('checkbox', { name: 'A2' }).click()
+  const availableCountText = page.getByText(/nouveautés disponibles avant filtre thématique/u)
+  await expect(availableCountText).toBeVisible()
+  const availableCount = Number((await availableCountText.textContent())?.match(/\d+/u)?.[0] ?? 0)
+  expect(availableCount).toBeGreaterThan(0)
+
   await page.getByRole('checkbox', { name: /École et études/u }).click()
   await page.getByRole('checkbox', { name: /Alimentation/u }).click()
   await expect(page.getByRole('radio', { name: 'Conserver tous les rappels dus' })).toBeChecked()
@@ -55,7 +60,7 @@ test('R7 vocabulary follows saved A1+A2 themes and survives reload without all-d
   await expect(selectedCountText).toBeVisible()
   const selectedCount = Number((await selectedCountText.textContent())?.match(/\d+/u)?.[0] ?? 0)
   expect(selectedCount).toBeGreaterThan(0)
-  expect(selectedCount).toBeLessThan(60)
+  expect(selectedCount).toBeLessThan(availableCount)
 
   await page.getByRole('button', { name: 'Voir le vocabulaire' }).click()
   await expect(page.getByText(`${selectedCount} entrées uniques sélectionnées.`)).toBeVisible()
