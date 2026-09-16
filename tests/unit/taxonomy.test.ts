@@ -61,8 +61,8 @@ describe('canonical thematic taxonomy', () => {
     expect(new Set(v1_0_1ThemeAssignments.map((assignment) => assignment.entry_id))).toEqual(historicalEntryIds)
   })
 
-  it('resolves a non-empty canonical taxonomy for all 60 active entries', () => {
-    expect(activeEntryIds.size).toBe(60)
+  it('resolves a non-empty canonical taxonomy for all 475 active entries', () => {
+    expect(activeEntryIds.size).toBe(475)
     for (const entryId of activeEntryIds) {
       const themes = themeIdsForEntry(entryId)
       expect(themes.length, entryId).toBeGreaterThan(0)
@@ -76,7 +76,7 @@ describe('canonical thematic taxonomy', () => {
     expect(themeIdsForEntry('214eddb7-23b0-5176-9fe0-eb915002c79a')).toEqual(['ecole-etudes', 'travail-metiers'])
   })
 
-  it('reads PACK-6B themes directly from the human-reviewed canonical lexical entry', () => {
+  it('reads reviewed themes directly from canonical lexical entries after the historical cohort', () => {
     expect(themeIdsForEntry('7578519f-22d5-5ccd-9ca1-038c97977078')).toEqual(['vetements', 'sports'])
     expect(themeIdsForEntry('fe984172-dd41-546e-ac2e-18f679281f6b')).toEqual(['maison', 'ville-services'])
   })
