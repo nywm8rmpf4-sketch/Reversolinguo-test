@@ -15,8 +15,8 @@ describe('A1 canonical catalog', () => {
   })
 
   it('contains the declared number of distinct opaque identifiers', () => {
-    expect(entries).toHaveLength(60)
-    expect(new Set(entries.map((entry) => entry.entry_id)).size).toBe(60)
+    expect(entries).toHaveLength(475)
+    expect(new Set(entries.map((entry) => entry.entry_id)).size).toBe(475)
     expect(entries.every((entry) => /^[0-9a-f-]{36}$/u.test(entry.entry_id))).toBe(true)
   })
 
@@ -31,24 +31,29 @@ describe('A1 canonical catalog', () => {
     expect(hash).toBe(manifest.catalog_sha256)
   })
 
-  it('records the two real bilingual-review cohorts without rewriting the certified 24', () => {
-    expect(manifest.catalog_version).toBe('2026.09-pack6b-r1')
-    expect(manifest.entry_count).toBe(60)
+  it('records all three real bilingual-review cohorts without rewriting earlier cohorts', () => {
+    expect(manifest.catalog_version).toBe('2026.09-a1-macro-r1')
+    expect(manifest.entry_count).toBe(475)
     expect(manifest.license).toBe('CC BY 4.0')
     expect(manifest.status).toBe('validated')
     expect(manifest.human_review).toBe('PASS')
 
     const historical = entries.slice(0, 24)
-    const promoted = entries.slice(24)
+    const pack6B = entries.slice(24, 60)
+    const macroA1 = entries.slice(60)
     expect(historical).toHaveLength(24)
-    expect(promoted).toHaveLength(36)
+    expect(pack6B).toHaveLength(36)
+    expect(macroA1).toHaveLength(415)
     expect(entries.every((entry) => entry.status === 'reviewed')).toBe(true)
     expect(entries.every((entry) => entry.provenance.license === 'CC BY 4.0')).toBe(true)
     expect(historical.every((entry) => entry.version === 2)).toBe(true)
     expect(historical.every((entry) => entry.provenance.reviewed_by === 'Project owner bilingual review')).toBe(true)
     expect(historical.every((entry) => entry.provenance.reviewed_at === '2026-09-13')).toBe(true)
-    expect(promoted.every((entry) => entry.version === 1)).toBe(true)
-    expect(promoted.every((entry) => entry.provenance.reviewed_by === 'Project owner bilingual review')).toBe(true)
-    expect(promoted.every((entry) => entry.provenance.reviewed_at === '2026-09-14')).toBe(true)
+    expect(pack6B.every((entry) => entry.version === 1)).toBe(true)
+    expect(pack6B.every((entry) => entry.provenance.reviewed_by === 'Project owner bilingual review')).toBe(true)
+    expect(pack6B.every((entry) => entry.provenance.reviewed_at === '2026-09-14')).toBe(true)
+    expect(macroA1.every((entry) => entry.version === 1)).toBe(true)
+    expect(macroA1.every((entry) => entry.provenance.reviewed_by === 'Project owner bilingual review')).toBe(true)
+    expect(macroA1.every((entry) => entry.provenance.reviewed_at === '2026-09-16')).toBe(true)
   })
 })
