@@ -131,8 +131,10 @@ describe('R7 selected vocabulary browser', () => {
     const frenchCollator = new Intl.Collator('fr', { sensitivity: 'base' })
     const expectedSorted = expectedEntries.slice().sort((a, b) => frenchCollator.compare(a.targets.join(' · '), b.targets.join(' · ')))
     expectedSorted.forEach((entry, index) => {
-      expect(within(rows[index]).getByText(entry.targets.join(' · '))).toBeVisible()
-      expect(within(rows[index]).getByText(entry.source)).toBeVisible()
+      const prompt = rows[index].querySelector('.vocabulary-source')
+      const answer = rows[index].querySelector('.vocabulary-target')
+      expect(prompt).toHaveTextContent(entry.targets.join(' · '))
+      expect(answer).toHaveTextContent(entry.source)
     })
 
     await user.click(screen.getByRole('button', { name: 'Espagnol → français' }))
