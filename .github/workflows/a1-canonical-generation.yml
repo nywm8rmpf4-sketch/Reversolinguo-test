@@ -1,0 +1,61 @@
+name: A1 canonical promotion generation
+
+on:
+  push:
+    branches:
+      - 'generation/a1-macro-promotion-r1'
+    paths:
+      - '.github/workflows/a1-canonical-generation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact reviewed staging
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify generation branch ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected='3076a602351ce9bc21b600f8119ae5b704f77f10'
+          git merge-base --is-ancestor "$expected" HEAD
+          test "$(git rev-parse "$expected")" = "$expected"
+
+      - name: Generate fail-closed canonical promotion
+        run: node tools/promote-a1-macro.mjs
+
+      - name: Verify generated invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'
+          const r = JSON.parse(fs.readFileSync('evidence/active/A1_CANONICAL_PROMOTION_GENERATION_REPORT.json','utf8'))
+          if (r.base_count !== 60) throw new Error(`base_count:${r.base_count}`)
+          if (r.overlap_count !== 36) throw new Error(`overlap_count:${r.overlap_count}`)
+          if (r.new_count !== 379) throw new Error(`new_count:${r.new_count}`)
+          if (r.final_count !== 439 || r.final_unique_count !== 439) throw new Error(`final:${r.final_count}/${r.final_unique_count}`)
+          if (r.overlap_semantic_mismatches.length !== 0) throw new Error('overlap semantic mismatch')
+          if (r.human_review !== 'PASS') throw new Error(`human_review:${r.human_review}`)
+          const key = fs.readFileSync('src/content/catalogSigningKey.ts','utf8')
+          if (/\bd\s*:/.test(key)) throw new Error('private JWK member persisted')
+          NODE
+
+      - name: Upload generated promotion payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: a1-canonical-promotion-${{ github.sha }}
+          path: |
+            catalogs/fr-es/a1/catalog.json
+            catalogs/fr-es/a1/manifest.json
+            catalogs/fr-es/a1/manifest.sig.json
+            src/content/catalogSigningKey.ts
+            evidence/active/A1_CANONICAL_PROMOTION_GENERATION_REPORT.json
+          if-no-files-found: error
