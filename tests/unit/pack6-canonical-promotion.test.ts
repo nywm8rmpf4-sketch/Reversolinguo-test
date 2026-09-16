@@ -3,6 +3,7 @@ import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
 import { adultPackId } from '../../src/content/adultReference'
 import { validateLearningPack } from '../../src/content/contracts'
 import {
+  a1MacroPromotedEntryIds,
   pack6BAdultPacks,
   pack6BPromotedEntryIds,
   pack6BRuntimePacks,
@@ -15,11 +16,11 @@ import { validateLearningPackGraph } from '../../src/content/packs'
 import { canonicalThemeIds } from '../../src/content/taxonomy'
 import { voyagePackId } from '../../src/content/themePaths'
 
-describe('PACK-6B canonical lexical promotion', () => {
-  it('promotes exactly the 36 human-approved UUIDs into the 60-entry canonical catalog', () => {
+describe('PACK-6B and A1 macro canonical lexical promotion', () => {
+  it('preserves exactly the 36 PACK-6B reviewed UUIDs inside the expanded catalog', () => {
     const ids = new Set(canonicalEntries.map((entry) => entry.entry_id))
-    expect(canonicalEntries).toHaveLength(60)
-    expect(ids.size).toBe(60)
+    expect(canonicalEntries).toHaveLength(475)
+    expect(ids.size).toBe(475)
     expect(pack6BPromotedEntryIds).toHaveLength(36)
     expect(new Set(pack6BPromotedEntryIds).size).toBe(36)
     expect(pack6BPromotedEntryIds.every((entryId) => ids.has(entryId))).toBe(true)
@@ -31,11 +32,21 @@ describe('PACK-6B canonical lexical promotion', () => {
     expect(promoted.every((entry) => entry.provenance.license === 'CC BY 4.0')).toBe(true)
   })
 
-  it('projects all 60 canonical UUIDs into Adult A1 without cloning lexical identities', () => {
+  it('promotes exactly the 415 bilingual-approved macro A1 UUIDs', () => {
+    expect(a1MacroPromotedEntryIds).toHaveLength(415)
+    expect(new Set(a1MacroPromotedEntryIds).size).toBe(415)
+    const macro = canonicalEntries.filter((entry) => a1MacroPromotedEntryIds.includes(entry.entry_id))
+    expect(macro).toHaveLength(415)
+    expect(macro.every((entry) => entry.status === 'reviewed')).toBe(true)
+    expect(macro.every((entry) => entry.provenance.reviewed_at === '2026-09-16')).toBe(true)
+    expect(macro.every((entry) => entry.provenance.license === 'CC BY 4.0')).toBe(true)
+  })
+
+  it('projects all 475 canonical UUIDs into Adult A1 without cloning lexical identities', () => {
     const adultA1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
     expect(adultA1).toBeDefined()
-    expect(adultA1?.entries).toHaveLength(60)
-    expect(new Set(adultA1?.entries.map((entry) => entry.entry_id)).size).toBe(60)
+    expect(adultA1?.entries).toHaveLength(475)
+    expect(new Set(adultA1?.entries.map((entry) => entry.entry_id)).size).toBe(475)
     expect(new Set(adultA1?.entries.map((entry) => entry.entry_id))).toEqual(new Set(canonicalEntries.map((entry) => entry.entry_id)))
   })
 
