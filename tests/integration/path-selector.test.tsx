@@ -28,7 +28,7 @@ describe('PACK-7 R6 selector UI', () => {
 
     await user.click(screen.getByRole('checkbox', { name: 'A2' }))
     expect(screen.getByText('International · A1 + A2')).toBeVisible()
-    expect(screen.getByText('60 nouveautés disponibles avant filtre thématique')).toBeVisible()
+    expect(screen.getByText('475 nouveautés disponibles avant filtre thématique')).toBeVisible()
 
     const schoolTheme = screen.getByRole('checkbox', { name: /École et études/u })
     const foodTheme = screen.getByRole('checkbox', { name: /Alimentation/u })
