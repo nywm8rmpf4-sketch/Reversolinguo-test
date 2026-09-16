@@ -20,14 +20,14 @@ const canonicalIdentities = canonicalEntries.map((entry) => ({
 
 function row(overrides: Partial<EditorialLexicalRow> = {}): EditorialLexicalRow {
   return {
-    review_id: 'REV-A1-0001',
-    spanish: 'el nombre',
-    french: 'le prénom / le nom',
+    review_id: 'REV-A1-TEST-0001',
+    spanish: 'el término de prueba',
+    french: 'le terme de test',
     type: 'nom',
     theme: 'identite',
-    subtheme: 'données personnelles',
+    subtheme: 'fixture éditoriale',
     relation: 'BASE A1',
-    rationale: 'Candidat éditorial A1 — domaine CECRL/PCIC à valider',
+    rationale: 'Fixture technique non canonique pour tester l’adaptateur éditorial',
     cefr_level: 'A1',
     school_lva: '6e',
     school_lvb: '6e',
@@ -41,11 +41,11 @@ function row(overrides: Partial<EditorialLexicalRow> = {}): EditorialLexicalRow 
   }
 }
 
-function enrichment(reviewId = 'REV-A1-0001', overrides: Partial<EditorialEnrichment> = {}): EditorialEnrichment {
+function enrichment(reviewId = 'REV-A1-TEST-0001', overrides: Partial<EditorialEnrichment> = {}): EditorialEnrichment {
   return {
     review_id: reviewId,
-    example_source: 'Mi nombre es Ana.',
-    example_target: 'Je m’appelle Ana.',
+    example_source: 'Este es el término de prueba.',
+    example_target: 'Ceci est le terme de test.',
     variety: 'pan-hispanic-common',
     ...overrides
   }
@@ -80,14 +80,14 @@ describe('A1-B2 editorial intake adapter', () => {
       canonicalIdentities,
       { subtle, archiveId: 'fr-es-a1-b2-school-progression-r1-2026-09-15' }
     )
-    const expectedUuid = await stableLexicalUuid('es', 'fr', 'el nombre', subtle)
+    const expectedUuid = await stableLexicalUuid('es', 'fr', 'el término de prueba', subtle)
 
     expect(result.valid).toBe(true)
     expect(result.ready_for_semantic_review).toBe(true)
     expect(result.entries_by_level.A1).toHaveLength(1)
     expect(result.entries_by_level.A1[0]).toMatchObject({
       entry_id: expectedUuid,
-      lemma: 'el nombre',
+      lemma: 'el término de prueba',
       part_of_speech: 'noun',
       cefr_level: 'A1',
       themes: ['identite'],
@@ -134,7 +134,7 @@ describe('A1-B2 editorial intake adapter', () => {
 
     expect(result.valid).toBe(false)
     expect(result.entries_by_level.A1).toEqual([])
-    expect(result.errors).toContain('review:REV-A1-0001:missing-enrichment')
+    expect(result.errors).toContain('review:REV-A1-TEST-0001:missing-enrichment')
   })
 
   it('rejects unsupported editorial types and unknown canonical themes before lexical materialization', async () => {
@@ -146,23 +146,23 @@ describe('A1-B2 editorial intake adapter', () => {
     )
 
     expect(result.valid).toBe(false)
-    expect(result.errors).toContain('review:REV-A1-0001:unsupported-type:type éditorial inconnu')
-    expect(result.errors).toContain('review:REV-A1-0001:unknown-theme:theme-inconnu')
+    expect(result.errors).toContain('review:REV-A1-TEST-0001:unsupported-type:type éditorial inconnu')
+    expect(result.errors).toContain('review:REV-A1-TEST-0001:unknown-theme:theme-inconnu')
   })
 
   it('detects duplicates across CEFR levels before any partial output can be produced', async () => {
     const result = await prepareEditorialCorpus(
       [
-        row({ review_id: 'REV-A1-0001', cefr_level: 'A1' }),
-        row({ review_id: 'REV-A2-0001', cefr_level: 'A2' })
+        row({ review_id: 'REV-A1-TEST-0001', cefr_level: 'A1' }),
+        row({ review_id: 'REV-A2-TEST-0001', cefr_level: 'A2' })
       ],
-      [enrichment('REV-A1-0001'), enrichment('REV-A2-0001')],
+      [enrichment('REV-A1-TEST-0001'), enrichment('REV-A2-TEST-0001')],
       canonicalIdentities,
       { subtle }
     )
 
     expect(result.valid).toBe(false)
-    expect(result.errors.some((error) => error.includes('duplicate-editorial-semantic:es:el nombre'))).toBe(true)
+    expect(result.errors.some((error) => error.includes('duplicate-editorial-semantic:es:el término de prueba'))).toBe(true)
     expect(Object.values(result.entries_by_level).flat()).toEqual([])
   })
 
