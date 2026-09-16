@@ -1,0 +1,32 @@
+name: Export A1 review source
+
+on:
+  push:
+    branches:
+      - tooling/export-a1-review-2026-09-16
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v4
+      - name: Package review source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p export/source-maps
+          cp catalogs/fr-es/a1/catalog.json export/catalog.json
+          cp catalogs/fr-es/a1/drafts/*-source-map.json export/source-maps/
+          printf '%s\n' "${GITHUB_SHA}" > export/commit-sha.txt
+          sha256sum export/catalog.json > export/catalog.sha256
+      - name: Upload exact review source
+        uses: actions/upload-artifact@v4
+        with:
+          name: a1-review-source-${{ github.sha }}
+          path: export
+          if-no-files-found: error
+          retention-days: 7
