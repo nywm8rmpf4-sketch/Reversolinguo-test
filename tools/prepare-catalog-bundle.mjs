@@ -8,6 +8,12 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const grades = new Set(['6e', '5e', '4e', '3e', 'seconde', 'premiere', 'terminale'])
 const tracks = new Set(['LVA', 'LVB', 'LVC'])
+const canonicalThemes = new Set([
+  'identite', 'famille-relations', 'maison', 'ecole-etudes', 'travail-metiers',
+  'alimentation', 'voyage', 'ville-services', 'corps-sante', 'vetements', 'temps',
+  'meteo', 'loisirs', 'sports', 'culture-fetes', 'communication', 'numerique',
+  'nature-environnement', 'description', 'espace-orientation'
+])
 
 function hash(text) {
   return createHash('sha256').update(text, 'utf8').digest('hex')
@@ -39,12 +45,10 @@ export function inspectCatalogBundle({ catalogText, projectionText, manifestText
   if (errors.length > 0) return { valid: false, errors }
 
   const ids = new Set()
-  const themes = new Set()
   for (const [index, entry] of catalog.entries()) {
     if (!entry || typeof entry.entry_id !== 'string') errors.push(`catalog-entry-id:${index}`)
     else if (ids.has(entry.entry_id)) errors.push(`catalog-duplicate-id:${entry.entry_id}`)
     else ids.add(entry.entry_id)
-    for (const theme of Array.isArray(entry?.themes) ? entry.themes : []) themes.add(theme)
   }
 
   if (projection.catalog_id !== manifest.catalog_id) errors.push(`projection-catalog-id:${projection.catalog_id}`)
@@ -60,7 +64,7 @@ export function inspectCatalogBundle({ catalogText, projectionText, manifestText
       if (!ids.has(assignment.entry_id)) errors.push(`school-unknown-entry:${assignment.entry_id}`)
       if (!tracks.has(assignment.track)) errors.push(`school-invalid-track:${assignment.track}`)
       if (!grades.has(assignment.grade)) errors.push(`school-invalid-grade:${assignment.grade}`)
-      if (!themes.has(assignment.theme)) errors.push(`school-unknown-theme:${assignment.theme}`)
+      if (!canonicalThemes.has(assignment.theme)) errors.push(`school-unknown-theme:${assignment.theme}`)
       const sourceKey = `${assignment.review_id}:${assignment.track}`
       if (sourceKeys.has(sourceKey)) errors.push(`school-duplicate-source:${sourceKey}`)
       sourceKeys.add(sourceKey)
@@ -73,7 +77,7 @@ export function inspectCatalogBundle({ catalogText, projectionText, manifestText
     const pathKeys = new Set()
     for (const assignment of projection.theme_path_assignments) {
       if (!ids.has(assignment.entry_id)) errors.push(`theme-path-unknown-entry:${assignment.entry_id}`)
-      if (!themes.has(assignment.theme)) errors.push(`theme-path-unknown-theme:${assignment.theme}`)
+      if (!canonicalThemes.has(assignment.theme)) errors.push(`theme-path-unknown-theme:${assignment.theme}`)
       const key = `${assignment.path_id}:${assignment.cefr_level}:${assignment.entry_id}`
       if (pathKeys.has(key)) errors.push(`theme-path-duplicate:${key}`)
       pathKeys.add(key)
