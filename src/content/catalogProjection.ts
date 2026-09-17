@@ -94,10 +94,11 @@ function asGrade(value: string): ProjectionSchoolGrade | undefined {
 }
 
 function schoolFields(row: EditorialLexicalRow): Array<{ track: PackTrack; value: string }> {
-  return [
+  const fields: Array<{ track: PackTrack; value: string }> = [
     { track: 'LVA', value: scalar(row.school_lva) },
     { track: 'LVB', value: scalar(row.school_lvb) }
-  ].filter((item) => item.value.length > 0)
+  ]
+  return fields.filter((item) => item.value.length > 0)
 }
 
 /**
