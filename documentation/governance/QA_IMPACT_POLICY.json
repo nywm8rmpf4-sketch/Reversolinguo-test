@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "policy_id": "OPT-GOV-EXEC-v2-data-only",
+  "policy_id": "OPT-GOV-EXEC-v3-hash-only-data",
   "default_unknown_profile": "RUNTIME_CODE",
   "transversal_profile": "RUNTIME_CODE",
   "profile_precedence": [
@@ -25,9 +25,9 @@
   ],
   "path_rules": [
     {"profile":"EDITORIAL_STAGING","patterns":["^catalogs/[^/]+/[^/]+/drafts/","^catalogs/[^/]+/review/","^tests/unit/[^/]*staging\\.test\\.ts$"]},
-    {"profile":"INFRA_QA","patterns":["^\\.github/","^tools/qa-","^tests/governance/","^documentation/governance/QA_IMPACT_POLICY\\.json$","^documentation/governance/","^documentation/decisions/ADR-027-","^documentation/decisions/ADR-034-","^src/content/(lexicalBatch|editorialIntake)\\.ts$","^tests/unit/(lexical-batch(?:-benchmark)?|editorial-intake)\\.test\\.ts$"]},
+    {"profile":"INFRA_QA","patterns":["^\\.github/","^tools/qa-","^tests/governance/","^documentation/governance/QA_IMPACT_POLICY\\.json$","^documentation/governance/","^documentation/decisions/ADR-027-","^documentation/decisions/ADR-034-","^documentation/decisions/ADR-036-","^src/content/(lexicalBatch|editorialIntake)\\.ts$","^tests/unit/(lexical-batch(?:-benchmark)?|editorial-intake)\\.test\\.ts$"]},
     {"profile":"RELEASE_ONLY","patterns":["^certification/","^release/","^documentation/releases/"]},
-    {"profile":"RUNTIME_DATA_ONLY","patterns":["^catalogs/[^/]+/[^/]+/catalog\\.json$","^catalogs/[^/]+/[^/]+/(manifest|catalog-manifest|manifest\\.sig)\\.json$","^catalogs/[^/]+/[^/]+/runtime-projection\\.json$"]},
+    {"profile":"RUNTIME_DATA_ONLY","patterns":["^catalogs/[^/]+/[^/]+/catalog\\.json$","^catalogs/[^/]+/[^/]+/(manifest|catalog-manifest)\\.json$","^catalogs/[^/]+/[^/]+/runtime-projection\\.json$"]},
     {"profile":"RUNTIME_CONTENT","patterns":["^src/content/(packData|schoolPackData|adultPackData|travelPackData)\\.ts$"]},
     {"profile":"UI_UX","patterns":["^src/(ui|components|screens|styles)/","^src/(App|main)\\.(tsx|jsx)$","^tests/e2e/","^playwright\\.config\\.","^public/.*\\.(css|svg|png|jpg|jpeg|webp)$"]},
     {"profile":"RUNTIME_CODE","patterns":["^src/","^tools/(?!qa-)","^schemas/","^catalogs/[^/]+/[^/]+/.*schema.*","^public/","^index\\.html$","^vite\\.config\\.","^package(-lock)?\\.json$","^tsconfig","^eslint\\.config\\.","^tests/(unit|integration)/"]}
@@ -38,7 +38,7 @@
     "LEXICAL_TARGETED":"Schéma, UUID, doublons, taxonomie, provenance, contraintes lexicales et tests de staging applicables.",
     "RUNTIME_INVARIANCE":"Aucun chemin runtime/canonique actif n'est modifié par le diff éditorial.",
     "CATALOG_PROJECTION":"Projection runtime vérifiée : références UUID, thèmes, classifications explicites, doublons et comptabilité source/directe.",
-    "CATALOG_INTEGRITY":"Manifeste signé vérifié et hashes du catalogue et de la projection liés au manifeste exact.",
+    "CATALOG_INTEGRITY":"Hashes SHA-256 du catalogue et de la projection vérifiés contre le manifeste candidat exact ; aucun secret ni signature produit requis sous ADR-036.",
     "GOVERNANCE_PROCESS_TESTS":"Tests automatiques du classifieur, des profils et des contrats de workflow.",
     "WORKFLOW_SYNTAX":"Syntaxe des workflows publics affectés vérifiée.",
     "STATIC_LINT":"Lint applicable.",
