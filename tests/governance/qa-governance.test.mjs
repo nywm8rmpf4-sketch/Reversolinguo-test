@@ -12,7 +12,7 @@ test('A - editorial drafts select targeted QA and reject runtime over-test', () 
   assert.equal(result.fail_safe, false);
   const plan = verifyCampaign(result, 'staging/a1-tranche3-r1', 'editorial_targeted', policy);
   assert.equal(plan.produces_runtime_artifact, false);
-  assert.throws(() => verifyCampaign(result, 'staging/a1-tranche3-r1', 'runtime_full', policy), /OVER_TEST/);
+  assert.throws(() => verifyCampaign(result, 'staging/a1-tranche3-r1', 'runtime_full', policy), /OVER_TEST|CAMPAIGN_BRANCH_CONFLICT/);
   assert.throws(() => verifyCampaign(result, 'candidate/a1-tranche3-r1', 'runtime_full', policy), /PROFILE_BRANCH_CONFLICT/);
 });
 
@@ -21,7 +21,7 @@ test('B - SRS runtime change requires runtime campaign and rejects targeted unde
   assert.equal(result.validation_profile, 'RUNTIME_CODE');
   const plan = verifyCampaign(result, 'candidate/srs-r1', 'runtime_full', policy);
   assert.equal(plan.produces_runtime_artifact, true);
-  assert.throws(() => verifyCampaign(result, 'candidate/srs-r1', 'editorial_targeted', policy), /UNDER_TEST/);
+  assert.throws(() => verifyCampaign(result, 'candidate/srs-r1', 'editorial_targeted', policy), /UNDER_TEST|CAMPAIGN_BRANCH_CONFLICT/);
 });
 
 test('C - UI change selects UI_UX with accessibility and E2E controls', () => {
@@ -50,10 +50,63 @@ test('E - unknown path fails safe to strongest runtime profile', () => {
   assert.doesNotThrow(() => verifyCampaign(result, 'candidate/ambiguous-r1', 'runtime_full', policy));
 });
 
-test('mixed profiles fail safe to RUNTIME_CODE rather than composing weak assumptions', () => {
+test('F - runtime data-only catalog diff selects targeted artifact campaign', () => {
+  const result = classify([
+    'catalogs/fr-es/a1/catalog.json',
+    'catalogs/fr-es/a1/manifest.json',
+    'catalogs/fr-es/a1/manifest.sig.json',
+    'catalogs/fr-es/a1/runtime-projection.json',
+    'evidence/active/DATA_ONLY.md'
+  ]);
+  assert.equal(result.validation_profile, 'RUNTIME_DATA_ONLY');
+  assert.equal(result.transversal, false);
+  assert.equal(result.fail_safe, false);
+  const plan = verifyCampaign(result, 'data-candidate/a1-r1', 'runtime_data_targeted', policy);
+  assert.equal(plan.produces_runtime_artifact, true);
+  assert.ok(plan.required_controls.includes('CATALOG_PROJECTION'));
+  assert.ok(plan.required_controls.includes('CATALOG_INTEGRITY'));
+  assert.ok(plan.required_controls.includes('UNIT'));
+  assert.equal(plan.required_controls.includes('E2E'), false);
+  assert.throws(() => verifyCampaign(result, 'candidate/a1-r1', 'runtime_full', policy), /PROFILE_BRANCH_CONFLICT/);
+});
+
+test('all seven named profiles have a direct representative classification', () => {
+  const representatives = [
+    ['EDITORIAL_STAGING', ['catalogs/fr-es/a1/drafts/a1-tranche3.json']],
+    ['INFRA_QA', ['documentation/governance/QA_IMPACT_POLICY.json']],
+    ['RUNTIME_DATA_ONLY', ['catalogs/fr-es/a1/catalog.json']],
+    ['RUNTIME_CONTENT', ['src/content/packData.ts']],
+    ['RUNTIME_CODE', ['src/domain/srsEngine.ts']],
+    ['UI_UX', ['src/components/VocabularyBrowser.tsx']],
+    ['RELEASE_ONLY', ['certification/v1.1.0.json']]
+  ];
+
+  for (const [expectedProfile, files] of representatives) {
+    const result = classify(files);
+    assert.equal(result.validation_profile, expectedProfile, `${files.join(', ')} should classify as ${expectedProfile}`);
+    assert.equal(result.transversal, false);
+  }
+
+  const infraPlan = verifyCampaign(classify(['documentation/governance/QA_IMPACT_POLICY.json']), 'qa/profile-coverage-r1', 'infra_targeted', policy);
+  assert.equal(infraPlan.produces_runtime_artifact, false);
+  const dataPlan = verifyCampaign(classify(['catalogs/fr-es/a1/catalog.json']), 'data-candidate/runtime-data-r1', 'runtime_data_targeted', policy);
+  assert.equal(dataPlan.produces_runtime_artifact, true);
+});
+
+test('mixed data-only and code profiles fail safe to RUNTIME_CODE', () => {
+  const result = classify(['catalogs/fr-es/a1/catalog.json', 'src/content/catalog.ts']);
+  assert.equal(result.validation_profile, 'RUNTIME_CODE');
+  assert.deepEqual(result.detected_profiles, ['RUNTIME_DATA_ONLY', 'RUNTIME_CODE']);
+  assert.equal(result.transversal, true);
+  assert.equal(result.fail_safe, true);
+  assert.ok(result.required_controls.includes('E2E'));
+  assert.doesNotThrow(() => verifyCampaign(result, 'candidate/runtime-code-r1', 'runtime_full', policy));
+});
+
+test('mixed editorial and runtime data profiles fail safe to RUNTIME_CODE', () => {
   const result = classify(['catalogs/fr-es/a1/drafts/a1-tranche3.json', 'catalogs/fr-es/a1/catalog.json']);
   assert.equal(result.validation_profile, 'RUNTIME_CODE');
-  assert.deepEqual(result.detected_profiles, ['EDITORIAL_STAGING', 'RUNTIME_CONTENT']);
+  assert.deepEqual(result.detected_profiles, ['EDITORIAL_STAGING', 'RUNTIME_DATA_ONLY']);
   assert.equal(result.transversal, true);
   assert.equal(result.fail_safe, true);
   assert.ok(result.required_controls.includes('BUILD_RUNTIME'));
@@ -69,13 +122,15 @@ test('PASS reuse proof is fail-closed and requires applicability fingerprints', 
   }, policy));
 });
 
-test('public workflow contract keeps heavy QA away from staging and guards qualification refs first', { skip: !existsSync('.github/workflows/qa.yml') }, () => {
+test('public workflow contract exposes distinct editorial, infra, data-only, runtime and promotion lanes', { skip: !existsSync('.github/workflows/qa.yml') }, () => {
   const runtime = readFileSync('.github/workflows/qa.yml', 'utf8');
+  const dataOnly = readFileSync('.github/workflows/data-qa.yml', 'utf8');
   const editorial = readFileSync('.github/workflows/editorial-qa.yml', 'utf8');
   const infra = readFileSync('.github/workflows/qa-governance.yml', 'utf8');
   const promotion = readFileSync('.github/workflows/promote-qualified.yml', 'utf8');
 
   assert.match(runtime, /candidate\/\*\*/);
+  assert.doesNotMatch(runtime, /data-candidate\/\*\*/);
   assert.doesNotMatch(runtime, /staging\/\*\*/);
   assert.match(runtime, /push:/);
   assert.doesNotMatch(runtime, /^\s*create:/m);
@@ -85,6 +140,17 @@ test('public workflow contract keeps heavy QA away from staging and guards quali
   assert.match(runtime, /--campaign runtime_full/);
   assert.ok(runtime.indexOf('immutable candidate branch contract') < runtime.indexOf('npm ci'));
   assert.ok(runtime.indexOf('qa-governance.mjs plan') < runtime.indexOf('playwright install'));
+
+  assert.match(dataOnly, /data-candidate\/\*\*/);
+  assert.match(dataOnly, /--campaign runtime_data_targeted/);
+  assert.match(dataOnly, /github\.event\.created/);
+  assert.match(dataOnly, /PUSH_CREATED/);
+  assert.match(dataOnly, /prepare-catalog-bundle\.mjs/);
+  assert.match(dataOnly, /catalog-bundle\.test\.mjs/);
+  assert.match(dataOnly, /catalog-signing\.test\.mjs/);
+  assert.match(dataOnly, /npm run build/);
+  assert.doesNotMatch(dataOnly, /playwright install/);
+  assert.doesNotMatch(dataOnly, /test:e2e/);
 
   assert.match(editorial, /staging\/\*\*/);
   assert.match(editorial, /push:/);
@@ -99,5 +165,7 @@ test('public workflow contract keeps heavy QA away from staging and guards quali
   assert.match(infra, /qa\/\*\*/);
   assert.match(infra, /--campaign infra_targeted/);
   assert.match(promotion, /- QA candidate/);
+  assert.match(promotion, /- QA data candidate/);
+  assert.match(promotion, /data-candidate\/\*/);
   assert.doesNotMatch(promotion, /QA editorial staging/);
 });
