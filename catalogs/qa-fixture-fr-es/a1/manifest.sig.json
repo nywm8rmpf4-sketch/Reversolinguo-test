@@ -1,0 +1,16 @@
+{
+  "key_id": "test-only-data-only-proof-r1",
+  "algorithm": "ECDSA-P256-SHA256",
+  "signature_base64": "StF358bOV23QB31E12GYqWuUEiriqjPf21/WEWAeDlIz6IeNi5xcDjbIXUn5WHTMCgHci+osuVuCCeKXAtWFXA==",
+  "test_only": true,
+  "test_public_jwk": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "pGUfMK5fyHxDNDs5AlhnTDHERyBVqpijhbvE6_nQnrs",
+    "y": "k7ptpoEsQ7ZTfJ34m7KBqhKIwOT8aSZTjcEFo_80CX8",
+    "ext": true,
+    "key_ops": [
+      "verify"
+    ]
+  }
+}

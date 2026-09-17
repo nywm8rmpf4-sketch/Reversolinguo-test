@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "qa-fixture-fr-es-a1-60",
+  "catalog_version": "data-only-proof-r1",
+  "source": {
+    "artifact": "historical-pack6b-60@754d591aa7aed531bf2862c230a45b6bcf8d4afc",
+    "sha256": "94b2d5778ae4006ca7a2bf35429247cce4312d8998f99b555b712b50e6c10085"
+  },
+  "school_source_assignments": [
+    {
+      "review_id": "QA60-0001",
+      "entry_id": "69046998-47e6-5570-b469-5a5cc961a97e",
+      "track": "LVA",
+      "grade": "6e",
+      "theme": "corps"
+    },
+    {
+      "review_id": "QA60-0002",
+      "entry_id": "36e27c44-5b63-5024-bd41-81546b1e9191",
+      "track": "LVB",
+      "grade": "6e",
+      "theme": "maison"
+    }
+  ],
+  "theme_path_assignments": [
+    {
+      "entry_id": "69046998-47e6-5570-b469-5a5cc961a97e",
+      "path_id": "qa-path",
+      "cefr_level": "A1",
+      "theme": "corps"
+    }
+  ],
+  "source_counts": {
+    "school": {
+      "LVA:6e": 1,
+      "LVB:6e": 1
+    },
+    "theme_paths": {
+      "qa-path:A1": 1
+    }
+  }
+}

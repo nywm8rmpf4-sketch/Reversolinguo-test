@@ -1,0 +1,17 @@
+{
+  "catalog_id": "qa-fixture-fr-es-a1-60",
+  "catalog_version": "data-only-proof-r1",
+  "source_language": "es",
+  "target_language": "fr",
+  "cefr_level": "A1",
+  "entry_count": 60,
+  "license": "CC BY 4.0",
+  "schema_id": "https://reversolinguo.app/schemas/lexical-entry-v2.json",
+  "min_app_version": "0.1.0",
+  "catalog_sha256": "94b2d5778ae4006ca7a2bf35429247cce4312d8998f99b555b712b50e6c10085",
+  "projection_sha256": "7ce14ee11521e6a0535f1aef7dec0bbff325da429538252623002fb3c807b3ee",
+  "status": "test-only",
+  "human_review": "NOT_APPLICABLE_QA_FIXTURE",
+  "test_fixture": true,
+  "source_commit": "754d591aa7aed531bf2862c230a45b6bcf8d4afc"
+}
