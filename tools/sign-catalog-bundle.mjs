@@ -15,10 +15,10 @@ function scalar(value) {
 export function readPinnedCatalogSigningKey(path = DEFAULT_PINNED_KEY) {
   const text = readFileSync(path, 'utf8')
   const keyId = /catalogSigningKeyId\s*=\s*'([^']+)'/u.exec(text)?.[1]
-  const kty = /kty:\s*'([^']+)'/u.exec(text)?.[1]
-  const crv = /crv:\s*'([^']+)'/u.exec(text)?.[1]
-  const x = /x:\s*'([^']+)'/u.exec(text)?.[1]
-  const y = /y:\s*'([^']+)'/u.exec(text)?.[1]
+  const kty = /\bkty:\s*'([^']+)'/u.exec(text)?.[1]
+  const crv = /\bcrv:\s*'([^']+)'/u.exec(text)?.[1]
+  const x = /\bx:\s*'([^']+)'/u.exec(text)?.[1]
+  const y = /\by:\s*'([^']+)'/u.exec(text)?.[1]
   if (!keyId || !kty || !crv || !x || !y) throw new Error('PINNED_PUBLIC_KEY_PARSE_FAIL')
   return { key_id: keyId, jwk: { kty, crv, x, y, ext: true, key_ops: ['verify'] } }
 }
