@@ -1,38 +1,72 @@
 {
   "schema_version": "1.0",
-  "policy_id": "OPT-GOV-EXEC-v1",
+  "policy_id": "OPT-GOV-EXEC-v2-data-only",
   "default_unknown_profile": "RUNTIME_CODE",
   "transversal_profile": "RUNTIME_CODE",
-  "profile_precedence": ["EDITORIAL_STAGING","RELEASE_ONLY","INFRA_QA","RUNTIME_CONTENT","UI_UX","RUNTIME_CODE"],
+  "profile_precedence": [
+    "EDITORIAL_STAGING",
+    "RELEASE_ONLY",
+    "INFRA_QA",
+    "RUNTIME_DATA_ONLY",
+    "RUNTIME_CONTENT",
+    "UI_UX",
+    "RUNTIME_CODE"
+  ],
   "branch_contracts": [
     {"prefix":"staging/","allowed_profiles":["EDITORIAL_STAGING"],"campaign":"editorial_targeted"},
     {"prefix":"qa/","allowed_profiles":["INFRA_QA"],"campaign":"infra_targeted"},
+    {"prefix":"data-candidate/","allowed_profiles":["RUNTIME_DATA_ONLY"],"campaign":"runtime_data_targeted"},
     {"prefix":"candidate/","allowed_profiles":["RUNTIME_CONTENT","UI_UX","RUNTIME_CODE"],"campaign":"runtime_full"},
     {"prefix":"certify/","allowed_profiles":["RELEASE_ONLY"],"campaign":"release_identity"}
   ],
-  "neutral_path_patterns":["^evidence/","^documentation/history/","^ROADMAP\\.md$","^REPRISE\\.md$","^CHECKPOINT_STATE\\.json$","^documentation/PROJECT_STATE\\.md$","^pack_initialisation_retour_experience\\.md$"],
-  "path_rules":[
-    {"profile":"EDITORIAL_STAGING","patterns":["^catalogs/[^/]+/[^/]+/drafts/","^catalogs/[^/]+/review/","^tests/unit/[^/]*staging\\.test\\.ts$"]},
-    {"profile":"INFRA_QA","patterns":["^\\.github/","^tools/qa-","^tests/governance/","^documentation/governance/QA_IMPACT_POLICY\\.json$","^documentation/governance/","^documentation/decisions/ADR-027-","^src/content/(lexicalBatch|editorialIntake)\\.ts$","^tests/unit/(lexical-batch(?:-benchmark)?|editorial-intake)\\.test\\.ts$"]},
-    {"profile":"RELEASE_ONLY","patterns":["^certification/","^release/","^documentation/releases/"]},
-    {"profile":"RUNTIME_CONTENT","patterns":["^catalogs/[^/]+/[^/]+/catalog\\.json$","^catalogs/[^/]+/(manifest|catalog-manifest)\\.json$","^src/content/(packData|schoolPackData|adultPackData|travelPackData)\\.ts$"]},
-    {"profile":"UI_UX","patterns":["^src/(ui|components|screens|styles)/","^src/(App|main)\\.(tsx|jsx)$","^tests/e2e/","^playwright\\.config\\.","^public/.*\\.(css|svg|png|jpg|jpeg|webp)$"]},
-    {"profile":"RUNTIME_CODE","patterns":["^src/","^public/","^index\\.html$","^vite\\.config\\.","^package(-lock)?\\.json$","^tsconfig","^eslint\\.config\\.","^tests/(unit|integration)/"]}
+  "neutral_path_patterns": [
+    "^evidence/","^documentation/history/","^ROADMAP\\.md$","^REPRISE\\.md$","^CHECKPOINT_STATE\\.json$","^documentation/PROJECT_STATE\\.md$","^pack_initialisation_retour_experience\\.md$"
   ],
-  "controls":{
-    "IMPACT_CLASSIFICATION":"Diff réel classifié et branche/campagne vérifiées avant les contrôles coûteux.","GOVERNANCE_SELECTION_PROOF":"Plan de sélection structuré conservé comme preuve.","LEXICAL_TARGETED":"Schéma, UUID, doublons, taxonomie, provenance, contraintes lexicales et tests de staging applicables.","RUNTIME_INVARIANCE":"Aucun chemin runtime/canonique actif n'est modifié par le diff éditorial.","GOVERNANCE_PROCESS_TESTS":"Tests automatiques du classifieur, des profils et des contrats de workflow.","WORKFLOW_SYNTAX":"Syntaxe des workflows publics affectés vérifiée.","STATIC_LINT":"Lint applicable.","TYPECHECK":"Typecheck applicable.","UNIT":"Tests unitaires applicables.","INTEGRATION":"Tests d'intégration applicables.","BUILD_RUNTIME":"Build applicatif de production.","E2E":"Tests navigateur E2E.","OFFLINE":"Contrôles PWA/offline.","ACCESSIBILITY":"Contrôles d'accessibilité automatisés.","RUNTIME_ARTIFACT":"Artefact runtime exact avec hachage et portabilité.","RELEASE_PROVENANCE":"Provenance du run et de l'artefact qualifié.","RELEASE_IDENTITY":"Identité SHA/artefact/tree vérifiée.","RELEASE_INTEGRITY":"Digest et hashes revérifiés.","NO_REBUILD":"Promotion/publication du même artefact sans reconstruction."
+  "path_rules": [
+    {"profile":"EDITORIAL_STAGING","patterns":["^catalogs/[^/]+/[^/]+/drafts/","^catalogs/[^/]+/review/","^tests/unit/[^/]*staging\\.test\\.ts$"]},
+    {"profile":"INFRA_QA","patterns":["^\\.github/","^tools/qa-","^tests/governance/","^documentation/governance/QA_IMPACT_POLICY\\.json$","^documentation/governance/","^documentation/decisions/ADR-027-","^documentation/decisions/ADR-034-","^src/content/(lexicalBatch|editorialIntake)\\.ts$","^tests/unit/(lexical-batch(?:-benchmark)?|editorial-intake)\\.test\\.ts$"]},
+    {"profile":"RELEASE_ONLY","patterns":["^certification/","^release/","^documentation/releases/"]},
+    {"profile":"RUNTIME_DATA_ONLY","patterns":["^catalogs/[^/]+/[^/]+/catalog\\.json$","^catalogs/[^/]+/[^/]+/(manifest|catalog-manifest|manifest\\.sig)\\.json$","^catalogs/[^/]+/[^/]+/runtime-projection\\.json$"]},
+    {"profile":"RUNTIME_CONTENT","patterns":["^src/content/(packData|schoolPackData|adultPackData|travelPackData)\\.ts$"]},
+    {"profile":"UI_UX","patterns":["^src/(ui|components|screens|styles)/","^src/(App|main)\\.(tsx|jsx)$","^tests/e2e/","^playwright\\.config\\.","^public/.*\\.(css|svg|png|jpg|jpeg|webp)$"]},
+    {"profile":"RUNTIME_CODE","patterns":["^src/","^tools/(?!qa-)","^schemas/","^catalogs/[^/]+/[^/]+/.*schema.*","^public/","^index\\.html$","^vite\\.config\\.","^package(-lock)?\\.json$","^tsconfig","^eslint\\.config\\.","^tests/(unit|integration)/"]}
+  ],
+  "controls": {
+    "IMPACT_CLASSIFICATION":"Diff réel classifié et branche/campagne vérifiées avant les contrôles coûteux.",
+    "GOVERNANCE_SELECTION_PROOF":"Plan de sélection structuré conservé comme preuve.",
+    "LEXICAL_TARGETED":"Schéma, UUID, doublons, taxonomie, provenance, contraintes lexicales et tests de staging applicables.",
+    "RUNTIME_INVARIANCE":"Aucun chemin runtime/canonique actif n'est modifié par le diff éditorial.",
+    "CATALOG_PROJECTION":"Projection runtime vérifiée : références UUID, thèmes, classifications explicites, doublons et comptabilité source/directe.",
+    "CATALOG_INTEGRITY":"Manifeste signé vérifié et hashes du catalogue et de la projection liés au manifeste exact.",
+    "GOVERNANCE_PROCESS_TESTS":"Tests automatiques du classifieur, des profils et des contrats de workflow.",
+    "WORKFLOW_SYNTAX":"Syntaxe des workflows publics affectés vérifiée.",
+    "STATIC_LINT":"Lint applicable.",
+    "TYPECHECK":"Typecheck applicable.",
+    "UNIT":"Tests unitaires applicables.",
+    "INTEGRATION":"Tests d'intégration applicables.",
+    "BUILD_RUNTIME":"Build applicatif de production.",
+    "E2E":"Tests navigateur E2E.",
+    "OFFLINE":"Contrôles PWA/offline.",
+    "ACCESSIBILITY":"Contrôles d'accessibilité automatisés.",
+    "RUNTIME_ARTIFACT":"Artefact runtime exact avec hachage et portabilité.",
+    "RELEASE_PROVENANCE":"Provenance du run et de l'artefact qualifié.",
+    "RELEASE_IDENTITY":"Identité SHA/artefact/tree vérifiée.",
+    "RELEASE_INTEGRITY":"Digest et hashes revérifiés.",
+    "NO_REBUILD":"Promotion/publication du même artefact sans reconstruction."
   },
-  "profiles":{
+  "profiles": {
     "EDITORIAL_STAGING":{"mandatory":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","LEXICAL_TARGETED","RUNTIME_INVARIANCE"],"conditional":["semantic_review_after_machine_pass"],"normally_excluded":["BUILD_RUNTIME","E2E","OFFLINE","ACCESSIBILITY","RUNTIME_ARTIFACT"],"historical_pass_reuse":[],"escalate_if":["runtime_or_canonical_path_detected","unknown_path","branch_contract_conflict","transversal_diff"]},
     "INFRA_QA":{"mandatory":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","GOVERNANCE_PROCESS_TESTS","WORKFLOW_SYNTAX"],"conditional":["STATIC_LINT","TYPECHECK","UNIT"],"normally_excluded":["BUILD_RUNTIME","E2E","OFFLINE","ACCESSIBILITY","RUNTIME_ARTIFACT"],"historical_pass_reuse":[],"escalate_if":["runtime_coupling_detected","unknown_path","transversal_diff"]},
+    "RUNTIME_DATA_ONLY":{"mandatory":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","LEXICAL_TARGETED","CATALOG_PROJECTION","CATALOG_INTEGRITY","UNIT","INTEGRATION","BUILD_RUNTIME","RUNTIME_ARTIFACT"],"conditional":["semantic_review_of_changed_content","human_test_if_content_or_gate_requires"],"normally_excluded":["E2E","OFFLINE","ACCESSIBILITY"],"historical_pass_reuse":["unchanged_code_ui_platform_pass_with_applicability_proof"],"escalate_if":["code_or_loader_changed","schema_changed","unknown_path","branch_contract_conflict","transversal_diff","release_gate_requires_fresh_campaign"]},
     "RUNTIME_CONTENT":{"mandatory":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","STATIC_LINT","TYPECHECK","UNIT","INTEGRATION","BUILD_RUNTIME","E2E","OFFLINE","ACCESSIBILITY","RUNTIME_ARTIFACT"],"conditional":["semantic_review","human_test"],"normally_excluded":[],"historical_pass_reuse":["unchanged_component_pass_with_applicability_proof"],"escalate_if":["release_gate_requires_fresh_campaign","transversal_diff"]},
     "RUNTIME_CODE":{"mandatory":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","STATIC_LINT","TYPECHECK","UNIT","INTEGRATION","BUILD_RUNTIME","E2E","OFFLINE","ACCESSIBILITY","RUNTIME_ARTIFACT"],"conditional":["semantic_review","human_test"],"normally_excluded":[],"historical_pass_reuse":["unchanged_component_pass_with_applicability_proof"],"escalate_if":["release_gate_requires_fresh_campaign"]},
     "UI_UX":{"mandatory":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","STATIC_LINT","TYPECHECK","UNIT","INTEGRATION","BUILD_RUNTIME","E2E","OFFLINE","ACCESSIBILITY","RUNTIME_ARTIFACT"],"conditional":["semantic_review","human_test"],"normally_excluded":[],"historical_pass_reuse":["unchanged_component_pass_with_applicability_proof"],"escalate_if":["release_gate_requires_fresh_campaign","transversal_diff"]},
     "RELEASE_ONLY":{"mandatory":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","RELEASE_PROVENANCE","RELEASE_IDENTITY","RELEASE_INTEGRITY","NO_REBUILD"],"conditional":["fresh_product_regression_only_if_gate_invalidates_applicability"],"normally_excluded":["BUILD_RUNTIME","E2E","OFFLINE","ACCESSIBILITY"],"historical_pass_reuse":["exact_qualified_artifact_pass"],"escalate_if":["artifact_identity_changed","required_gate_demands_fresh_product_campaign","transversal_diff"]}
   },
-  "campaigns":{
+  "campaigns": {
     "editorial_targeted":{"controls":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","LEXICAL_TARGETED","RUNTIME_INVARIANCE"],"produces_runtime_artifact":false},
     "infra_targeted":{"controls":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","GOVERNANCE_PROCESS_TESTS","WORKFLOW_SYNTAX"],"produces_runtime_artifact":false},
+    "runtime_data_targeted":{"controls":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","LEXICAL_TARGETED","CATALOG_PROJECTION","CATALOG_INTEGRITY","UNIT","INTEGRATION","BUILD_RUNTIME","RUNTIME_ARTIFACT"],"produces_runtime_artifact":true},
     "runtime_full":{"controls":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","STATIC_LINT","TYPECHECK","UNIT","INTEGRATION","BUILD_RUNTIME","E2E","OFFLINE","ACCESSIBILITY","RUNTIME_ARTIFACT"],"produces_runtime_artifact":true},
     "release_identity":{"controls":["IMPACT_CLASSIFICATION","GOVERNANCE_SELECTION_PROOF","RELEASE_PROVENANCE","RELEASE_IDENTITY","RELEASE_INTEGRITY","NO_REBUILD"],"produces_runtime_artifact":false}
   },
