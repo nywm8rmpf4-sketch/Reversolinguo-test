@@ -1,0 +1,79 @@
+name: Temporary compile updated A1
+
+on:
+  push:
+    branches:
+      - 'assembly/updated-a1-hash-only-work'
+
+permissions:
+  contents: write
+
+jobs:
+  compile:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact assembly
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+
+      - name: Compile exact approved school projection
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/compile-school-projection.mjs \
+            --catalog catalogs/fr-es/a1/catalog.json \
+            --source catalogs/fr-es/review/2026-09-17-a1-school-reference-r1/SOURCE_MANIFEST.json \
+            --output catalogs/fr-es/a1/runtime-projection.json
+
+      - name: Align and derive exact manifest hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs'
+          const path = 'catalogs/fr-es/a1/manifest.json'
+          const manifest = JSON.parse(readFileSync(path, 'utf8'))
+          manifest.catalog_version = '2026.09-a1-school-r1'
+          writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+          NODE
+          node tools/prepare-catalog-bundle.mjs \
+            --catalog catalogs/fr-es/a1/catalog.json \
+            --projection catalogs/fr-es/a1/runtime-projection.json \
+            --manifest catalogs/fr-es/a1/manifest.json
+          node tools/prepare-catalog-bundle.mjs \
+            --catalog catalogs/fr-es/a1/catalog.json \
+            --projection catalogs/fr-es/a1/runtime-projection.json \
+            --manifest catalogs/fr-es/a1/manifest.json \
+            --check
+
+      - name: Enforce bounded generated output
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git status --porcelain | sed -E 's/^.. //' | sort)
+          printf '%s\n' "${changed[@]}"
+          for path in "${changed[@]}"; do
+            case "$path" in
+              catalogs/fr-es/a1/manifest.json|catalogs/fr-es/a1/runtime-projection.json) ;;
+              *) echo "UNEXPECTED_GENERATED_PATH:$path" >&2; exit 2 ;;
+            esac
+          done
+          test "${#changed[@]}" -eq 2
+
+      - name: Commit generated bundle only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'reversolinguo-compile-bot'
+          git config user.email 'reversolinguo-compile-bot@users.noreply.github.com'
+          git add catalogs/fr-es/a1/manifest.json catalogs/fr-es/a1/runtime-projection.json
+          git commit -m 'data: compile exact updated A1 school projection'
+          git push origin HEAD:assembly/updated-a1-hash-only-work
