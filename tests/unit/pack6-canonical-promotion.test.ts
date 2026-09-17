@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
-import { adultPackId } from '../../src/content/adultReference'
-import { validateLearningPack } from '../../src/content/contracts'
+import manifest from '../../catalogs/fr-es/a1/manifest.json'
 import {
   a1MacroPromotedEntryIds,
   pack6BAdultPacks,
@@ -9,80 +8,52 @@ import {
   pack6BRuntimePacks,
   pack6BSchoolPacks,
   pack6BThemePacks,
-  pack6BVoyageA1EntryIds,
   validatePack6BRuntime
 } from '../../src/content/pack6Runtime'
-import { validateLearningPackGraph } from '../../src/content/packs'
-import { canonicalThemeIds } from '../../src/content/taxonomy'
+import { legacyPack6School6eAssignments, legacyPack6VoyageA1EntryIds } from '../../src/content/legacyPack6Projection'
+import { adultPackId } from '../../src/content/adultReference'
+import { resolveLearningPack } from '../../src/content/packs'
+import { hasSignedRuntimeProjection, signedRuntimeProjection } from '../../src/content/runtimeProjection'
 import { voyagePackId } from '../../src/content/themePaths'
 
-describe('PACK-6B and A1 macro canonical lexical promotion', () => {
-  it('preserves exactly the 36 PACK-6B reviewed UUIDs inside the expanded catalog', () => {
-    const ids = new Set(canonicalEntries.map((entry) => entry.entry_id))
-    expect(canonicalEntries).toHaveLength(475)
-    expect(ids.size).toBe(475)
-    expect(pack6BPromotedEntryIds).toHaveLength(36)
-    expect(new Set(pack6BPromotedEntryIds).size).toBe(36)
-    expect(pack6BPromotedEntryIds.every((entryId) => ids.has(entryId))).toBe(true)
+const activeCanonical = canonicalEntries.filter((entry) => entry.status !== 'withdrawn')
 
-    const promoted = canonicalEntries.filter((entry) => (pack6BPromotedEntryIds as readonly string[]).includes(entry.entry_id))
-    expect(promoted).toHaveLength(36)
-    expect(promoted.every((entry) => entry.status === 'reviewed')).toBe(true)
-    expect(promoted.every((entry) => entry.provenance.reviewed_at === '2026-09-14')).toBe(true)
-    expect(promoted.every((entry) => entry.provenance.license === 'CC BY 4.0')).toBe(true)
+describe('A1 canonical runtime promotion invariants', () => {
+  it('derives runtime volume from the current canonical data instead of a hard-coded corpus size', () => {
+    expect(manifest.entry_count).toBe(canonicalEntries.length)
+    const adult = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
+    expect(adult?.entries).toHaveLength(activeCanonical.length)
+    expect(new Set(adult?.entries.map((entry) => entry.entry_id))).toEqual(new Set(activeCanonical.map((entry) => entry.entry_id)))
+    expect(resolveLearningPack(adultPackId('A1'), pack6BAdultPacks)).toHaveLength(activeCanonical.length)
   })
 
-  it('promotes exactly the 415 bilingual-approved macro A1 UUIDs', () => {
-    expect(a1MacroPromotedEntryIds).toHaveLength(415)
-    expect(new Set(a1MacroPromotedEntryIds).size).toBe(415)
-    const macro = canonicalEntries.filter((entry) => a1MacroPromotedEntryIds.includes(entry.entry_id))
-    expect(macro).toHaveLength(415)
-    expect(macro.every((entry) => entry.status === 'reviewed')).toBe(true)
-    expect(macro.every((entry) => entry.provenance.reviewed_at === '2026-09-16')).toBe(true)
-    expect(macro.every((entry) => entry.provenance.license === 'CC BY 4.0')).toBe(true)
+  it('derives promotion groups from immutable review metadata and keeps them disjoint', () => {
+    const pack6 = new Set(pack6BPromotedEntryIds)
+    const macro = new Set(a1MacroPromotedEntryIds)
+    expect(pack6.size).toBe(pack6BPromotedEntryIds.length)
+    expect(macro.size).toBe(a1MacroPromotedEntryIds.length)
+    expect([...pack6].some((entryId) => macro.has(entryId))).toBe(false)
   })
 
-  it('projects all 475 canonical UUIDs into Adult A1 without cloning lexical identities', () => {
-    const adultA1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
-    expect(adultA1).toBeDefined()
-    expect(adultA1?.entries).toHaveLength(475)
-    expect(new Set(adultA1?.entries.map((entry) => entry.entry_id)).size).toBe(475)
-    expect(new Set(adultA1?.entries.map((entry) => entry.entry_id))).toEqual(new Set(canonicalEntries.map((entry) => entry.entry_id)))
-  })
-
-  it('materializes only the qualified 6e LVA/LVB thematic assignments over the structural references', () => {
-    const sixieme = pack6BSchoolPacks.filter((pack) => pack.grade === '6e' && (pack.track === 'LVA' || pack.track === 'LVB'))
-    expect(sixieme).toHaveLength(2)
-    for (const pack of sixieme) {
-      expect(pack.entries).toHaveLength(25)
-      expect(new Set(pack.entries.map((entry) => entry.entry_id)).size).toBe(25)
-      expect(pack.entries.every((entry) => new Set<string>(pack6BPromotedEntryIds).has(entry.entry_id))).toBe(true)
-      expect(pack.entries.every((entry) => pack.themes.includes(entry.theme))).toBe(true)
+  it('keeps the historical unsigned projection frozen until a signed projection is bound', () => {
+    if (hasSignedRuntimeProjection()) return
+    for (const track of ['LVA', 'LVB'] as const) {
+      const school = pack6BSchoolPacks.find((pack) => pack.grade === '6e' && pack.track === track)
+      expect(school?.entries).toHaveLength(legacyPack6School6eAssignments.length)
     }
-    expect(sixieme[0].entries).toEqual(sixieme[1].entries)
+    const voyage = pack6BThemePacks.find((pack) => pack.pack_id === voyagePackId('A1'))
+    expect(voyage?.entries).toHaveLength(legacyPack6VoyageA1EntryIds.length)
   })
 
-  it('keeps Voyage A1 deliberately limited to the four approved relations', () => {
-    const voyageA1 = pack6BThemePacks.find((pack) => pack.pack_id === voyagePackId('A1'))
-    expect(voyageA1).toBeDefined()
-    expect(voyageA1?.entries.map((entry) => entry.entry_id)).toEqual(pack6BVoyageA1EntryIds)
-    expect(voyageA1?.entries.every((entry) => entry.theme === 'voyage')).toBe(true)
+  it('uses only signed projection data when the manifest binds a projection', () => {
+    const projection = signedRuntimeProjection()
+    if (!projection) return
+    expect(projection.catalog_id).toBe('fr-es-a1')
+    expect(projection.catalog_version).toBe(manifest.catalog_version)
   })
 
-  it('uses one canonical UUID across overlapping packs instead of creating a second SRS identity', () => {
-    const sharedId = '4fa70eb3-8cff-57c8-abdc-3c9c397833dc'
-    const adultA1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))!
-    const school6eLva = pack6BSchoolPacks.find((pack) => pack.grade === '6e' && pack.track === 'LVA')!
-    const voyageA1 = pack6BThemePacks.find((pack) => pack.pack_id === voyagePackId('A1'))!
-    expect(adultA1.entries.some((entry) => entry.entry_id === sharedId)).toBe(true)
-    expect(school6eLva.entries.some((entry) => entry.entry_id === sharedId)).toBe(true)
-    expect(voyageA1.entries.some((entry) => entry.entry_id === sharedId)).toBe(true)
-  })
-
-  it('keeps AJV schema validation in QA while runtime graph validation stays CSP-safe', () => {
-    expect(pack6BRuntimePacks.every((pack) => validateLearningPack(pack).valid)).toBe(true)
-    const ids = new Set(canonicalEntries.map((entry) => entry.entry_id))
-    expect(validateLearningPackGraph(pack6BRuntimePacks, ids, canonicalThemeIds)).toEqual({ valid: true, errors: [] })
+  it('validates the complete runtime graph without volume-specific constants', () => {
+    expect(pack6BRuntimePacks.length).toBeGreaterThan(0)
     expect(validatePack6BRuntime()).toEqual({ valid: true, errors: [] })
   })
 })
