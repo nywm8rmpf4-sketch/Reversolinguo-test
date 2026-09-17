@@ -1,0 +1,158 @@
+name: Catalog signing authority
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: Mutable assembly branch to sign
+        required: true
+        type: string
+      key_id:
+        description: Expected product signing key id
+        required: true
+        type: string
+      rotate_public_key:
+        description: Derive and write the pinned public key before signing
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: catalog-signing-${{ inputs.target_ref }}
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_REF: ${{ inputs.target_ref }}
+      KEY_ID: ${{ inputs.key_id }}
+      ROTATE_PUBLIC_KEY: ${{ inputs.rotate_public_key }}
+    steps:
+      - name: Validate dispatch contract before secret use
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_REF" =~ ^assembly/(catalog-|updated-a1-)[A-Za-z0-9._/-]+$ ]]; then
+            echo "SIGNING_TARGET_REF_REJECTED"
+            exit 2
+          fi
+          if [[ "$TARGET_REF" == *".."* ]]; then
+            echo "SIGNING_TARGET_REF_REJECTED"
+            exit 2
+          fi
+          if [[ ! "$KEY_ID" =~ ^fr-es-a1-[A-Za-z0-9._-]+-k[0-9]+$ ]]; then
+            echo "SIGNING_KEY_ID_REJECTED"
+            exit 2
+          fi
+
+      - name: Checkout trusted signing implementation from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Checkout mutable assembly target
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref }}
+          path: target
+          fetch-depth: 0
+
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Validate target is clean and bundle fields are current
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git -C target status --porcelain)"
+          node trusted/tools/prepare-catalog-bundle.mjs \
+            --catalog ../target/catalogs/fr-es/a1/catalog.json \
+            --projection ../target/catalogs/fr-es/a1/runtime-projection.json \
+            --manifest ../target/catalogs/fr-es/a1/manifest.json \
+            --check
+
+      - name: Provision or reuse product signing authority and sign manifest
+        shell: bash
+        env:
+          REVERSOLINGUO_CATALOG_SIGNING_KEY: ${{ secrets.REVERSOLINGUO_CATALOG_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${REVERSOLINGUO_CATALOG_SIGNING_KEY:-}" ]]; then
+            echo "CATALOG_SIGNING_SECRET_MISSING"
+            exit 2
+          fi
+          if [[ "$ROTATE_PUBLIC_KEY" == "true" ]]; then
+            node trusted/tools/provision-catalog-signing-authority.mjs \
+              --manifest ../target/catalogs/fr-es/a1/manifest.json \
+              --signature ../target/catalogs/fr-es/a1/manifest.sig.json \
+              --public-key-output ../target/src/content/catalogSigningKey.ts \
+              --key-id "$KEY_ID" \
+              --private-key-env REVERSOLINGUO_CATALOG_SIGNING_KEY
+          else
+            PINNED_KEY_ID="$(node -e "const fs=require('node:fs');const t=fs.readFileSync('target/src/content/catalogSigningKey.ts','utf8');const m=/catalogSigningKeyId\\s*=\\s*'([^']+)'/.exec(t);if(!m)process.exit(2);process.stdout.write(m[1])")"
+            if [[ "$PINNED_KEY_ID" != "$KEY_ID" ]]; then
+              echo "SIGNING_KEY_ID_MISMATCH"
+              exit 2
+            fi
+            node trusted/tools/sign-catalog-bundle.mjs \
+              --manifest ../target/catalogs/fr-es/a1/manifest.json \
+              --signature ../target/catalogs/fr-es/a1/manifest.sig.json \
+              --pinned-key ../target/src/content/catalogSigningKey.ts \
+              --private-key-env REVERSOLINGUO_CATALOG_SIGNING_KEY
+          fi
+
+      - name: Verify exact detached signature with public material only
+        shell: bash
+        run: |
+          set -euo pipefail
+          node trusted/tools/qa-verify-catalog-signature.mjs \
+            --manifest ../target/catalogs/fr-es/a1/manifest.json \
+            --signature ../target/catalogs/fr-es/a1/manifest.sig.json \
+            --pinned-key ../target/src/content/catalogSigningKey.ts
+
+      - name: Enforce bounded public output diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git -C target status --porcelain | sed -E 's/^.. //' | sort)
+          if [[ ${#changed[@]} -eq 0 ]]; then
+            echo "SIGNING_NO_PUBLIC_OUTPUT"
+            exit 2
+          fi
+          if [[ "$ROTATE_PUBLIC_KEY" == "true" ]]; then
+            allowed_regex='^(catalogs/fr-es/a1/manifest\.sig\.json|src/content/catalogSigningKey\.ts)$'
+          else
+            allowed_regex='^catalogs/fr-es/a1/manifest\.sig\.json$'
+          fi
+          for path in "${changed[@]}"; do
+            if [[ ! "$path" =~ $allowed_regex ]]; then
+              echo "SIGNING_UNEXPECTED_OUTPUT_PATH:$path"
+              exit 2
+            fi
+          done
+          if grep -qE "^[[:space:]]*d[[:space:]]*:" target/src/content/catalogSigningKey.ts; then
+            echo "PRIVATE_KEY_FIELD_IN_PUBLIC_ANCHOR"
+            exit 2
+          fi
+
+      - name: Commit public signing outputs to assembly only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C target config user.name "reversolinguo-signing-bot"
+          git -C target config user.email "reversolinguo-signing-bot@users.noreply.github.com"
+          git -C target add catalogs/fr-es/a1/manifest.sig.json
+          if [[ "$ROTATE_PUBLIC_KEY" == "true" ]]; then
+            git -C target add src/content/catalogSigningKey.ts
+          fi
+          git -C target commit -m "security: sign A1 catalogue with $KEY_ID"
+          git -C target push origin "HEAD:$TARGET_REF"
