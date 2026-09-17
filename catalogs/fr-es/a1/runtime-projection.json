@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "fr-es-a1",
+  "catalog_version": "legacy-unsigned-placeholder",
+  "source": {
+    "artifact": "NOT_EXECUTED-legacy-placeholder"
+  },
+  "school_source_assignments": [],
+  "theme_path_assignments": [],
+  "source_counts": {
+    "school": {},
+    "theme_paths": {}
+  }
+}
