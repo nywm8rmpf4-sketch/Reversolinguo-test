@@ -12,7 +12,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint . --max-warnings 0",
-    "test": "vitest run && node --test tests/governance/qa-governance.test.mjs tests/governance/catalog-bundle.test.mjs tests/governance/catalog-signing.test.mjs",
+    "test": "vitest run && node --test tests/governance/qa-governance.test.mjs tests/governance/catalog-bundle.test.mjs tests/governance/catalog-signing.test.mjs tests/governance/catalog-data-only-replay-60.test.mjs",
     "test:e2e": "playwright test",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
