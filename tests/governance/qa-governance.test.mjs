@@ -122,11 +122,12 @@ test('PASS reuse proof is fail-closed and requires applicability fingerprints', 
   }, policy));
 });
 
-test('public workflow contract exposes distinct editorial, infra, data-only, runtime and promotion lanes', { skip: !existsSync('.github/workflows/qa.yml') }, () => {
+test('public workflow contract exposes distinct editorial, infra, data-only, runtime, signing and promotion lanes', { skip: !existsSync('.github/workflows/qa.yml') }, () => {
   const runtime = readFileSync('.github/workflows/qa.yml', 'utf8');
   const dataOnly = readFileSync('.github/workflows/data-qa.yml', 'utf8');
   const editorial = readFileSync('.github/workflows/editorial-qa.yml', 'utf8');
   const infra = readFileSync('.github/workflows/qa-governance.yml', 'utf8');
+  const signing = readFileSync('.github/workflows/catalog-signing-authority.yml', 'utf8');
   const promotion = readFileSync('.github/workflows/promote-qualified.yml', 'utf8');
 
   assert.match(runtime, /candidate\/\*\*/);
@@ -164,8 +165,27 @@ test('public workflow contract exposes distinct editorial, infra, data-only, run
 
   assert.match(infra, /qa\/\*\*/);
   assert.match(infra, /--campaign infra_targeted/);
+
+  assert.match(signing, /workflow_dispatch:/);
+  assert.doesNotMatch(signing, /^\s*push:/m);
+  assert.doesNotMatch(signing, /^\s*pull_request:/m);
+  assert.match(signing, /REVERSOLINGUO_CATALOG_SIGNING_KEY:\s*\$\{\{ secrets\.REVERSOLINGUO_CATALOG_SIGNING_KEY \}\}/);
+  assert.match(signing, /\^assembly\/\(catalog-\|updated-a1-\)/);
+  assert.match(signing, /Checkout trusted signing implementation from main/);
+  assert.match(signing, /ref: main/);
+  assert.match(signing, /path: trusted/);
+  assert.match(signing, /path: target/);
+  assert.match(signing, /provision-catalog-signing-authority\.mjs/);
+  assert.match(signing, /sign-catalog-bundle\.mjs/);
+  assert.match(signing, /qa-verify-catalog-signature\.mjs/);
+  assert.match(signing, /prepare-catalog-bundle\.mjs/);
+  assert.match(signing, /SIGNING_UNEXPECTED_OUTPUT_PATH/);
+  assert.match(signing, /PRIVATE_KEY_FIELD_IN_PUBLIC_ANCHOR/);
+  assert.doesNotMatch(signing, /upload-artifact/);
+  assert.doesNotMatch(signing, /echo\s+.*REVERSOLINGUO_CATALOG_SIGNING_KEY/);
+
   assert.match(promotion, /- QA candidate/);
   assert.match(promotion, /- QA data candidate/);
-  assert.match(promotion, /data-candidate\/\*/);
+  assert.match(promotion, /data-candidate\/\*\*/);
   assert.doesNotMatch(promotion, /QA editorial staging/);
 });
