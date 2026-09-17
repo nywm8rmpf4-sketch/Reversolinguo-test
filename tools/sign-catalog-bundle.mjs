@@ -7,9 +7,40 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const DEFAULT_PINNED_KEY = resolve(ROOT, 'src/content/catalogSigningKey.ts')
+const DEFAULT_SECRET_NAME = 'REVERSOLINGUO_CATALOG_SIGNING_KEY'
 
 function scalar(value) {
   return String(value ?? '').trim()
+}
+
+export function parsePrivateJwkText(text) {
+  const value = scalar(text)
+  if (!value) throw new Error('PRIVATE_KEY_INVALID_OR_MISSING')
+  let privateJwk
+  try {
+    privateJwk = JSON.parse(value)
+  } catch {
+    throw new Error('PRIVATE_KEY_JSON_INVALID')
+  }
+  if (
+    !privateJwk ||
+    privateJwk.kty !== 'EC' ||
+    privateJwk.crv !== 'P-256' ||
+    !scalar(privateJwk.x) ||
+    !scalar(privateJwk.y) ||
+    !scalar(privateJwk.d)
+  ) {
+    throw new Error('PRIVATE_KEY_INVALID_OR_MISSING')
+  }
+  return privateJwk
+}
+
+export function privateKeyTextFromEnvironment(name = DEFAULT_SECRET_NAME, env = process.env) {
+  const secretName = scalar(name)
+  if (!secretName) throw new Error('PRIVATE_KEY_ENV_NAME_REQUIRED')
+  const value = env?.[secretName]
+  if (!scalar(value)) throw new Error(`PRIVATE_KEY_ENV_MISSING:${secretName}`)
+  return value
 }
 
 export function readPinnedCatalogSigningKey(path = DEFAULT_PINNED_KEY) {
@@ -27,11 +58,38 @@ function samePublicKey(left, right) {
   return left.kty === right.kty && left.crv === right.crv && left.x === right.x && left.y === right.y
 }
 
-export function signManifestText(manifestText, privateJwk, pinned) {
-  if (!privateJwk || privateJwk.kty !== 'EC' || privateJwk.crv !== 'P-256' || !privateJwk.d) {
-    throw new Error('PRIVATE_KEY_INVALID_OR_MISSING')
+export function derivePinnedCatalogSigningKey(privateJwk, keyId) {
+  const normalizedPrivateJwk = parsePrivateJwkText(JSON.stringify(privateJwk))
+  const normalizedKeyId = scalar(keyId)
+  if (!normalizedKeyId) throw new Error('KEY_ID_REQUIRED')
+  const privateKey = createPrivateKey({ key: normalizedPrivateJwk, format: 'jwk' })
+  const derivedPublic = createPublicKey(privateKey).export({ format: 'jwk' })
+  if (derivedPublic.kty !== 'EC' || derivedPublic.crv !== 'P-256' || !derivedPublic.x || !derivedPublic.y) {
+    throw new Error('DERIVED_PUBLIC_KEY_INVALID')
   }
-  const privateKey = createPrivateKey({ key: privateJwk, format: 'jwk' })
+  return {
+    key_id: normalizedKeyId,
+    jwk: {
+      kty: 'EC',
+      crv: 'P-256',
+      x: derivedPublic.x,
+      y: derivedPublic.y,
+      ext: true,
+      key_ops: ['verify']
+    }
+  }
+}
+
+export function renderPinnedCatalogSigningKeyTs(pinned) {
+  if (!pinned?.key_id || !pinned?.jwk?.x || !pinned?.jwk?.y || pinned.jwk.kty !== 'EC' || pinned.jwk.crv !== 'P-256') {
+    throw new Error('PINNED_PUBLIC_KEY_INVALID')
+  }
+  return `export const catalogSigningKeyId = '${pinned.key_id}'\n\nexport const catalogSigningPublicJwk: JsonWebKey = {\n  kty: 'EC',\n  crv: 'P-256',\n  x: '${pinned.jwk.x}',\n  y: '${pinned.jwk.y}',\n  ext: true,\n  key_ops: ['verify']\n}\n`
+}
+
+export function signManifestText(manifestText, privateJwk, pinned) {
+  const normalizedPrivateJwk = parsePrivateJwkText(JSON.stringify(privateJwk))
+  const privateKey = createPrivateKey({ key: normalizedPrivateJwk, format: 'jwk' })
   const derivedPublic = createPublicKey(privateKey).export({ format: 'jwk' })
   if (!samePublicKey(derivedPublic, pinned.jwk)) throw new Error('PRIVATE_KEY_DOES_NOT_MATCH_PINNED_PUBLIC_KEY')
 
@@ -47,10 +105,12 @@ export function signManifestText(manifestText, privateJwk, pinned) {
   }
 }
 
-export function signManifestFile({ manifestPath, signaturePath, privateKeyPath, pinnedKeyPath = DEFAULT_PINNED_KEY }) {
-  if (!scalar(privateKeyPath)) throw new Error('PRIVATE_KEY_PATH_REQUIRED')
+export function signManifestFile({ manifestPath, signaturePath, privateKeyPath, privateKeyText, pinnedKeyPath = DEFAULT_PINNED_KEY }) {
   const manifestText = readFileSync(manifestPath, 'utf8')
-  const privateJwk = JSON.parse(readFileSync(privateKeyPath, 'utf8'))
+  let rawPrivateKey = privateKeyText
+  if (!scalar(rawPrivateKey) && scalar(privateKeyPath)) rawPrivateKey = readFileSync(privateKeyPath, 'utf8')
+  if (!scalar(rawPrivateKey)) throw new Error('PRIVATE_KEY_REQUIRED')
+  const privateJwk = parsePrivateJwkText(rawPrivateKey)
   const pinned = readPinnedCatalogSigningKey(pinnedKeyPath)
   const signatureDocument = signManifestText(manifestText, privateJwk, pinned)
   writeFileSync(signaturePath, `${JSON.stringify(signatureDocument, null, 2)}\n`, 'utf8')
@@ -72,13 +132,16 @@ function parseArgs(argv) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2))
-  if (!args.manifest || !args.signature || !args['private-key']) {
-    throw new Error('USAGE: --manifest <path> --signature <path> --private-key <outside-repo-path> [--pinned-key <path>]')
+  if (!args.manifest || !args.signature || (!args['private-key'] && !args['private-key-env'])) {
+    throw new Error('USAGE: --manifest <path> --signature <path> (--private-key <outside-repo-path> | --private-key-env <secret-name>) [--pinned-key <path>]')
   }
+  if (args['private-key'] && args['private-key-env']) throw new Error('PRIVATE_KEY_SOURCE_AMBIGUOUS')
+  const privateKeyText = args['private-key-env'] ? privateKeyTextFromEnvironment(args['private-key-env']) : undefined
   const result = signManifestFile({
     manifestPath: resolve(ROOT, args.manifest),
     signaturePath: resolve(ROOT, args.signature),
-    privateKeyPath: resolve(args['private-key']),
+    privateKeyPath: args['private-key'] ? resolve(args['private-key']) : undefined,
+    privateKeyText,
     pinnedKeyPath: args['pinned-key'] ? resolve(ROOT, args['pinned-key']) : DEFAULT_PINNED_KEY
   })
   process.stdout.write(`${JSON.stringify({ result: 'PASS', key_id: result.key_id, algorithm: result.algorithm })}\n`)
