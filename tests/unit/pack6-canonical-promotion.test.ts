@@ -13,7 +13,7 @@ import {
 import { legacyPack6School6eAssignments, legacyPack6VoyageA1EntryIds } from '../../src/content/legacyPack6Projection'
 import { adultPackId } from '../../src/content/adultReference'
 import { resolveLearningPack } from '../../src/content/packs'
-import { hasSignedRuntimeProjection, signedRuntimeProjection } from '../../src/content/runtimeProjection'
+import { boundRuntimeProjection, hasBoundRuntimeProjection } from '../../src/content/runtimeProjection'
 import { voyagePackId } from '../../src/content/themePaths'
 
 const activeCanonical = canonicalEntries.filter((entry) => entry.status !== 'withdrawn')
@@ -35,8 +35,8 @@ describe('A1 canonical runtime promotion invariants', () => {
     expect([...pack6].some((entryId) => macro.has(entryId))).toBe(false)
   })
 
-  it('keeps the historical unsigned projection frozen until a signed projection is bound', () => {
-    if (hasSignedRuntimeProjection()) return
+  it('keeps the historical placeholder projection frozen until a hash-bound projection is present', () => {
+    if (hasBoundRuntimeProjection()) return
     for (const track of ['LVA', 'LVB'] as const) {
       const school = pack6BSchoolPacks.find((pack) => pack.grade === '6e' && pack.track === track)
       expect(school?.entries).toHaveLength(legacyPack6School6eAssignments.length)
@@ -45,8 +45,8 @@ describe('A1 canonical runtime promotion invariants', () => {
     expect(voyage?.entries).toHaveLength(legacyPack6VoyageA1EntryIds.length)
   })
 
-  it('uses only signed projection data when the manifest binds a projection', () => {
-    const projection = signedRuntimeProjection()
+  it('uses only hash-bound projection data when the manifest binds a projection', () => {
+    const projection = boundRuntimeProjection()
     if (!projection) return
     expect(projection.catalog_id).toBe('fr-es-a1')
     expect(projection.catalog_version).toBe(manifest.catalog_version)
