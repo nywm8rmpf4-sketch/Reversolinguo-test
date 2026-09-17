@@ -49,7 +49,7 @@ jobs:
           test "$RUNTIME_ARTIFACT" = 'false'
 
       - name: Run governance process tests
-        run: node --test tests/governance/qa-governance.test.mjs
+        run: node --test tests/governance/*.test.mjs
 
       - name: Set up YAML parser runtime
         uses: ruby/setup-ruby@v1
