@@ -38,6 +38,10 @@ function count(values) {
   return Object.fromEntries(Object.entries(result).sort(([a], [b]) => a.localeCompare(b)))
 }
 
+function positiveCounts(values) {
+  return Object.fromEntries(Object.entries(values).filter(([, value]) => value > 0).sort(([a], [b]) => a.localeCompare(b)))
+}
+
 function sameObject(left, right) {
   return JSON.stringify(left) === JSON.stringify(right)
 }
@@ -97,13 +101,13 @@ export function compileSchoolProjection({ catalogText, sourceManifestText, sourc
   }
 
   const directCounts = count(assignments.map((assignment) => sourceCountKey(assignment.track, assignment.grade)))
-  const expectedDirectCounts = {
+  const expectedDirectCounts = positiveCounts({
     'LVA:5e': source.school_classifications?.LVA?.['5e'] ?? 0,
     'LVA:6e': source.school_classifications?.LVA?.['6e'] ?? 0,
     'LVB:4e': source.school_classifications?.LVB?.['4e'] ?? 0,
     'LVB:5e': source.school_classifications?.LVB?.['5e'] ?? 0,
     'LVB:6e': source.school_classifications?.LVB?.['6e (bilangue)'] ?? source.school_classifications?.LVB?.['6e_bilangue'] ?? 0
-  }
+  })
   if (!sameObject(directCounts, expectedDirectCounts)) {
     throw new Error(`SCHOOL_COUNT_MISMATCH:${JSON.stringify(directCounts)}/${JSON.stringify(expectedDirectCounts)}`)
   }
