@@ -16,6 +16,7 @@
     {"prefix":"staging/","allowed_profiles":["EDITORIAL_STAGING"],"campaign":"editorial_targeted"},
     {"prefix":"qa/","allowed_profiles":["INFRA_QA"],"campaign":"infra_targeted"},
     {"prefix":"data-candidate/","allowed_profiles":["RUNTIME_DATA_ONLY"],"campaign":"runtime_data_targeted"},
+    {"prefix":"data-proof/","allowed_profiles":["RUNTIME_DATA_ONLY"],"campaign":"runtime_data_targeted"},
     {"prefix":"candidate/","allowed_profiles":["RUNTIME_CONTENT","UI_UX","RUNTIME_CODE"],"campaign":"runtime_full"},
     {"prefix":"certify/","allowed_profiles":["RELEASE_ONLY"],"campaign":"release_identity"}
   ],
