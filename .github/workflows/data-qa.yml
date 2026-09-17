@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - 'data-candidate/**'
+      - 'data-proof/**'
 
 permissions:
   contents: read
 
 jobs:
   qa-data:
-    if: ${{ startsWith(github.ref_name, 'data-candidate/') }}
+    if: ${{ startsWith(github.ref_name, 'data-candidate/') || startsWith(github.ref_name, 'data-proof/') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -28,15 +29,15 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$EVENT_NAME" != 'push' ]; then
-            echo "ERROR: unsupported data-candidate event $EVENT_NAME" >&2
+            echo "ERROR: unsupported data candidate event $EVENT_NAME" >&2
             exit 1
           fi
           case "$PUSH_REF" in
-            data-candidate/*) ;;
-            *) echo "ERROR: QA data candidate requires data-candidate/**, got $PUSH_REF" >&2; exit 1 ;;
+            data-candidate/*|data-proof/*) ;;
+            *) echo "ERROR: QA data candidate requires data-candidate/** or data-proof/**, got $PUSH_REF" >&2; exit 1 ;;
           esac
           if [ "$PUSH_CREATED" != 'true' ]; then
-            echo 'ERROR: data-candidate/** is immutable; create a new revision instead of updating it.' >&2
+            echo 'ERROR: data candidate branches are immutable; create a new revision instead of updating one.' >&2
             exit 1
           fi
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
