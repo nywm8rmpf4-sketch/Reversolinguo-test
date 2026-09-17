@@ -1,0 +1,167 @@
+name: QA data candidate
+
+on:
+  push:
+    branches:
+      - 'data-candidate/**'
+
+permissions:
+  contents: read
+
+jobs:
+  qa-data:
+    if: ${{ startsWith(github.ref_name, 'data-candidate/') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact data candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce immutable data candidate branch contract
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_REF: ${{ github.ref_name }}
+          PUSH_CREATED: ${{ github.event.created || false }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != 'push' ]; then
+            echo "ERROR: unsupported data-candidate event $EVENT_NAME" >&2
+            exit 1
+          fi
+          case "$PUSH_REF" in
+            data-candidate/*) ;;
+            *) echo "ERROR: QA data candidate requires data-candidate/**, got $PUSH_REF" >&2; exit 1 ;;
+          esac
+          if [ "$PUSH_CREATED" != 'true' ]; then
+            echo 'ERROR: data-candidate/** is immutable; create a new revision instead of updating it.' >&2
+            exit 1
+          fi
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+
+      - name: Classify diff and verify data-only campaign
+        id: impact
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --quiet
+          node tools/qa-governance.mjs plan \
+            --base origin/main \
+            --head HEAD \
+            --branch "$GITHUB_REF_NAME" \
+            --campaign runtime_data_targeted \
+            --plan-file qa-selection.json \
+            --github-output "$GITHUB_OUTPUT"
+          cat qa-selection.json
+
+      - name: Assert computed data-only profile
+        shell: bash
+        env:
+          PROFILE: ${{ steps.impact.outputs.validation_profile }}
+          RUNTIME_ARTIFACT: ${{ steps.impact.outputs.produces_runtime_artifact }}
+        run: |
+          set -euo pipefail
+          test "$PROFILE" = 'RUNTIME_DATA_ONLY'
+          test "$RUNTIME_ARTIFACT" = 'true'
+
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+
+      - name: Use baseline npm
+        run: |
+          npm install --global npm@11.9.0
+          node --version
+          npm --version
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Verify every changed catalog bundle from exact data bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --quiet
+          mapfile -t bundle_dirs < <(git diff --name-only origin/main...HEAD -- 'catalogs/*/*/catalog.json' 'catalogs/*/*/manifest.json' 'catalogs/*/*/manifest.sig.json' 'catalogs/*/*/runtime-projection.json' | sed -E 's#/(catalog.json|manifest.json|manifest.sig.json|runtime-projection.json)$##' | sort -u)
+          if [ "${#bundle_dirs[@]}" -eq 0 ]; then
+            echo 'ERROR: RUNTIME_DATA_ONLY candidate changed no catalog bundle' >&2
+            exit 1
+          fi
+          for dir in "${bundle_dirs[@]}"; do
+            echo "checking bundle: $dir"
+            node tools/prepare-catalog-bundle.mjs \
+              --catalog "$dir/catalog.json" \
+              --projection "$dir/runtime-projection.json" \
+              --manifest "$dir/manifest.json" \
+              --check
+          done
+
+      - name: Governance, signing and catalog bundle tests
+        run: node --test tests/governance/qa-governance.test.mjs tests/governance/catalog-bundle.test.mjs tests/governance/catalog-signing.test.mjs
+
+      - name: Targeted unit and integration tests
+        run: >-
+          npx vitest run
+          tests/unit/catalog.test.ts
+          tests/unit/catalog-integrity.test.ts
+          tests/unit/catalog-projection.test.ts
+          tests/unit/pack6-canonical-promotion.test.ts
+          tests/integration/catalog-update.test.ts
+          tests/integration/pack-progress.test.ts
+          tests/integration/path-selector.test.tsx
+
+      - name: Build portable runtime once
+        run: npm run build
+
+      - name: Portable artifact, size and CSP gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          dist_bytes="$(find dist -type f -printf '%s\n' | awk '{sum += $1} END {print sum+0}')"
+          echo "dist uncompressed bytes: $dist_bytes"
+          test "$dist_bytes" -le 3145728
+          grep -Fq "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" dist/index.html
+          grep -Eq 'src="\./assets/' dist/index.html
+          grep -Fq 'href="./manifest.webmanifest"' dist/index.html
+          if grep -R -Fq '/Reversolinguo-test/' dist; then
+            echo 'ERROR: QA repository path leaked into portable artifact' >&2
+            exit 1
+          fi
+
+      - name: Record built artifact hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          find dist -type f -print0 | sort -z | xargs -0 sha256sum > dist.sha256
+          cat dist.sha256
+
+      - name: Upload exact tested artifact and selection proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: reversolinguo-tested-dist-${{ github.sha }}
+          path: |
+            dist/
+            dist.sha256
+            qa-selection.json
+          if-no-files-found: error
+
+      - name: Data-only QA summary
+        shell: bash
+        env:
+          PROFILE: ${{ steps.impact.outputs.validation_profile }}
+          CAMPAIGN: ${{ steps.impact.outputs.campaign }}
+          REQUIRED: ${{ steps.impact.outputs.required_controls }}
+        run: |
+          {
+            echo '## Executable data-only QA selection'
+            echo "- validation_profile: $PROFILE"
+            echo "- campaign: $CAMPAIGN"
+            echo "- required_controls: $REQUIRED"
+            echo '- browser_e2e: NOT_EXECUTED by profile'
+            echo '- offline: NOT_EXECUTED by profile'
+            echo '- automated_accessibility_audit: NOT_EXECUTED by profile'
+            echo '- runtime_artifact: YES'
+          } >> "$GITHUB_STEP_SUMMARY"
