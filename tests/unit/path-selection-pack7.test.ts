@@ -38,8 +38,8 @@ describe('PACK-7 R6 multi-selection', () => {
       reviewScope: 'all-due'
     })
     expect(selected.selectedPacks.map((pack) => pack.grade)).toEqual(['6e', '5e'])
-    expect(selected.sourceCount).toBe(25)
-    expect(new Set(selected.sourceEntries.map((entry) => entry.entry_id)).size).toBe(25)
+    expect(selected.sourceCount).toBe(475)
+    expect(new Set(selected.sourceEntries.map((entry) => entry.entry_id)).size).toBe(475)
   })
 
   it('supports several autonomous Voyage levels from direct level additions', () => {
