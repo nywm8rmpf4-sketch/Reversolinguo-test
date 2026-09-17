@@ -80,7 +80,7 @@ jobs:
       - name: Install exact dependencies
         run: npm ci
 
-      - name: Verify every changed catalog bundle from exact data bytes
+      - name: Verify every changed catalog bundle from exact data bytes and signature
         shell: bash
         run: |
           set -euo pipefail
@@ -97,10 +97,13 @@ jobs:
               --projection "$dir/runtime-projection.json" \
               --manifest "$dir/manifest.json" \
               --check
+            node tools/qa-verify-catalog-signature.mjs \
+              --manifest "$dir/manifest.json" \
+              --signature "$dir/manifest.sig.json"
           done
 
       - name: Governance, signing and catalog bundle tests
-        run: node --test tests/governance/qa-governance.test.mjs tests/governance/catalog-bundle.test.mjs tests/governance/catalog-signing.test.mjs
+        run: node --test tests/governance/qa-governance.test.mjs tests/governance/catalog-bundle.test.mjs tests/governance/catalog-signing.test.mjs tests/governance/catalog-candidate-signature.test.mjs
 
       - name: Targeted unit and integration tests
         run: >-
