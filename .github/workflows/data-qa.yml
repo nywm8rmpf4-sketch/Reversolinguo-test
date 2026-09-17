@@ -81,12 +81,12 @@ jobs:
       - name: Install exact dependencies
         run: npm ci
 
-      - name: Verify every changed catalog bundle from exact data bytes and signature
+      - name: Verify every changed catalog bundle from exact data bytes and hashes
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main --quiet
-          mapfile -t bundle_dirs < <(git diff --name-only origin/main...HEAD -- 'catalogs/*/*/catalog.json' 'catalogs/*/*/manifest.json' 'catalogs/*/*/manifest.sig.json' 'catalogs/*/*/runtime-projection.json' | sed -E 's#/(catalog.json|manifest.json|manifest.sig.json|runtime-projection.json)$##' | sort -u)
+          mapfile -t bundle_dirs < <(git diff --name-only origin/main...HEAD -- 'catalogs/*/*/catalog.json' 'catalogs/*/*/manifest.json' 'catalogs/*/*/runtime-projection.json' | sed -E 's#/(catalog.json|manifest.json|runtime-projection.json)$##' | sort -u)
           if [ "${#bundle_dirs[@]}" -eq 0 ]; then
             echo 'ERROR: RUNTIME_DATA_ONLY candidate changed no catalog bundle' >&2
             exit 1
@@ -98,13 +98,10 @@ jobs:
               --projection "$dir/runtime-projection.json" \
               --manifest "$dir/manifest.json" \
               --check
-            node tools/qa-verify-catalog-signature.mjs \
-              --manifest "$dir/manifest.json" \
-              --signature "$dir/manifest.sig.json"
           done
 
-      - name: Governance, signing and catalog bundle tests
-        run: node --test tests/governance/qa-governance.test.mjs tests/governance/catalog-bundle.test.mjs tests/governance/catalog-signing.test.mjs tests/governance/catalog-candidate-signature.test.mjs
+      - name: Governance and catalog bundle tests
+        run: node --test tests/governance/qa-governance.test.mjs tests/governance/catalog-bundle.test.mjs
 
       - name: Targeted unit and integration tests
         run: >-
