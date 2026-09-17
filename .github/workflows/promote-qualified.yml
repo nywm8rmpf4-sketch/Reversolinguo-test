@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows:
       - QA candidate
+      - QA data candidate
     types:
       - completed
   workflow_dispatch:
@@ -23,7 +24,7 @@ concurrency:
 
 jobs:
   promote:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'candidate/')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && (startsWith(github.event.workflow_run.head_branch, 'candidate/') || startsWith(github.event.workflow_run.head_branch, 'data-candidate/'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -47,8 +48,8 @@ jobs:
             test -n "$source_run_id"
             test -n "$candidate_sha"
             case "$source_branch" in
-              candidate/*) ;;
-              *) echo "ERROR: automatic promotion is restricted to candidate/** branches" >&2; exit 1 ;;
+              candidate/*|data-candidate/*) ;;
+              *) echo "ERROR: automatic promotion is restricted to candidate/** or data-candidate/** branches" >&2; exit 1 ;;
             esac
 
             expected_name="reversolinguo-tested-dist-$candidate_sha"
@@ -114,14 +115,25 @@ jobs:
             echo "ERROR: artifact provenance does not resolve to a successful QA run for the candidate" >&2
             exit 1
           fi
-          if [ "$source_name" != 'QA candidate' ] || [ "$source_path" != '.github/workflows/qa.yml' ]; then
-            echo "ERROR: artifact source is not the trusted QA candidate workflow" >&2
+
+          case "$source_branch" in
+            candidate/*)
+              expected_source_name='QA candidate'
+              expected_source_path='.github/workflows/qa.yml'
+              ;;
+            data-candidate/*)
+              expected_source_name='QA data candidate'
+              expected_source_path='.github/workflows/data-qa.yml'
+              ;;
+            *)
+              echo "ERROR: artifact source branch is not a trusted candidate family" >&2
+              exit 1
+              ;;
+          esac
+          if [ "$source_name" != "$expected_source_name" ] || [ "$source_path" != "$expected_source_path" ]; then
+            echo "ERROR: artifact source is not the trusted workflow for $source_branch" >&2
             exit 1
           fi
-          case "$source_branch" in
-            candidate/*) ;;
-            *) echo "ERROR: artifact source branch is not candidate/**" >&2; exit 1 ;;
-          esac
 
           echo "ARTIFACT_ID=$artifact_id" >> "$GITHUB_ENV"
           echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
