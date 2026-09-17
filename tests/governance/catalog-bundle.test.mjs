@@ -57,3 +57,22 @@ test('bundle preparation rejects unknown projection UUIDs instead of materializi
   writeFileSync(data.projectionPath, `${JSON.stringify(projection, null, 2)}\n`, 'utf8')
   assert.throws(() => prepareCatalogBundle({ ...data, check: false }), /school-unknown-entry/)
 })
+
+test('bundle accepts canonical projection themes when the legacy catalogue stores an alias', () => {
+  const data = fixture()
+  const catalog = JSON.parse(readFileSync(data.catalogPath, 'utf8'))
+  catalog[0].themes = ['corps']
+  writeFileSync(data.catalogPath, `${JSON.stringify(catalog, null, 2)}\n`, 'utf8')
+  const projection = JSON.parse(readFileSync(data.projectionPath, 'utf8'))
+  projection.school_source_assignments[0].theme = 'corps-sante'
+  writeFileSync(data.projectionPath, `${JSON.stringify(projection, null, 2)}\n`, 'utf8')
+  assert.doesNotThrow(() => prepareCatalogBundle({ ...data, check: false }))
+})
+
+test('bundle still rejects a projection theme outside the canonical taxonomy', () => {
+  const data = fixture()
+  const projection = JSON.parse(readFileSync(data.projectionPath, 'utf8'))
+  projection.school_source_assignments[0].theme = 'theme-inconnu'
+  writeFileSync(data.projectionPath, `${JSON.stringify(projection, null, 2)}\n`, 'utf8')
+  assert.throws(() => prepareCatalogBundle({ ...data, check: false }), /school-unknown-theme/)
+})
