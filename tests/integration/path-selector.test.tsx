@@ -59,12 +59,13 @@ describe('PACK-7 R6 selector UI', () => {
 
     await user.click(screen.getByRole('checkbox', { name: '5e' }))
     expect(screen.getByText('6e LVA + 5e LVA')).toBeVisible()
-    expect(screen.getByText('25 nouveautés disponibles avant filtre thématique')).toBeVisible()
+    expect(screen.getByText('475 nouveautés disponibles avant filtre thématique')).toBeVisible()
 
     await user.selectOptions(screen.getByLabelText('Langue'), 'LVB')
     expect(screen.getByRole('checkbox', { name: '6e' })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: '5e' })).toBeChecked()
     expect(screen.getByText('6e LVB + 5e LVB')).toBeVisible()
+    expect(screen.getByText('405 nouveautés disponibles avant filtre thématique')).toBeVisible()
   })
 
   it('supports several levels in the autonomous Voyage path', async () => {
