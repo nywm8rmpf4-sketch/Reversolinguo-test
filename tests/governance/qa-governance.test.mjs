@@ -50,11 +50,10 @@ test('E - unknown path fails safe to strongest runtime profile', () => {
   assert.doesNotThrow(() => verifyCampaign(result, 'candidate/ambiguous-r1', 'runtime_full', policy));
 });
 
-test('F - runtime data-only catalog diff selects targeted artifact campaign', () => {
+test('F - runtime data-only catalog diff selects targeted artifact campaign without signature file', () => {
   const result = classify([
     'catalogs/fr-es/a1/catalog.json',
     'catalogs/fr-es/a1/manifest.json',
-    'catalogs/fr-es/a1/manifest.sig.json',
     'catalogs/fr-es/a1/runtime-projection.json',
     'evidence/active/DATA_ONLY.md'
   ]);
@@ -65,7 +64,6 @@ test('F - runtime data-only catalog diff selects targeted artifact campaign', ()
   assert.equal(plan.produces_runtime_artifact, true);
   assert.ok(plan.required_controls.includes('CATALOG_PROJECTION'));
   assert.ok(plan.required_controls.includes('CATALOG_INTEGRITY'));
-  assert.ok(plan.required_controls.includes('UNIT'));
   assert.equal(plan.required_controls.includes('E2E'), false);
   assert.throws(() => verifyCampaign(result, 'candidate/a1-r1', 'runtime_full', policy), /PROFILE_BRANCH_CONFLICT/);
 });
@@ -122,12 +120,11 @@ test('PASS reuse proof is fail-closed and requires applicability fingerprints', 
   }, policy));
 });
 
-test('public workflow contract exposes distinct editorial, infra, data-only, runtime, signing and promotion lanes', { skip: !existsSync('.github/workflows/qa.yml') }, () => {
+test('public workflow contract exposes distinct editorial, infra, data-only, runtime and promotion lanes', { skip: !existsSync('.github/workflows/qa.yml') }, () => {
   const runtime = readFileSync('.github/workflows/qa.yml', 'utf8');
   const dataOnly = readFileSync('.github/workflows/data-qa.yml', 'utf8');
   const editorial = readFileSync('.github/workflows/editorial-qa.yml', 'utf8');
   const infra = readFileSync('.github/workflows/qa-governance.yml', 'utf8');
-  const signing = readFileSync('.github/workflows/catalog-signing-authority.yml', 'utf8');
   const promotion = readFileSync('.github/workflows/promote-qualified.yml', 'utf8');
 
   assert.match(runtime, /candidate\/\*\*/);
@@ -148,7 +145,9 @@ test('public workflow contract exposes distinct editorial, infra, data-only, run
   assert.match(dataOnly, /PUSH_CREATED/);
   assert.match(dataOnly, /prepare-catalog-bundle\.mjs/);
   assert.match(dataOnly, /catalog-bundle\.test\.mjs/);
-  assert.match(dataOnly, /catalog-signing\.test\.mjs/);
+  assert.doesNotMatch(dataOnly, /catalog-signing\.test\.mjs/);
+  assert.doesNotMatch(dataOnly, /manifest\.sig\.json/);
+  assert.doesNotMatch(dataOnly, /qa-verify-catalog-signature/);
   assert.match(dataOnly, /npm run build/);
   assert.doesNotMatch(dataOnly, /playwright install/);
   assert.doesNotMatch(dataOnly, /test:e2e/);
@@ -165,25 +164,6 @@ test('public workflow contract exposes distinct editorial, infra, data-only, run
 
   assert.match(infra, /qa\/\*\*/);
   assert.match(infra, /--campaign infra_targeted/);
-
-  assert.match(signing, /workflow_dispatch:/);
-  assert.doesNotMatch(signing, /^\s*push:/m);
-  assert.doesNotMatch(signing, /^\s*pull_request:/m);
-  assert.match(signing, /REVERSOLINGUO_CATALOG_SIGNING_KEY:\s*\$\{\{ secrets\.REVERSOLINGUO_CATALOG_SIGNING_KEY \}\}/);
-  assert.match(signing, /\^assembly\/\(catalog-\|updated-a1-\)/);
-  assert.match(signing, /Checkout trusted signing implementation from main/);
-  assert.match(signing, /ref: main/);
-  assert.match(signing, /path: trusted/);
-  assert.match(signing, /path: target/);
-  assert.match(signing, /provision-catalog-signing-authority\.mjs/);
-  assert.match(signing, /sign-catalog-bundle\.mjs/);
-  assert.match(signing, /qa-verify-catalog-signature\.mjs/);
-  assert.match(signing, /prepare-catalog-bundle\.mjs/);
-  assert.match(signing, /SIGNING_UNEXPECTED_OUTPUT_PATH/);
-  assert.match(signing, /PRIVATE_KEY_FIELD_IN_PUBLIC_ANCHOR/);
-  assert.doesNotMatch(signing, /upload-artifact/);
-  assert.doesNotMatch(signing, /echo\s+.*REVERSOLINGUO_CATALOG_SIGNING_KEY/);
-
   assert.match(promotion, /- QA candidate/);
   assert.match(promotion, /- QA data candidate/);
   assert.match(promotion, /data-candidate\/\*\*/);
