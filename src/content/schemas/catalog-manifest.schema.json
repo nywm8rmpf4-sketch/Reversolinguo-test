@@ -16,6 +16,7 @@
     "schema_id": { "type": "string", "format": "uri" },
     "min_app_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
     "catalog_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "projection_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "status": { "enum": ["draft-human-review", "validated", "withdrawn"] },
     "human_review": { "enum": ["NOT_EXECUTED", "PASS", "FAIL", "TIMEOUT"] }
   }
