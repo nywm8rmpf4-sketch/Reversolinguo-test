@@ -4,7 +4,7 @@ import { adultPackId, adultPacksInitial } from './adultReference'
 import { materializeSchoolAssignments } from './catalogProjection'
 import { legacyPack6School6eAssignments, legacyPack6VoyageA1EntryIds } from './legacyPack6Projection'
 import { resolveLearningPack, validateLearningPackGraph, type LearningPack, type PackEntry } from './packs'
-import { signedRuntimeProjection } from './runtimeProjection'
+import { boundRuntimeProjection } from './runtimeProjection'
 import { schoolPacks2026_2027 } from './schoolReference'
 import { canonicalThemeIds, canonicalThemes, themeIdsForEntry, v1_0_1ThemeAssignments, type CanonicalThemeId } from './taxonomy'
 import { voyagePackId, voyageThemePacks } from './themePaths'
@@ -44,7 +44,7 @@ export const a1MacroPromotedEntryIds = canonicalEntries
   .map((entry) => entry.entry_id)
 const macroPromotedSet = new Set(a1MacroPromotedEntryIds)
 const adultA1EntryIds = canonicalEntries.filter((entry) => entry.status !== 'withdrawn').map((entry) => entry.entry_id)
-const signedProjection = signedRuntimeProjection()
+const boundProjection = boundRuntimeProjection()
 
 function relation(entry_id: string, priority: number, theme?: CanonicalThemeId, introducedIn = pack6BVersion): PackEntry {
   const resolvedTheme = theme ?? themeIdsForEntry(entry_id)[0]
@@ -58,16 +58,21 @@ function relation(entry_id: string, priority: number, theme?: CanonicalThemeId, 
   }
 }
 
+function themesForProjectedPack(pack: LearningPack, projected: PackEntry[]): string[] {
+  const used = new Set([...pack.themes, ...projected.map((entry) => entry.theme)])
+  return canonicalThemes.map((theme) => theme.id).filter((themeId) => used.has(themeId))
+}
+
 function schoolEntriesFor(pack: LearningPack): PackEntry[] | undefined {
-  if (signedProjection) {
-    const assignments = materializeSchoolAssignments(signedProjection)
+  if (boundProjection) {
+    const assignments = materializeSchoolAssignments(boundProjection)
       .filter((assignment) => assignment.grade === pack.grade && assignment.track === pack.track)
     if (assignments.length === 0) return undefined
     return assignments.map((assignment, index) => relation(
       assignment.entry_id,
       index + 1,
       assignment.theme,
-      signedProjection.catalog_version
+      boundProjection.catalog_version
     ))
   }
 
@@ -78,14 +83,14 @@ function schoolEntriesFor(pack: LearningPack): PackEntry[] | undefined {
 }
 
 function voyageEntriesForA1(): PackEntry[] | undefined {
-  if (signedProjection) {
-    const assignments = signedProjection.theme_path_assignments.filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === 'A1')
+  if (boundProjection) {
+    const assignments = boundProjection.theme_path_assignments.filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === 'A1')
     if (assignments.length === 0) return undefined
     return assignments.map((assignment, index) => relation(
       assignment.entry_id,
       index + 1,
       assignment.theme,
-      signedProjection.catalog_version
+      boundProjection.catalog_version
     ))
   }
   return legacyPack6VoyageA1EntryIds.map((entryId, index) => relation(entryId, index + 1, 'voyage'))
@@ -109,7 +114,12 @@ export const pack6BAdultPacks: LearningPack[] = adultPacksInitial.map((pack) => 
 export const pack6BSchoolPacks: LearningPack[] = schoolPacks2026_2027.map((pack) => {
   const projected = schoolEntriesFor(pack)
   return projected
-    ? { ...pack, pack_version: signedProjection?.catalog_version ?? pack6BVersion, entries: projected }
+    ? {
+        ...pack,
+        pack_version: boundProjection?.catalog_version ?? pack6BVersion,
+        themes: themesForProjectedPack(pack, projected),
+        entries: projected
+      }
     : { ...pack, entries: [...pack.entries] }
 })
 
@@ -117,7 +127,7 @@ export const pack6BThemePacks: LearningPack[] = voyageThemePacks.map((pack) => {
   if (pack.pack_id !== voyagePackId('A1')) return { ...pack, entries: [...pack.entries] }
   const projected = voyageEntriesForA1()
   return projected
-    ? { ...pack, pack_version: signedProjection?.catalog_version ?? pack6BVersion, entries: projected }
+    ? { ...pack, pack_version: boundProjection?.catalog_version ?? pack6BVersion, entries: projected }
     : { ...pack, entries: [...pack.entries] }
 })
 
@@ -156,8 +166,8 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
   if (!adultA1 || adultA1.entries.length !== adultA1EntryIds.length) errors.push(`adult-a1-direct-count:${adultA1?.entries.length ?? 0}`)
   else if (resolveLearningPack(adultA1.pack_id, pack6BAdultPacks).length !== adultA1EntryIds.length) errors.push('adult-a1-effective-count')
 
-  if (signedProjection) {
-    const expectedSchool = materializeSchoolAssignments(signedProjection)
+  if (boundProjection) {
+    const expectedSchool = materializeSchoolAssignments(boundProjection)
     for (const track of ['LVA', 'LVB', 'LVC'] as const) {
       for (const grade of ['6e', '5e', '4e', '3e', 'seconde', 'premiere', 'terminale'] as const) {
         const expected = expectedSchool.filter((assignment) => assignment.track === track && assignment.grade === grade)
@@ -176,8 +186,8 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
   }
 
   const voyageA1 = pack6BThemePacks.find((pack) => pack.pack_id === voyagePackId('A1'))
-  const expectedVoyageCount = signedProjection
-    ? signedProjection.theme_path_assignments.filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === 'A1').length
+  const expectedVoyageCount = boundProjection
+    ? boundProjection.theme_path_assignments.filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === 'A1').length
     : legacyPack6VoyageA1EntryIds.length
   if (expectedVoyageCount > 0 && (!voyageA1 || voyageA1.entries.length !== expectedVoyageCount)) {
     errors.push(`voyage-a1-count:${voyageA1?.entries.length ?? 0}/${expectedVoyageCount}`)
