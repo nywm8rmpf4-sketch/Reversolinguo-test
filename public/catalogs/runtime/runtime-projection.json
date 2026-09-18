@@ -3,7 +3,7 @@
   "catalog_id": "fr-es-a2",
   "catalog_version": "2026.09-a2-r1",
   "source": {
-    "artifact": "catalogs/fr-es/a2/projection-source.json",
+    "artifact": "catalogs/fr-es/a2/projection-source.json#opt-lex-data-proof-r1",
     "sha256": "aeca245e887dfec6959e5473c656ef310a3dee870d9dd9ff4de92d807aa7625b"
   },
   "school_source_assignments": [
