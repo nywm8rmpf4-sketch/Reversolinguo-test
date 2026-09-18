@@ -1,0 +1,263 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche8-r1",
+  "source_range": [
+    "REV-A2-0246",
+    "REV-A2-0280"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0246",
+      "entry_id": "1f87fe3d-5098-5b19-ba25-056c8fd33216",
+      "lemma": "la panadería",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0247",
+      "entry_id": "22de27e6-6445-5f25-909c-61c06a31c8a0",
+      "lemma": "la librería",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0248",
+      "entry_id": "d907cc47-dc0d-5c35-91c1-cb95d85c8d5e",
+      "lemma": "el traje",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0249",
+      "entry_id": "4c0e595e-f947-50b2-9acc-cd60676d5294",
+      "lemma": "la corbata",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0250",
+      "entry_id": "f789a208-a611-57ae-94f3-ea34d11cf7c7",
+      "lemma": "el uniforme",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0251",
+      "entry_id": "24462b3f-5a1f-5541-b215-86a72572e67b",
+      "lemma": "el cliente / la clienta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0252",
+      "entry_id": "331f8f07-2698-553c-bb55-64b9cadfa63a",
+      "lemma": "el producto",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0253",
+      "entry_id": "2367c972-a137-5e52-8319-95aca7d86015",
+      "lemma": "hacer fotocopias",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0254",
+      "entry_id": "5b677d5b-cd3f-520c-9dcc-fb574f608b55",
+      "lemma": "preparar una factura",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0255",
+      "entry_id": "a53339e2-699e-5fb7-ba28-62b122d4e416",
+      "lemma": "contestar el teléfono",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0256",
+      "entry_id": "a7e408cb-5a5f-5afe-b87b-634709c4d771",
+      "lemma": "hablar con clientes",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0257",
+      "entry_id": "21c00a2a-41e2-583f-9826-b1fe3e7ab9b9",
+      "lemma": "enviar un correo",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0258",
+      "entry_id": "c4f8873f-5fcf-5034-8ffc-628c1cdfcfc0",
+      "lemma": "la entrevista de trabajo",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0259",
+      "entry_id": "0551df48-1f23-522d-8b21-d8a08dfc221c",
+      "lemma": "el currículum",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0260",
+      "entry_id": "8ba0cf40-61ba-57e7-b116-d7a5e368c882",
+      "lemma": "ganar dinero",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0261",
+      "entry_id": "692aea10-75ae-5271-bc03-9802118aa284",
+      "lemma": "estar jubilado, jubilada",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0262",
+      "entry_id": "885b3e17-942a-5eac-a611-e9fd863809f9",
+      "lemma": "el tiempo libre",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0263",
+      "entry_id": "cb7c12ca-604c-5969-b208-31a26083cb1d",
+      "lemma": "la afición",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0264",
+      "entry_id": "68e383fa-fcd3-5745-ae80-6444969d6111",
+      "lemma": "el hobby",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0265",
+      "entry_id": "61cd7770-e0c0-5d1f-a246-7f0dd77934a7",
+      "lemma": "el parque de atracciones",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0266",
+      "entry_id": "fb024cb3-67d5-54e7-8fd6-767a690e6a65",
+      "lemma": "el zoo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0267",
+      "entry_id": "cc13e723-247f-55c8-9e46-0c9895aa25a4",
+      "lemma": "quedar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0268",
+      "entry_id": "f51d5055-003d-5f19-986c-c12e9fcbb080",
+      "lemma": "dar un paseo",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0269",
+      "entry_id": "a16e9047-35f7-56eb-8b54-49c325156605",
+      "lemma": "ir de compras",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0270",
+      "entry_id": "863ad331-571d-5e1c-a625-b29935683585",
+      "lemma": "hacer una excursión",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0271",
+      "entry_id": "0664d3af-cac0-505e-8b41-1f278b6cfa46",
+      "lemma": "caminar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0272",
+      "entry_id": "88626328-230e-5faa-a843-239b62e4c6ca",
+      "lemma": "salir con amigos",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0273",
+      "entry_id": "0068adc5-3199-5f90-996c-ef874b983ef6",
+      "lemma": "tomar un café",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0274",
+      "entry_id": "a962d4d2-0934-59c0-99fe-80c776afc55f",
+      "lemma": "tomar una caña",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0275",
+      "entry_id": "982448fc-f464-56db-aac9-753b8ff21a92",
+      "lemma": "tomar una copa",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0276",
+      "entry_id": "4fbf0279-cf8e-574b-b1fb-2ac56e722808",
+      "lemma": "la invitación",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0277",
+      "entry_id": "29110d89-bbd4-538c-9501-b8ea2cd793f8",
+      "lemma": "el programa",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0278",
+      "entry_id": "a65291cd-e3de-5227-b96e-79c88aeaf12a",
+      "lemma": "la obra de teatro",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0279",
+      "entry_id": "9f6cfdec-b8a0-57ce-8c58-4151f3bd45b4",
+      "lemma": "la ópera",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0280",
+      "entry_id": "8abf9e11-a97a-5846-9281-e206d82c92b5",
+      "lemma": "el musical",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    }
+  ],
+  "excluded": [],
+  "editorial_decisions_applied": [
+    {
+      "review_id": "REV-A2-0274",
+      "decision": "KEEP_ACTIVE_WITH_REGIONAL_CONTEXT",
+      "human_decision": "PASS"
+    }
+  ]
+}
