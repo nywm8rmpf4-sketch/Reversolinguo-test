@@ -20,6 +20,7 @@ export interface LexicalSenseInput {
 export interface LexicalBatchEntryInput {
   entry_id?: string
   lemma: string
+  sense_key?: string
   part_of_speech: 'noun' | 'verb' | 'adjective' | 'adverb' | 'expression' | 'connector' | 'other'
   gender?: 'masculine' | 'feminine' | 'common' | 'not_applicable'
   article?: string
@@ -43,12 +44,14 @@ export interface ExistingLexicalIdentity {
   entry_id: string
   language_tag: string
   lemma: string
+  sense_key?: string
 }
 
 export interface PreparedLexicalEntry {
   entry_id: string
   language_tag: string
   lemma: string
+  sense_key?: string
   part_of_speech: LexicalBatchEntryInput['part_of_speech']
   gender?: LexicalBatchEntryInput['gender']
   article?: string
@@ -86,8 +89,15 @@ function normalizeOptional(value: string | undefined): string | undefined {
   return normalizeScalar(value)
 }
 
-function semanticKey(languageTag: string, lemma: string): string {
-  return `${normalizeScalar(languageTag).toLowerCase()}:${normalizeScalar(lemma).toLowerCase()}`
+function normalizedSenseKey(senseKey: string | undefined): string | undefined {
+  if (senseKey === undefined) return undefined
+  return normalizeScalar(senseKey).toLowerCase()
+}
+
+function semanticKey(languageTag: string, lemma: string, senseKey?: string): string {
+  const base = `${normalizeScalar(languageTag).toLowerCase()}:${normalizeScalar(lemma).toLowerCase()}`
+  const normalized = normalizedSenseKey(senseKey)
+  return normalized ? `${base}:sense:${normalized}` : base
 }
 
 function uuidBytes(uuid: string): Uint8Array {
@@ -119,13 +129,16 @@ export async function uuidV5(
   return formatUuid(bytes)
 }
 
-export function lexicalIdentityName(sourceLanguage: string, targetLanguage: string, lemma: string): string {
-  return [
+export function lexicalIdentityName(sourceLanguage: string, targetLanguage: string, lemma: string, senseKey?: string): string {
+  const identity = [
     'reversolinguo-lexical-v1',
     normalizeScalar(sourceLanguage).toLowerCase(),
     normalizeScalar(targetLanguage).toLowerCase(),
     normalizeScalar(lemma).toLowerCase()
-  ].join('|')
+  ]
+  const normalized = normalizedSenseKey(senseKey)
+  if (normalized) identity.push(`sense:${normalized}`)
+  return identity.join('|')
 }
 
 export async function stableLexicalUuid(
@@ -133,9 +146,10 @@ export async function stableLexicalUuid(
   targetLanguage: string,
   lemma: string,
   subtle: SubtleCrypto = globalThis.crypto.subtle,
-  namespaceUuid: string = REVERSOLINGUO_LEXICAL_UUID_NAMESPACE
+  namespaceUuid: string = REVERSOLINGUO_LEXICAL_UUID_NAMESPACE,
+  senseKey?: string
 ): Promise<string> {
-  return uuidV5(namespaceUuid, lexicalIdentityName(sourceLanguage, targetLanguage, lemma), subtle)
+  return uuidV5(namespaceUuid, lexicalIdentityName(sourceLanguage, targetLanguage, lemma, senseKey), subtle)
 }
 
 function normalizeSense(sense: LexicalSenseInput): LexicalSenseInput {
@@ -165,6 +179,7 @@ function normalizeEntry(
     entry_id: entryId,
     language_tag: normalizeScalar(batch.source_language),
     lemma: normalizeScalar(input.lemma),
+    ...(input.sense_key === undefined ? {} : { sense_key: normalizedSenseKey(input.sense_key) }),
     part_of_speech: input.part_of_speech,
     ...(input.gender === undefined ? {} : { gender: input.gender }),
     ...(input.article === undefined ? {} : { article: normalizeScalar(input.article) }),
@@ -203,14 +218,14 @@ export async function prepareLexicalBatch(
   const allowedThemes = options.allowedThemes ?? canonicalThemeIds
   const existingEntries = options.existingEntries ?? []
   const existingIds = new Set(existingEntries.map((entry) => entry.entry_id))
-  const existingSemanticKeys = new Set(existingEntries.map((entry) => semanticKey(entry.language_tag, entry.lemma)))
+  const existingSemanticKeys = new Set(existingEntries.map((entry) => semanticKey(entry.language_tag, entry.lemma, entry.sense_key)))
   const batchIds = new Set<string>()
   const batchSemanticKeys = new Set<string>()
   const prepared: PreparedLexicalEntry[] = []
   const subtle = options.subtle ?? globalThis.crypto.subtle
   const namespaceUuid = options.namespaceUuid ?? REVERSOLINGUO_LEXICAL_UUID_NAMESPACE
 
-  const identities = batch.entries.map((entry) => lexicalIdentityName(batch.source_language, batch.target_language, entry.lemma))
+  const identities = batch.entries.map((entry) => lexicalIdentityName(batch.source_language, batch.target_language, entry.lemma, entry.sense_key))
   const generatedIds = await Promise.all(identities.map((identity) => uuidV5(namespaceUuid, identity, subtle)))
 
   for (const [index, input] of batch.entries.entries()) {
@@ -221,7 +236,7 @@ export async function prepareLexicalBatch(
     }
 
     const entry = normalizeEntry(batch, input, generatedId)
-    const key = semanticKey(entry.language_tag, entry.lemma)
+    const key = semanticKey(entry.language_tag, entry.lemma, entry.sense_key)
 
     if (batchIds.has(entry.entry_id)) errors.push(`${prefix}:duplicate-batch-id:${entry.entry_id}`)
     batchIds.add(entry.entry_id)
