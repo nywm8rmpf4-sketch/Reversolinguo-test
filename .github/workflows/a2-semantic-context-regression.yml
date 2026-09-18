@@ -1,0 +1,39 @@
+name: A2 semantic context regression
+
+on:
+  push:
+    branches:
+      - assembly/a2-runtime-r1
+    paths:
+      - .github/workflows/a2-semantic-context-regression.yml
+
+permissions:
+  contents: read
+
+jobs:
+  semantic-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: assembly/a2-runtime-r1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Replay deterministic A2 generation
+        run: |
+          node tools/promote-a2-level.mjs
+          git diff --exit-code --             catalogs/fr-es/a2/catalog.json             catalogs/fr-es/a2/runtime-projection.json             catalogs/fr-es/a2/manifest.json             catalogs/fr-es/a2/projection-source.json             evidence/active/A2_RUNTIME_GENERATION_REPORT.json
+      - name: Semantic-context and affected regression tests
+        run: >
+          npx vitest run
+          tests/unit/semantic-ambiguity-context.test.ts
+          tests/unit/language-pairs.test.ts
+          tests/unit/catalog-integrity.test.ts
+          tests/unit/pack6-canonical-promotion.test.ts
+          tests/integration/app.test.tsx
+      - name: Build candidate
+        run: npm run build
