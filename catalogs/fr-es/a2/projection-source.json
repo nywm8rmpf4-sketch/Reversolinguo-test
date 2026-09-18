@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "fr-es-a2",
+  "catalog_version": "2026.09-a2-r1",
+  "baseline_a1": {
+    "candidate_sha": "01318dfb939c77f7ee4a79407a9c51aceb65357e",
+    "catalog_sha256": "bb67e6903e7129b72e339b39b782e428bb8f3b35dbbf614db80a381c315d1be5",
+    "projection_sha256": "27b3d65a2267f71e2d1dd79d03793a82f79de87e8ca2b5b28a86f24dd7ccb38c",
+    "entry_count": 475
+  },
+  "a2_staging": {
+    "manifest": "catalogs/fr-es/a2/drafts/staging-batches.manifest.json",
+    "manifest_sha256": "36b70a2bab3c3b8495b9f2576eccb792e55d806f1f78f241bb29e21108a657f1",
+    "source_units": 603,
+    "new_entries": 592,
+    "reconciled_to_a1": 8,
+    "editorial_exclusions": 3,
+    "school_source_counts": {
+      "LVA:5e": 338,
+      "LVA:4e": 265,
+      "LVB:3e": 323,
+      "LVB:Seconde": 280
+    },
+    "school_new_only_counts": {
+      "LVA:5e": 333,
+      "LVA:4e": 259,
+      "LVB:3e": 318,
+      "LVB:Seconde": 274
+    },
+    "school_projected_counts": {
+      "LVA:4e": 262,
+      "LVA:5e": 338,
+      "LVB:3e": 323,
+      "LVB:seconde": 277
+    }
+  }
+}

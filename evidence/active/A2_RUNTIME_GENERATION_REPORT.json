@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "result": "PASS",
+  "generated_at_policy": "deterministic-no-timestamp-in-runtime-bytes",
+  "baseline_a1_candidate_sha": "01318dfb939c77f7ee4a79407a9c51aceb65357e",
+  "baseline_a1_entries": 475,
+  "a2_source_units": 603,
+  "a2_new_entries": 592,
+  "a2_reconciled_to_a1": 8,
+  "a2_editorial_exclusions": 3,
+  "cumulative_entries": 1067,
+  "cumulative_unique_ids": 1067,
+  "cumulative_unique_semantic_identities": 1067,
+  "a2_new_only_school_counts": {
+    "LVA:4e": 259,
+    "LVA:5e": 333,
+    "LVB:3e": 318,
+    "LVB:seconde": 274
+  },
+  "a2_projected_school_counts": {
+    "LVA:4e": 262,
+    "LVA:5e": 338,
+    "LVB:3e": 323,
+    "LVB:seconde": 277
+  },
+  "cumulative_school_source_counts": {
+    "LVA:4e": 262,
+    "LVA:5e": 408,
+    "LVA:6e": 405,
+    "LVB:3e": 323,
+    "LVB:4e": 70,
+    "LVB:5e": 93,
+    "LVB:6e": 312,
+    "LVB:seconde": 277
+  },
+  "a2_voyage_entries": 36,
+  "homograph": {
+    "review_id": "REV-A2-0603",
+    "lemma": "la salsa",
+    "sense_key": "dance-music",
+    "entry_id": "d45f1a20-8bc3-548f-bafb-22a594b9fd2e"
+  },
+  "catalog_sha256": "90f43f84994da68285064db572bb00a6835c1d2595c365cfadf19969f3642152",
+  "projection_sha256": "00707e87f968d7d65b01773a84816350a621edfd122a7121454fdf8d65478116",
+  "projection_source_sha256": "aeca245e887dfec6959e5473c656ef310a3dee870d9dd9ff4de92d807aa7625b"
+}
