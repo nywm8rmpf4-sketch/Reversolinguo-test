@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { scheduleKey } from '../../src/domain/model'
-import { activeLanguagePair, expectedFor, getDirectionConfig, normalizeAnswer, promptFor, type LanguagePairConfig } from '../../src/i18n/languagePairs'
+import { activeLanguagePair, annotateAmbiguousPromptContexts, expectedFor, getDirectionConfig, normalizeAnswer, promptContextFor, promptFor, type LanguagePairConfig } from '../../src/i18n/languagePairs'
 import { catalog } from '../../src/content/catalog'
 
 describe('language pair runtime configuration', () => {
@@ -16,6 +16,41 @@ describe('language pair runtime configuration', () => {
     expect(expectedFor(entry, 'fr-es')).toEqual([entry.source])
     expect(promptFor(entry, 'es-fr')).toBe(entry.source)
     expect(expectedFor(entry, 'es-fr')).toEqual(entry.targets)
+  })
+
+  it('adds context only when an identical source prompt can require different answers', () => {
+    const [sauce, dance] = annotateAmbiguousPromptContexts([
+      {
+        id: 'sauce', source: 'la salsa', targets: ['la sauce'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'La salsa está demasiado caliente.', exampleTarget: 'La sauce est trop chaude.', level: 'A2', theme: 'alimentation'
+      },
+      {
+        id: 'dance', source: 'la salsa', targets: ['la salsa (danse / musique)'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'Bailamos salsa en la fiesta.', exampleTarget: 'Nous dansons la salsa à la fête.', level: 'A2', theme: 'culture-fetes'
+      }
+    ])
+
+    expect(promptContextFor(sauce, 'es-fr')).toBe('La salsa está demasiado caliente.')
+    expect(promptContextFor(dance, 'es-fr')).toBe('Bailamos salsa en la fiesta.')
+    expect(promptContextFor(sauce, 'fr-es')).toBeUndefined()
+    expect(promptContextFor(dance, 'fr-es')).toBeUndefined()
+  })
+
+  it('also disambiguates identical target prompts, including non-primary translation alternatives', () => {
+    const [first, second] = annotateAmbiguousPromptContexts([
+      {
+        id: 'one', source: 'el banco', targets: ['le siège', 'le banc'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'Me siento en el banco.', exampleTarget: 'Je m’assois sur le banc.', level: 'A2', theme: 'ville-services'
+      },
+      {
+        id: 'two', source: 'la banqueta', targets: ['le banc'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'La banqueta está junto a la puerta.', exampleTarget: 'Le banc est près de la porte.', level: 'A2', theme: 'maison'
+      }
+    ])
+
+    expect(promptContextFor(first, 'fr-es')).toBe('Je m’assois sur le banc.')
+    expect(promptContextFor(second, 'fr-es')).toBe('Le banc est près de la porte.')
+    expect(promptContextFor(first, 'es-fr')).toBeUndefined()
   })
 
   it('normalizes using the configured answer language', () => {
