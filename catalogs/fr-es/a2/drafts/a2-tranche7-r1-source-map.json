@@ -1,0 +1,265 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche7-r1",
+  "source_range": [
+    "REV-A2-0211",
+    "REV-A2-0245"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0211",
+      "entry_id": "02b6121e-4a32-55e3-b308-7dbfab3defa0",
+      "lemma": "el diploma",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0212",
+      "entry_id": "4d13877e-3339-52f6-9e40-f1d7622fefd2",
+      "lemma": "el certificado",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0213",
+      "entry_id": "3f24481d-cb4b-5e6d-85fc-72d26b21d0f5",
+      "lemma": "aprobar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0214",
+      "entry_id": "a91f3747-706f-53f5-939c-cffec52e2d9c",
+      "lemma": "suspender",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0215",
+      "entry_id": "718b3e3e-c1d8-5d7a-bbe2-bb19d5cd6f4b",
+      "lemma": "las Matemáticas",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0216",
+      "entry_id": "977878c6-c3b4-5461-977e-23a9f7384e99",
+      "lemma": "la Historia",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0217",
+      "entry_id": "27f0e1f4-71f6-55df-bcc8-42acf4cafcf0",
+      "lemma": "el Derecho",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0218",
+      "entry_id": "cfc2e09d-297e-5dba-81b6-f4265ed979d5",
+      "lemma": "completar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0219",
+      "entry_id": "6f4a07e2-1fac-5281-966f-e094e2ce74d4",
+      "lemma": "dibujar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0220",
+      "entry_id": "8ffd42cd-f499-537a-9187-e3bd6063bd36",
+      "lemma": "adivinar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0221",
+      "entry_id": "aa7bb094-63f2-5a93-8b47-1ff7d22a5786",
+      "lemma": "la redacción",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0222",
+      "entry_id": "31501775-2542-5a2f-aa3e-a72e53b92035",
+      "lemma": "el dibujo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0223",
+      "entry_id": "149bfcdf-fcd3-522c-9ddd-6e0c892a7063",
+      "lemma": "memorizar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0224",
+      "entry_id": "37e80f52-1929-5e4f-9ec3-ba3c4b02d546",
+      "lemma": "la regla",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0225",
+      "entry_id": "80a41b4d-e704-54f4-8431-59a1ce5cadc1",
+      "lemma": "la fórmula",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0226",
+      "entry_id": "d54a05f5-bf69-5123-ad76-1da1cce982e7",
+      "lemma": "repasar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0227",
+      "entry_id": "df0410c2-67c3-5daf-b9a7-f138a2cd1069",
+      "lemma": "cometer un error",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0228",
+      "entry_id": "90efd609-f663-5d4f-8145-9812ae1bcfc7",
+      "lemma": "hacer errores",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0229",
+      "entry_id": "3f6487e4-eaaa-5e9b-8506-0305c94128e2",
+      "lemma": "tener buena letra",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0230",
+      "entry_id": "d2b983b1-6fa5-511f-b582-16a13b70d928",
+      "lemma": "tener mala letra",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0232",
+      "entry_id": "b5397e4b-1f1b-5ab1-be8f-256ca49c2483",
+      "lemma": "la hoja",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0233",
+      "entry_id": "e1980efb-c566-5566-aa5e-acf09ead3e28",
+      "lemma": "la impresora",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0234",
+      "entry_id": "3327ed85-4d93-56b0-993f-88e7abe71796",
+      "lemma": "la fotocopiadora",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0235",
+      "entry_id": "c81ea052-4c1b-5626-9851-ec0c12e372d9",
+      "lemma": "el dependiente / la dependienta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0236",
+      "entry_id": "b3124c50-c1e4-5b02-8c42-b049616e1cbf",
+      "lemma": "el funcionario / la funcionaria",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0237",
+      "entry_id": "397d6b93-9244-56d9-a4e9-610f55d416f5",
+      "lemma": "el comercial / la comercial",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0238",
+      "entry_id": "26483028-2c31-5093-b9d1-68341020208f",
+      "lemma": "el empresario / la empresaria",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0239",
+      "entry_id": "67e7bcad-cafe-53d9-9d8e-65c8f2407f76",
+      "lemma": "el canguro",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0240",
+      "entry_id": "44677de1-8172-5291-ac51-dcedcafb6875",
+      "lemma": "tener un negocio",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0241",
+      "entry_id": "95287178-36cf-5c3c-afef-d7ee63d9ddab",
+      "lemma": "la peluquería",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0242",
+      "entry_id": "158bd966-8001-5f07-9b88-1a09e1512885",
+      "lemma": "el despacho",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0243",
+      "entry_id": "b17827a9-f250-5d1f-8020-f669a8655727",
+      "lemma": "el negocio",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0244",
+      "entry_id": "03e77440-ee80-5294-bf59-d03d57c97903",
+      "lemma": "la fábrica",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0245",
+      "entry_id": "59c61a90-fc3a-521d-9fd4-8ef587b04d71",
+      "lemma": "la multinacional",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    }
+  ],
+  "excluded": [
+    {
+      "review_id": "REV-A2-0231",
+      "entry_id": "2f63de83-9ba8-54c8-b5ed-eb90fde64bb0",
+      "lemma": "el cuaderno",
+      "reason": "A1 collision revalidated PASS; exclude from A2 delta and reuse accepted A1 UUID",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    }
+  ],
+  "editorial_decisions_applied": [
+    {
+      "review_id": "REV-A2-0239",
+      "decision": "KEEP_ACTIVE_WITH_SENSE_DISAMBIGUATION_AND_REGIONAL_NOTE",
+      "human_decision": "PASS"
+    }
+  ]
+}
