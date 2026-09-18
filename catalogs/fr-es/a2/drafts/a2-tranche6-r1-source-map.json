@@ -1,0 +1,257 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche6-r1",
+  "source_range": [
+    "REV-A2-0176",
+    "REV-A2-0210"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0176",
+      "entry_id": "52f8fc8c-c876-5c2f-9337-c4a5aae89a90",
+      "lemma": "la receta",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0177",
+      "entry_id": "97b4c0aa-cd3f-5a4f-94cc-f1e3c497d0bc",
+      "lemma": "el ingrediente",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0178",
+      "entry_id": "4d5ea5ca-2f85-522f-8297-e6dc4bd1ec5e",
+      "lemma": "cocinar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0179",
+      "entry_id": "4446d435-4a0a-5768-a6b0-fee65a0173c7",
+      "lemma": "la tapa",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0180",
+      "entry_id": "9bbb9fab-a405-52f7-be1a-74441c8ef7d2",
+      "lemma": "el aperitivo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0181",
+      "entry_id": "943f2db3-5354-5342-a69e-51f3edf18746",
+      "lemma": "rico, rica",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0182",
+      "entry_id": "ffecc260-7164-5a8d-ac5d-b6cb6427fab4",
+      "lemma": "el plato",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0183",
+      "entry_id": "37249bc6-2dbf-5476-88b7-a597b5daf0ba",
+      "lemma": "el vaso",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0184",
+      "entry_id": "ffbe83ab-c888-59d8-a8b9-fd25c42e5b19",
+      "lemma": "la taza",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0185",
+      "entry_id": "aa068f85-dac4-5d2d-ba6a-f9ef8d6858ac",
+      "lemma": "la servilleta",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0186",
+      "entry_id": "690ebce1-141f-537a-a96c-264ba9fd68ff",
+      "lemma": "la cafetería",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0187",
+      "entry_id": "3f67634c-d9e9-5f31-a527-09aaf0fa6de0",
+      "lemma": "la pizzería",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0188",
+      "entry_id": "99e3e29a-5e1f-5685-883d-bd8e5923461b",
+      "lemma": "la comida china",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0189",
+      "entry_id": "4b10ccc1-131d-5f91-b38a-98107b492ad6",
+      "lemma": "la comida japonesa",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0190",
+      "entry_id": "f251b60d-7e33-53bd-8c67-ee278b9953b6",
+      "lemma": "la comida rápida",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0191",
+      "entry_id": "3af7324f-3196-5341-ad15-68f65d672a25",
+      "lemma": "el cocinero / la cocinera",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0192",
+      "entry_id": "677b944d-8c0b-5c12-a12e-6da31ea209ee",
+      "lemma": "el chef / la chef",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0193",
+      "entry_id": "009432ea-5303-5b6c-beaf-48832e5e0d49",
+      "lemma": "reservar una mesa",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0194",
+      "entry_id": "5f3da766-34dc-511d-9b16-711f3c623fd9",
+      "lemma": "pedir el menú",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0195",
+      "entry_id": "d44cd9f3-a056-54aa-869a-3e0e64854fcc",
+      "lemma": "el plato del día",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0196",
+      "entry_id": "301b4ded-4225-5739-a36a-8ef33599bd22",
+      "lemma": "traer la carta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0197",
+      "entry_id": "bb2a7841-a168-554f-ac5a-33ac8b68b377",
+      "lemma": "pedir la cuenta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0198",
+      "entry_id": "a3ff152b-5971-5ed4-be7b-b4dc2481551f",
+      "lemma": "el colegio",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0199",
+      "entry_id": "299131a8-44d7-5fd1-961e-db675ee4c4da",
+      "lemma": "la academia",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0200",
+      "entry_id": "2e5e1e24-40e0-5c60-97c9-18a755bf25af",
+      "lemma": "la escuela de idiomas",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0201",
+      "entry_id": "3fce4cd5-951f-5483-a15f-48c518eb46fd",
+      "lemma": "la escuela de música",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0202",
+      "entry_id": "1b4f2563-ab85-5318-a10f-59e080a78ed5",
+      "lemma": "la biblioteca municipal",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0203",
+      "entry_id": "6fedfe33-a703-571e-bec4-f2bf9dae4ec4",
+      "lemma": "la biblioteca pública",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0204",
+      "entry_id": "26ea872d-cc5a-5f35-8ba4-926783c42968",
+      "lemma": "el aula",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0205",
+      "entry_id": "38273c80-4b03-5b91-935c-340e0c1c6440",
+      "lemma": "el alumno / la alumna",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0206",
+      "entry_id": "65b2c69a-8f87-553b-b069-f9079ea44a4e",
+      "lemma": "el programa del curso",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0207",
+      "entry_id": "7bdccfd4-061a-579b-a07b-3a09cb28fb8c",
+      "lemma": "la matrícula",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0208",
+      "entry_id": "5f8116ec-be3e-5097-b1a0-aaa950cc82cf",
+      "lemma": "pagar la matrícula",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0209",
+      "entry_id": "bda1623a-1b11-537f-87b9-314fddf2d92d",
+      "lemma": "hacer un curso",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0210",
+      "entry_id": "011a5f33-4bb2-5812-ad7c-2433e5e8e52b",
+      "lemma": "dar clase",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    }
+  ],
+  "excluded": [],
+  "editorial_decisions_applied": []
+}
