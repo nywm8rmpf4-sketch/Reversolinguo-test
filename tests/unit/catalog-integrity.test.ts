@@ -1,8 +1,8 @@
 import { webcrypto } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import catalogText from '../../catalogs/fr-es/a1/catalog.json?raw'
-import manifestText from '../../catalogs/fr-es/a1/manifest.json?raw'
-import projectionText from '../../catalogs/fr-es/a1/runtime-projection.json?raw'
+import catalogText from '../../catalogs/fr-es/a2/catalog.json?raw'
+import manifestText from '../../catalogs/fr-es/a2/manifest.json?raw'
+import projectionText from '../../catalogs/fr-es/a2/runtime-projection.json?raw'
 import { verifyCatalogBundleIntegrity } from '../../src/content/integrity'
 
 const subtle = webcrypto.subtle as unknown as SubtleCrypto
