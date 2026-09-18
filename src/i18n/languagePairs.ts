@@ -70,7 +70,12 @@ function answerSignature(values: string[]): string {
   return values.map(normalizedCue).sort().join('\u001f')
 }
 
-export function annotateAmbiguousPromptContexts(entries: readonly LexicalEntry[]): LexicalEntry[] {
+export type PromptContextOverrides = Record<string, Partial<Record<Direction, string>>>
+
+export function annotateAmbiguousPromptContexts(
+  entries: readonly LexicalEntry[],
+  overrides: PromptContextOverrides = {}
+): LexicalEntry[] {
   const sourceGroups = new Map<string, Set<string>>()
   const targetGroups = new Map<string, Set<string>>()
 
@@ -92,11 +97,18 @@ export function annotateAmbiguousPromptContexts(entries: readonly LexicalEntry[]
   const ambiguousSources = new Set([...sourceGroups.entries()].filter(([, answers]) => answers.size > 1).map(([key]) => key))
   const ambiguousTargets = new Set([...targetGroups.entries()].filter(([, answers]) => answers.size > 1).map(([key]) => key))
 
-  return entries.map((entry) => ({
-    ...entry,
-    ...(ambiguousSources.has(normalizedCue(entry.source)) ? { sourceContext: entry.exampleSource } : {}),
-    ...(entry.targets[0] && ambiguousTargets.has(normalizedCue(entry.targets[0])) ? { targetContext: entry.exampleTarget } : {})
-  }))
+  return entries.map((entry) => {
+    const override = overrides[entry.id] ?? {}
+    return {
+      ...entry,
+      ...(ambiguousSources.has(normalizedCue(entry.source))
+        ? { sourceContext: override['es-fr']?.trim() || entry.exampleSource }
+        : {}),
+      ...(entry.targets[0] && ambiguousTargets.has(normalizedCue(entry.targets[0]))
+        ? { targetContext: override['fr-es']?.trim() || entry.exampleTarget }
+        : {})
+    }
+  })
 }
 
 export function promptContextFor(entry: LexicalEntry, direction: Direction): string | undefined {
