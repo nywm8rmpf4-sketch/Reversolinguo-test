@@ -1,6 +1,8 @@
 import Dexie from 'dexie'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ensureCatalogSchedules } from '../../src/app/bootstrap'
+import { catalog } from '../../src/content/catalog'
+import { activeLanguagePair } from '../../src/i18n/languagePairs'
 import { initialSchedule } from '../../src/domain/scheduler'
 import type { ReviewEvent, ScheduleState } from '../../src/domain/model'
 import { ReversolinguoDatabase } from '../../src/storage/database'
@@ -41,8 +43,9 @@ describe('catalog update migration', () => {
     expect(migratedEvent?.previousState.entryId).toBe(newId)
     expect(migratedEvent?.catalogVersion).toBe('a1-pilot-1')
 
-    expect(await ensureCatalogSchedules(current, new Date('2026-09-16T08:00:00Z'))).toBe(949)
-    expect(await current.schedules.count()).toBe(950)
+    const expectedTotal = catalog.length * activeLanguagePair.directions.length
+    expect(await ensureCatalogSchedules(current, new Date('2026-09-16T08:00:00Z'))).toBe(expectedTotal - 1)
+    expect(await current.schedules.count()).toBe(expectedTotal)
     expect((await current.schedules.get(`${newId}:fr-es`))?.intervalDays).toBe(21)
     expect(await ensureCatalogSchedules(current, new Date('2026-09-16T08:00:00Z'))).toBe(0)
     current.close()
