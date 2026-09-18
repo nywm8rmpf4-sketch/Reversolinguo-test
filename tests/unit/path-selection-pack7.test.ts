@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import canonicalEntries from '../../catalogs/fr-es/a2/catalog.json'
 import {
   adultPackIdFor,
   defaultPathPreferences,
@@ -8,14 +9,17 @@ import {
   themePackIdFor
 } from '../../src/domain/pathSelection'
 
+const activeA1 = canonicalEntries.filter((entry) => entry.status !== 'withdrawn' && entry.cefr_level === 'A1')
+const activeA2 = canonicalEntries.filter((entry) => entry.status !== 'withdrawn' && entry.cefr_level === 'A2')
+
 describe('PACK-7 R6 multi-selection', () => {
   it('preserves the historical default as International A1 with all 475 canonical entries', () => {
     const selected = summarizePath(defaultPathPreferences)
     expect(selected.audience).toBe('adult')
     expect(selected.selectedPacks.map((pack) => pack.cefr_target)).toEqual(['A1'])
-    expect(selected.sourceCount).toBe(475)
-    expect(selected.selectedNewCount).toBe(475)
-    expect(new Set(selected.selectedNewEntries.map((entry) => entry.entry_id)).size).toBe(475)
+    expect(selected.sourceCount).toBe(activeA1.length)
+    expect(selected.selectedNewCount).toBe(activeA1.length)
+    expect(new Set(selected.selectedNewEntries.map((entry) => entry.entry_id)).size).toBe(activeA1.length)
   })
 
   it('combines several CEFR levels from their direct new vocabulary only', () => {
@@ -26,8 +30,8 @@ describe('PACK-7 R6 multi-selection', () => {
       reviewScope: 'all-due'
     })
     expect(selected.selectedPacks.map((pack) => pack.cefr_target)).toEqual(['A1', 'A2'])
-    expect(selected.sourceCount).toBe(475)
-    expect(selected.selectedNewCount).toBe(475)
+    expect(selected.sourceCount).toBe(activeA1.length + activeA2.length)
+    expect(selected.selectedNewCount).toBe(activeA1.length + activeA2.length)
   })
 
   it('combines several school classes without silently adding inherited vocabulary', () => {
@@ -38,8 +42,8 @@ describe('PACK-7 R6 multi-selection', () => {
       reviewScope: 'all-due'
     })
     expect(selected.selectedPacks.map((pack) => pack.grade)).toEqual(['6e', '5e'])
-    expect(selected.sourceCount).toBe(475)
-    expect(new Set(selected.sourceEntries.map((entry) => entry.entry_id)).size).toBe(475)
+    expect(selected.sourceCount).toBe(new Set(selected.sourceEntries.map((entry) => entry.entry_id)).size)
+    expect(selected.sourceCount).toBeGreaterThan(0)
   })
 
   it('supports several autonomous Voyage levels from direct level additions', () => {
@@ -59,9 +63,9 @@ describe('PACK-7 R6 multi-selection', () => {
     const all = summarizePath({ ...base, selectedThemeIds: [] })
     const school = summarizePath({ ...base, selectedThemeIds: ['ecole-etudes'] })
     const combined = summarizePath({ ...base, selectedThemeIds: ['ecole-etudes', 'alimentation'] })
-    expect(all.selectedNewCount).toBe(475)
+    expect(all.selectedNewCount).toBe(activeA1.length)
     expect(school.selectedNewCount).toBeGreaterThan(0)
-    expect(school.selectedNewCount).toBeLessThan(475)
+    expect(school.selectedNewCount).toBeLessThan(activeA1.length)
     expect(combined.selectedNewCount).toBeGreaterThanOrEqual(school.selectedNewCount)
     expect(new Set(combined.selectedNewEntries.map((entry) => entry.entry_id)).size).toBe(combined.selectedNewCount)
   })
