@@ -12,6 +12,7 @@ export interface EditorialLexicalRow {
   review_id: string
   spanish: string
   french: string
+  sense_key?: string
   type: string
   theme: string
   subtheme?: string
@@ -89,8 +90,10 @@ function normalizedKey(value: string): string {
   return normalizeScalar(value).toLocaleLowerCase('es')
 }
 
-function semanticKey(languageTag: string, lemma: string): string {
-  return `${normalizedKey(languageTag)}:${normalizedKey(lemma)}`
+function semanticKey(languageTag: string, lemma: string, senseKey?: string): string {
+  const base = `${normalizedKey(languageTag)}:${normalizedKey(lemma)}`
+  const normalizedSense = normalizeScalar(senseKey ?? '').toLocaleLowerCase('es')
+  return normalizedSense ? `${base}:sense:${normalizedSense}` : base
 }
 
 function emptyEntriesByLevel(): Record<EditorialCefrLevel, PreparedLexicalEntry[]> {
@@ -127,7 +130,7 @@ export function reconcileEditorialRows(
   const canonicalBySemantic = new Map<string, ExistingLexicalIdentity>()
 
   for (const entry of canonicalEntries) {
-    const key = semanticKey(entry.language_tag, entry.lemma)
+    const key = semanticKey(entry.language_tag, entry.lemma, entry.sense_key)
     if (canonicalBySemantic.has(key)) errors.push(`canonical-duplicate-semantic:${key}`)
     canonicalBySemantic.set(key, entry)
   }
@@ -146,7 +149,7 @@ export function reconcileEditorialRows(
     if (!normalizeScalar(row.rationale)) errors.push(`${prefix}:missing-rationale`)
     if (!normalizeScalar(row.review_status)) errors.push(`${prefix}:missing-review-status`)
 
-    const key = semanticKey('es', lemma)
+    const key = semanticKey('es', lemma, row.sense_key)
     if (sourceSemanticKeys.has(key)) errors.push(`${prefix}:duplicate-editorial-semantic:${key}`)
     sourceSemanticKeys.add(key)
 
@@ -166,6 +169,7 @@ export function reconcileEditorialRows(
       review_id: reviewId,
       spanish: lemma,
       french: normalizeScalar(row.french),
+      ...(row.sense_key === undefined ? {} : { sense_key: normalizeScalar(row.sense_key).toLowerCase() }),
       type: normalizeScalar(row.type),
       theme: normalizeScalar(row.theme),
       rationale: normalizeScalar(row.rationale),
@@ -213,6 +217,7 @@ function lexicalInputFor(row: EditorialLexicalRow, enrichment: EditorialEnrichme
 
   return {
     lemma: normalizeScalar(row.spanish),
+    ...(row.sense_key === undefined ? {} : { sense_key: normalizeScalar(row.sense_key).toLowerCase() }),
     part_of_speech: partOfSpeech,
     senses: [{
       sense_id: 's1',
@@ -276,7 +281,8 @@ export async function prepareEditorialCorpus(
   const existingIdentities = canonicalEntries.map((entry) => ({
     entry_id: entry.entry_id,
     language_tag: entry.language_tag,
-    lemma: entry.lemma
+    lemma: entry.lemma,
+    ...(entry.sense_key === undefined ? {} : { sense_key: entry.sense_key })
   }))
   const archiveId = normalizeScalar(options.archiveId ?? 'fr-es-editorial-archive')
   const levels: EditorialCefrLevel[] = ['A1', 'A2', 'B1', 'B2']
