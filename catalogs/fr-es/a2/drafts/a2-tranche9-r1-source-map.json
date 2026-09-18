@@ -1,0 +1,259 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche9-r1",
+  "source_range": [
+    "REV-A2-0281",
+    "REV-A2-0315"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0281",
+      "entry_id": "4850009d-c51e-56bb-b239-50dd59ed98d4",
+      "lemma": "el concierto de música clásica",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0282",
+      "entry_id": "23040eb1-3175-5d6d-807b-a7e47aeda52d",
+      "lemma": "el concierto de rock",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0283",
+      "entry_id": "822f68f9-310c-5917-afd9-8683e1d5f782",
+      "lemma": "reservar una entrada",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0284",
+      "entry_id": "4d19f0b4-8be5-5dd3-8b78-874db68f1cd3",
+      "lemma": "comprar una entrada por Internet",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0285",
+      "entry_id": "403c77c4-8f25-5d67-8bbe-9334db41c638",
+      "lemma": "el gimnasio",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0287",
+      "entry_id": "1ba7933d-a196-523e-b6ce-d65fb8eec0ec",
+      "lemma": "practicar deporte",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0288",
+      "entry_id": "475690fe-af39-517b-abfa-d3109e2a497b",
+      "lemma": "montar en bicicleta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0289",
+      "entry_id": "4037d49e-4ea2-5223-a5d9-7096af91c001",
+      "lemma": "el senderismo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0290",
+      "entry_id": "cfdacb2c-32f5-5e7f-9ade-c5cd971f0048",
+      "lemma": "las cartas",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0291",
+      "entry_id": "d7cb7c03-4012-59a5-bb47-7c29999a44a0",
+      "lemma": "el parchís",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0292",
+      "entry_id": "98d39abf-10b1-58c3-a600-a34034ca7049",
+      "lemma": "la oca",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0293",
+      "entry_id": "55946d0d-719d-5a35-b27a-ab7fe84dfda3",
+      "lemma": "el ajedrez",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0294",
+      "entry_id": "971e1c9e-e864-5bb9-a092-4ce5952c3efa",
+      "lemma": "el arte",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0295",
+      "entry_id": "b1309d2d-df1e-57d4-b011-06ed037e7d83",
+      "lemma": "el artista / la artista",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0296",
+      "entry_id": "08027ef2-073f-50ba-b533-3106d98f4081",
+      "lemma": "la fotografía",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0297",
+      "entry_id": "32361d8c-ba96-5c3d-b877-b59367f5ba78",
+      "lemma": "la literatura",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0298",
+      "entry_id": "a56a78de-2695-50bb-933f-c3880a4b197b",
+      "lemma": "la estatua",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0299",
+      "entry_id": "2f533b49-df83-54f6-8a95-3b0ea7555731",
+      "lemma": "la novela",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0300",
+      "entry_id": "1b80bc9c-85e6-55aa-b835-beb9041b05bc",
+      "lemma": "la poesía",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0301",
+      "entry_id": "507fca59-caa6-54c8-aee3-6857b38b4c5d",
+      "lemma": "el cuadro",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0302",
+      "entry_id": "b63e9802-8b30-54a3-ac13-6848cdc67136",
+      "lemma": "el músico / la música",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0303",
+      "entry_id": "84252bc6-586a-54d7-b9c0-06fcd623e1c5",
+      "lemma": "la guitarra",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0304",
+      "entry_id": "cb158567-bc5b-5b83-b0ed-8e999a394262",
+      "lemma": "el piano",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0305",
+      "entry_id": "132f4bb2-c8b6-5313-8a0c-8b64e944312b",
+      "lemma": "el violín",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0306",
+      "entry_id": "b089b984-6b7b-54a7-84eb-8b5c9b1aec85",
+      "lemma": "el flamenco",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0307",
+      "entry_id": "521b1a42-1a40-5276-8602-49f1d834ddf2",
+      "lemma": "el pop",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0308",
+      "entry_id": "7eab46db-9c1b-50bd-8634-0770be2d19d8",
+      "lemma": "el jazz",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0309",
+      "entry_id": "8f3d0d8b-cfc5-5b08-a0bd-15a795752ca0",
+      "lemma": "el tango",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0310",
+      "entry_id": "e552aa02-8bc6-56ca-8994-54fc21a96767",
+      "lemma": "la música clásica",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0311",
+      "entry_id": "4a08d7f8-9657-5aea-933a-564e0762d803",
+      "lemma": "la música moderna",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0312",
+      "entry_id": "e5b12073-01fa-52ae-9bd2-f98a89757cca",
+      "lemma": "tocar un instrumento",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0313",
+      "entry_id": "56a0202c-ca9e-5308-ac63-d3c697ddc955",
+      "lemma": "el arquitecto / la arquitecta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0314",
+      "entry_id": "c3ff83ac-860d-5767-97ef-5ec0ebab795c",
+      "lemma": "el pintor / la pintora",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0315",
+      "entry_id": "6c47f765-92ed-5537-9733-d84d6a495628",
+      "lemma": "pintar",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    }
+  ],
+  "excluded": [
+    {
+      "review_id": "REV-A2-0286",
+      "lemma": "la piscina",
+      "reason": "A1 collision revalidated PASS; exclude from A2 delta and reuse accepted A1 UUID",
+      "school_lva": "5e",
+      "school_lvb": "3e",
+      "entry_id": "e34538ad-78cc-51a3-99ca-81bec718ddcb"
+    }
+  ],
+  "editorial_decisions_applied": []
+}
