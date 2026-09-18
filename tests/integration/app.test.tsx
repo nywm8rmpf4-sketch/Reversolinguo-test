@@ -6,6 +6,7 @@ import { ensureCatalogSchedules } from '../../src/app/bootstrap'
 import { catalog } from '../../src/content/catalog'
 import { activeLanguagePair } from '../../src/i18n/languagePairs'
 import { initialSchedule } from '../../src/domain/scheduler'
+import { summarizePath, themePackIdFor } from '../../src/domain/pathSelection'
 import type { ReviewEvent } from '../../src/domain/model'
 import { db, defaultSettings } from '../../src/storage/database'
 
@@ -89,10 +90,19 @@ describe('accessible learning flow', () => {
   })
 
   it('offers free review instead of a fake scheduled session when every studied card is scheduled for later', async () => {
-    await db.settings.put({ ...defaultSettings, onboarded: true })
+    const selectedPackIds = [themePackIdFor('A1')]
+    const selected = summarizePath({ audience: 'theme', selectedPackIds, selectedThemeIds: [], reviewScope: 'selection-only' })
+    await db.settings.put({
+      ...defaultSettings,
+      onboarded: true,
+      pathAudience: 'theme',
+      selectedPackIds,
+      selectedThemeIds: [],
+      reviewScope: 'selection-only'
+    })
     await ensureCatalogSchedules(db)
     const future = new Date(Date.now() + 86_400_000).toISOString()
-    const currentSchedules = await db.schedules.where('direction').equals('fr-es').toArray()
+    const currentSchedules = (await db.schedules.bulkGet(selected.selectedNewEntries.map((entry) => `${entry.entry_id}:fr-es`))).filter((schedule): schedule is NonNullable<typeof schedule> => Boolean(schedule))
     await db.schedules.bulkPut(currentSchedules.map((schedule) => ({
       ...schedule,
       state: 'REVIEW' as const,
@@ -134,10 +144,19 @@ describe('accessible learning flow', () => {
 
   it('keeps removed catalog history but excludes its orphan schedule from active learning', async () => {
     const now = new Date()
-    await db.settings.put({ ...defaultSettings, onboarded: true })
+    const selectedPackIds = [themePackIdFor('A1')]
+    const selected = summarizePath({ audience: 'theme', selectedPackIds, selectedThemeIds: [], reviewScope: 'selection-only' })
+    await db.settings.put({
+      ...defaultSettings,
+      onboarded: true,
+      pathAudience: 'theme',
+      selectedPackIds,
+      selectedThemeIds: [],
+      reviewScope: 'selection-only'
+    })
     await ensureCatalogSchedules(db)
     const future = new Date(now.getTime() + 86_400_000).toISOString()
-    const activeSchedules = await db.schedules.where('direction').equals('fr-es').toArray()
+    const activeSchedules = (await db.schedules.bulkGet(selected.selectedNewEntries.map((entry) => `${entry.entry_id}:fr-es`))).filter((schedule): schedule is NonNullable<typeof schedule> => Boolean(schedule))
     await db.schedules.bulkPut(activeSchedules.map((schedule) => ({
       ...schedule,
       state: 'REVIEW' as const,
