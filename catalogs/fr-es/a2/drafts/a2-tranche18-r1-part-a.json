@@ -1,0 +1,238 @@
+[
+  {
+    "entry_id": "2efefba5-0431-56d5-a721-0245e2fddbed",
+    "language_tag": "es",
+    "lemma": "útil",
+    "part_of_speech": "adjective",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "utile"
+        ],
+        "example_source": "Este mapa es muy útil.",
+        "example_target": "Cette carte est très utile."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "description"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "16514b26-cf68-5df9-bc19-561a7f92df29",
+    "language_tag": "es",
+    "lemma": "poder",
+    "part_of_speech": "verb",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "pouvoir"
+        ],
+        "example_source": "No puedo ir esta tarde.",
+        "example_target": "Je ne peux pas y aller cet après-midi."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "description"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "a2607f99-e854-5c28-b9ec-b589162f6089",
+    "language_tag": "es",
+    "lemma": "importante",
+    "part_of_speech": "adjective",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "important",
+          "importante"
+        ],
+        "example_source": "Es una decisión importante.",
+        "example_target": "C’est une décision importante."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "description"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "88592616-87fd-50ed-b78e-c1bde7dc52dd",
+    "language_tag": "es",
+    "lemma": "normal",
+    "part_of_speech": "adjective",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "normal",
+          "normale"
+        ],
+        "example_source": "Es normal cometer errores al aprender.",
+        "example_target": "Il est normal de faire des erreurs en apprenant."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "description"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "101e3ef6-6482-5cbe-84bb-f800cfef90d1",
+    "language_tag": "es",
+    "lemma": "la respuesta",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "la réponse"
+        ],
+        "example_source": "No sé la respuesta.",
+        "example_target": "Je ne connais pas la réponse."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "communication"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "30316ff9-3039-5e3e-8c98-5319589e114e",
+    "language_tag": "es",
+    "lemma": "decir",
+    "part_of_speech": "verb",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "dire"
+        ],
+        "example_source": "Quiero decir una cosa.",
+        "example_target": "Je veux dire quelque chose."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "communication"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "1dd75db0-f785-5fd0-aff6-77f45d24d517",
+    "language_tag": "es",
+    "lemma": "hacer una pregunta",
+    "part_of_speech": "expression",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "poser une question"
+        ],
+        "example_source": "Quiero hacer una pregunta.",
+        "example_target": "Je veux poser une question."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "communication"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1
+  },
+  {
+    "entry_id": "d45f1a20-8bc3-548f-bafb-22a594b9fd2e",
+    "language_tag": "es",
+    "lemma": "la salsa",
+    "part_of_speech": "noun",
+    "senses": [
+      {
+        "sense_id": "s1",
+        "translations": [
+          "la salsa (danse / musique)"
+        ],
+        "example_source": "Bailamos salsa en la fiesta.",
+        "example_target": "Nous dansons la salsa à la fête.",
+        "note": "Sens danse / musique ; unité sémantique distincte de « la salsa » au sens de « la sauce »."
+      }
+    ],
+    "cefr_level": "A2",
+    "cefr_rationale": "Candidat éditorial A2 — inventaires notionnels PCIC à valider",
+    "themes": [
+      "culture-fetes"
+    ],
+    "variety": "pan-hispanic-common",
+    "provenance": {
+      "source": "Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing",
+      "license": "CC BY 4.0",
+      "authored_by": "Reversolinguo project editorial draft"
+    },
+    "status": "draft",
+    "version": 1,
+    "sense_key": "dance-music"
+  }
+]
