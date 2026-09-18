@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
-import manifest from '../../catalogs/fr-es/a1/manifest.json'
+import canonicalEntries from '../../catalogs/fr-es/a2/catalog.json'
+import manifest from '../../catalogs/fr-es/a2/manifest.json'
 import {
   a1MacroPromotedEntryIds,
   pack6BAdultPacks,
@@ -17,14 +17,20 @@ import { boundRuntimeProjection, hasBoundRuntimeProjection } from '../../src/con
 import { voyagePackId } from '../../src/content/themePaths'
 
 const activeCanonical = canonicalEntries.filter((entry) => entry.status !== 'withdrawn')
+const activeA1 = activeCanonical.filter((entry) => entry.cefr_level === 'A1')
+const activeA2 = activeCanonical.filter((entry) => entry.cefr_level === 'A2')
 
-describe('A1 canonical runtime promotion invariants', () => {
+describe('cumulative A1-A2 canonical runtime promotion invariants', () => {
   it('derives runtime volume from the current canonical data instead of a hard-coded corpus size', () => {
     expect(manifest.entry_count).toBe(canonicalEntries.length)
-    const adult = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
-    expect(adult?.entries).toHaveLength(activeCanonical.length)
-    expect(new Set(adult?.entries.map((entry) => entry.entry_id))).toEqual(new Set(activeCanonical.map((entry) => entry.entry_id)))
-    expect(resolveLearningPack(adultPackId('A1'), pack6BAdultPacks)).toHaveLength(activeCanonical.length)
+    const a1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
+    const a2 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A2'))
+    expect(a1?.entries).toHaveLength(activeA1.length)
+    expect(a2?.entries).toHaveLength(activeA2.length)
+    expect(new Set(a1?.entries.map((entry) => entry.entry_id))).toEqual(new Set(activeA1.map((entry) => entry.entry_id)))
+    expect(new Set(a2?.entries.map((entry) => entry.entry_id))).toEqual(new Set(activeA2.map((entry) => entry.entry_id)))
+    expect(resolveLearningPack(adultPackId('A1'), pack6BAdultPacks)).toHaveLength(activeA1.length)
+    expect(resolveLearningPack(adultPackId('A2'), pack6BAdultPacks)).toHaveLength(new Set([...activeA1, ...activeA2].map((entry) => entry.entry_id)).size)
   })
 
   it('derives promotion groups from immutable review metadata and keeps them disjoint', () => {
@@ -48,7 +54,7 @@ describe('A1 canonical runtime promotion invariants', () => {
   it('uses only hash-bound projection data when the manifest binds a projection', () => {
     const projection = boundRuntimeProjection()
     if (!projection) return
-    expect(projection.catalog_id).toBe('fr-es-a1')
+    expect(projection.catalog_id).toBe('fr-es-a2')
     expect(projection.catalog_version).toBe(manifest.catalog_version)
   })
 
