@@ -1,0 +1,279 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche10-r1",
+  "source_range": [
+    "REV-A2-0316",
+    "REV-A2-0350"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0316",
+      "entry_id": "bf7f973c-8b63-5f11-8326-7dbc1f626d83",
+      "lemma": "el palacio",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0317",
+      "entry_id": "545bdc59-8ff1-5ac9-aa45-e325f2c2da7e",
+      "lemma": "el castillo",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0318",
+      "entry_id": "7daf46f3-f783-5c6f-8787-1280bdd703be",
+      "lemma": "el escritor / la escritora",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0319",
+      "entry_id": "5dbb2111-d27a-5ccb-9e3a-7d1024b0be97",
+      "lemma": "el cuento",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0320",
+      "entry_id": "b97a7764-69b8-52a1-9cfb-fbd7825a27c2",
+      "lemma": "el fotógrafo / la fotógrafa",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0321",
+      "entry_id": "24334d37-e7c4-5c93-8944-4f2e16115a38",
+      "lemma": "la cámara",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0322",
+      "entry_id": "6b3ebb98-a585-5a23-93d0-b7b80b36c125",
+      "lemma": "la Navidad",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0323",
+      "entry_id": "97ad8de3-9389-5432-9894-375683fc8b7a",
+      "lemma": "el Ramadán",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0324",
+      "entry_id": "ca7737e9-63bc-5d1c-bb0e-f37d0fe50e5b",
+      "lemma": "el sabbat",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0325",
+      "entry_id": "e5e64e26-40fa-5c95-ac89-a41a78c103fd",
+      "lemma": "recibir una carta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0326",
+      "entry_id": "caa022ea-dbd8-53bb-9b88-0e7bc1e451e4",
+      "lemma": "responder a una carta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0327",
+      "entry_id": "9873fb79-5dae-5010-83c5-a57882c912e9",
+      "lemma": "recibir una llamada",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0328",
+      "entry_id": "2af7a7e0-cd35-5a6b-800a-b8eb9d27830f",
+      "lemma": "dejar un mensaje",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0329",
+      "entry_id": "1ee13a65-66d9-5731-bcfc-21d0a11375fc",
+      "lemma": "la nota",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0330",
+      "entry_id": "b3496f83-caab-5a5c-9af0-8bcfdf42bd9c",
+      "lemma": "Correos",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0333",
+      "entry_id": "58c3b487-50ad-5579-9ebe-c1cbef10debb",
+      "lemma": "llamar por teléfono",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0334",
+      "entry_id": "ee3e0b32-5927-59d2-8466-1c5172f907f7",
+      "lemma": "la entrevista",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0335",
+      "entry_id": "34c183cf-164d-5263-ae9a-b01783127eb7",
+      "lemma": "el periodista / la periodista",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0336",
+      "entry_id": "e05b40a7-ba48-5b58-bb80-ddaa6fb4b44d",
+      "lemma": "los anuncios",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0337",
+      "entry_id": "1a7316b3-5fbd-53c9-8344-7ba38f51fc7f",
+      "lemma": "la publicidad",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0338",
+      "entry_id": "ace440e5-914a-5906-8e71-a312aa444080",
+      "lemma": "el presentador / la presentadora",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0339",
+      "entry_id": "eb963257-d771-5ece-9d81-2c6c418d367e",
+      "lemma": "el foro",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0340",
+      "entry_id": "9fac47f5-a067-586e-b50f-5fd84f0824e6",
+      "lemma": "el chat",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0341",
+      "entry_id": "d0994dea-0dcb-58d3-9660-1ebd24d5da83",
+      "lemma": "el virus",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0342",
+      "entry_id": "e7b4cc6d-40e4-503d-a1c8-7b9bc405041a",
+      "lemma": "navegar por Internet",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0343",
+      "entry_id": "e6089102-f6aa-5b7f-b955-6c89aa7aafaf",
+      "lemma": "navegar por la red",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0344",
+      "entry_id": "c0bfc1fb-f9b1-584d-a534-eb00d30a8997",
+      "lemma": "enviar un mensaje",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0345",
+      "entry_id": "d83ac15e-71fd-57f4-b68d-81b9b5265b8e",
+      "lemma": "el ordenador portátil",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0346",
+      "entry_id": "4d652605-dcca-5f87-a953-3be5d8fbccfa",
+      "lemma": "el PC",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0347",
+      "entry_id": "ea9df4f9-ac0d-50c3-a8c6-4611edf546be",
+      "lemma": "la informática",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0348",
+      "entry_id": "6cf614b5-f0f2-5637-8e01-a098e2383f88",
+      "lemma": "el informático / la informática",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0350",
+      "entry_id": "23485c6d-7863-5393-91e2-8c827a0cfeb1",
+      "lemma": "chatear",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    }
+  ],
+  "excluded": [
+    {
+      "review_id": "REV-A2-0331",
+      "lemma": "la tarjeta telefónica",
+      "reason": "Human editorial decision PASS: exclude from active A2 unless passive culture mode is supported.",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0332",
+      "lemma": "la cabina telefónica",
+      "reason": "Human editorial decision PASS: exclude from active A2 unless passive culture mode is supported.",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0349",
+      "lemma": "el CD-ROM",
+      "reason": "Human editorial decision PASS: exclude from active A2 unless passive culture mode is supported.",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    }
+  ],
+  "editorial_decisions_applied": [
+    {
+      "review_id": "REV-A2-0330",
+      "decision": "KEEP_ACTIVE_WITH_GENERIC_POSTAL_SERVICE_CONTEXT",
+      "human_decision": "PASS"
+    },
+    {
+      "review_id": "REV-A2-0331",
+      "decision": "EXCLUDE_FROM_ACTIVE_A2_UNLESS_PASSIVE_CULTURE_MODE_IS_SUPPORTED",
+      "human_decision": "PASS"
+    },
+    {
+      "review_id": "REV-A2-0332",
+      "decision": "EXCLUDE_FROM_ACTIVE_A2_UNLESS_PASSIVE_CULTURE_MODE_IS_SUPPORTED",
+      "human_decision": "PASS"
+    },
+    {
+      "review_id": "REV-A2-0349",
+      "decision": "EXCLUDE_FROM_ACTIVE_A2_UNLESS_PASSIVE_CULTURE_MODE_IS_SUPPORTED",
+      "human_decision": "PASS"
+    }
+  ]
+}
