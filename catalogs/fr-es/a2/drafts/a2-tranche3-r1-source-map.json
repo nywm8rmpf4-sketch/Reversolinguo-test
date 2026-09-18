@@ -1,0 +1,257 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche3-r1",
+  "source_range": [
+    "REV-A2-0071",
+    "REV-A2-0105"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0071",
+      "entry_id": "e7506f66-6661-5d59-b3ca-190c8df22983",
+      "lemma": "estar enfadado, enfadada",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0072",
+      "entry_id": "039a6ceb-4404-5307-9bb7-df2ac7560766",
+      "lemma": "estar preocupado, preocupada",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0073",
+      "entry_id": "eca450e9-472a-5455-8a40-17a0967bcf08",
+      "lemma": "gustar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0074",
+      "entry_id": "fee005ba-71d2-5d95-a832-4de3f0aaa0e0",
+      "lemma": "encantar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0075",
+      "entry_id": "3442d317-2a09-5614-8c68-a6cc8a409273",
+      "lemma": "odiar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0076",
+      "entry_id": "d285f426-2edc-5c38-82b8-3fdf6ef3a2d7",
+      "lemma": "tener miedo",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0077",
+      "entry_id": "ea7928e2-2dc9-53ee-b675-37f2f6c86f19",
+      "lemma": "tener calor",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0078",
+      "entry_id": "32588095-912a-56a6-a5fe-c97d90a52c58",
+      "lemma": "tener frío",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0079",
+      "entry_id": "53526d59-c7f0-546f-8d66-a6f9163355b4",
+      "lemma": "tener sueño",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0080",
+      "entry_id": "cb244021-7843-524b-9008-6de8a1f0cb6e",
+      "lemma": "tener sed",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0081",
+      "entry_id": "1de61f5a-b083-51f8-b883-cdff3b81dd71",
+      "lemma": "tener hambre",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0082",
+      "entry_id": "97bf4f0f-b8e7-5ed0-aabe-b80b5ab7e5cc",
+      "lemma": "apellidarse",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0083",
+      "entry_id": "227524d5-b6a4-5331-a34c-6274c1853a74",
+      "lemma": "presentarse",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0084",
+      "entry_id": "ef66ee1d-8d3a-5465-a896-e934ce64b920",
+      "lemma": "la dirección electrónica",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0085",
+      "entry_id": "8bcf00ae-8926-5d92-9cf6-c3dc9886c9ef",
+      "lemma": "el prefijo",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0086",
+      "entry_id": "224d5d97-3af5-58ef-b180-5ff988e9f54e",
+      "lemma": "la extensión",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0087",
+      "entry_id": "6c707a08-dd24-5fc0-9f11-973f089058ec",
+      "lemma": "tener la nacionalidad",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0088",
+      "entry_id": "c65e12ef-d627-546b-88ff-59002d162542",
+      "lemma": "pedir la nacionalidad",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0089",
+      "entry_id": "793e7eb4-c1e8-55a3-8eb3-c66acb6d75af",
+      "lemma": "el bebé",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0090",
+      "entry_id": "f2cd9021-440e-5dcc-9f10-39e7da510631",
+      "lemma": "el adolescente / la adolescente",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0091",
+      "entry_id": "ddfe32c1-e066-5f0e-85db-b5edb1c5b712",
+      "lemma": "la persona mayor",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0092",
+      "entry_id": "9d97ca6a-1684-5ee8-acf4-3a9a0f3ef639",
+      "lemma": "casarse",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0093",
+      "entry_id": "cf98fb93-0487-50bd-bf0c-ca4436c8aa8d",
+      "lemma": "separarse",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0094",
+      "entry_id": "b018a2f2-a795-5666-934f-d74e08dc9d62",
+      "lemma": "divorciarse",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0095",
+      "entry_id": "b2b8253a-749f-5d16-816a-a601fd788bb1",
+      "lemma": "la tarjeta de estudiante",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0096",
+      "entry_id": "7dcb41d1-c49c-5f5f-8ad8-6fcd51320eb6",
+      "lemma": "la tarjeta de la biblioteca",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0097",
+      "entry_id": "7372fcfa-5de2-5221-959e-36b251d2f2d2",
+      "lemma": "el paraguas",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0098",
+      "entry_id": "c53e48d8-522d-522a-8639-5dc5574360c1",
+      "lemma": "la agenda",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0099",
+      "entry_id": "ea65d82d-4caa-559a-97c8-12fd9827ad26",
+      "lemma": "la tarjeta de visita",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0100",
+      "entry_id": "75e8918d-f577-5578-a429-7653a5beb7ff",
+      "lemma": "el maletín",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0101",
+      "entry_id": "a71c5567-fd0e-5283-8016-8695ccc0f0ed",
+      "lemma": "papá",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0102",
+      "entry_id": "a8dae6af-4122-58da-9488-e638a3c14c4c",
+      "lemma": "mamá",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0103",
+      "entry_id": "84935d6b-830f-5447-b70a-bdddc849e7b1",
+      "lemma": "el hijo único / la hija única",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0104",
+      "entry_id": "55222bc0-0dfd-5ab2-b2d0-1e0a0026e4a4",
+      "lemma": "los gemelos / las gemelas",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0105",
+      "entry_id": "56bfad01-e109-5a05-a101-ecd0b0c02d73",
+      "lemma": "el exmarido",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    }
+  ],
+  "excluded": [],
+  "editorial_decisions_applied": []
+}
