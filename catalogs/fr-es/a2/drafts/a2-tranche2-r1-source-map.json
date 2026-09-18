@@ -1,0 +1,257 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche2-r1",
+  "source_range": [
+    "REV-A2-0036",
+    "REV-A2-0070"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0036",
+      "entry_id": "3a8ccf2a-dac5-5f2b-93dd-85f0ff8399d2",
+      "lemma": "tener tos",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0037",
+      "entry_id": "8e48570a-028c-5834-b68c-8d624a872fab",
+      "lemma": "tener dolor de cabeza",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0038",
+      "entry_id": "5b3048d4-4e30-5eea-a6db-e2c358b0378f",
+      "lemma": "tener dolor de espalda",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0039",
+      "entry_id": "c86d0a65-49ae-57df-b1a9-06c3a40942b8",
+      "lemma": "tener dolor de estómago",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0040",
+      "entry_id": "e417f442-fa12-5cf8-b6e3-6f48189f3298",
+      "lemma": "doler",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0041",
+      "entry_id": "ebdefae7-f8ba-5b9e-bd54-822debefac62",
+      "lemma": "sentirse bien",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0042",
+      "entry_id": "fb1cf0ad-520d-50d1-8447-d04c3a715962",
+      "lemma": "sentirse mal",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0043",
+      "entry_id": "c01b172c-5cc8-5af1-8942-1b86eedc018d",
+      "lemma": "estar cansado, cansada",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0044",
+      "entry_id": "51348788-9197-5348-9ac4-0020ff52d33d",
+      "lemma": "la ambulancia",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0045",
+      "entry_id": "97af5ddb-a96d-5434-801d-39bd52f5aab3",
+      "lemma": "urgencias",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0046",
+      "entry_id": "ff6629e7-4177-5889-8003-b909d914ee47",
+      "lemma": "la medicina",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0047",
+      "entry_id": "6aeaefad-c3ca-5d1c-8172-83111efd7fea",
+      "lemma": "el medicamento",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0048",
+      "entry_id": "830fd0d3-5508-5b57-bbb9-fafd6f28336e",
+      "lemma": "la bañera",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0049",
+      "entry_id": "5627a615-6585-5930-903d-1113e4fa6236",
+      "lemma": "la toalla",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0050",
+      "entry_id": "a61aff4c-bf22-5f3d-8f00-4c0d788a73e3",
+      "lemma": "el champú",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0051",
+      "entry_id": "b72a43c4-4d3a-5a8c-90ce-23d4cdacaf18",
+      "lemma": "el gel",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0052",
+      "entry_id": "829ffc39-70bf-5b0f-8d04-a00a1f7c2fa7",
+      "lemma": "la crema",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0053",
+      "entry_id": "6c37f3d8-ccd6-52f8-8f99-36098a60961e",
+      "lemma": "la colonia",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0054",
+      "entry_id": "68025d32-74b8-5063-b52f-dfdbdba947c8",
+      "lemma": "el desodorante",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0055",
+      "entry_id": "6a2b667d-634e-5d0c-8525-4484fab71039",
+      "lemma": "el cepillo de dientes",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0056",
+      "entry_id": "23e45648-9afb-5158-8ce4-288fd95061a4",
+      "lemma": "la pasta de dientes",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0057",
+      "entry_id": "6f9b6e43-29ae-5638-9c9e-a438c13cf478",
+      "lemma": "cepillarse los dientes",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0058",
+      "entry_id": "389e247f-02dd-5f95-869c-32159c1a3f0e",
+      "lemma": "el carácter",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0059",
+      "entry_id": "785aec77-93f6-5655-8b6b-c569d3211d0f",
+      "lemma": "optimista",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0060",
+      "entry_id": "7e219599-dd2d-529a-829d-6349db09f17d",
+      "lemma": "abierto, abierta",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0061",
+      "entry_id": "d72bf321-ef86-58eb-b785-27e9a7c91415",
+      "lemma": "reservado, reservada",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0062",
+      "entry_id": "3553bc0e-0d1b-5775-aded-35b41012e6f2",
+      "lemma": "tranquilo, tranquila",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0063",
+      "entry_id": "fe020511-3a6a-5bdd-a184-5eed1550d871",
+      "lemma": "nervioso, nerviosa",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0064",
+      "entry_id": "a7494c63-364c-5901-9707-da808ea9fc5a",
+      "lemma": "generoso, generosa",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0065",
+      "entry_id": "af835004-a7bb-55cd-8cc9-7907f4d3af56",
+      "lemma": "egoísta",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0066",
+      "entry_id": "cee5d615-929a-5953-8f1c-3d95a1420a5e",
+      "lemma": "amable",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0067",
+      "entry_id": "77393ebb-dd00-59e5-91c5-eeec4758f493",
+      "lemma": "agradable",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0068",
+      "entry_id": "55ee3ad6-e304-5efb-ad61-61065648e455",
+      "lemma": "tolerante",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0069",
+      "entry_id": "d7fc38b2-e923-5691-949c-7a48b0fe9c43",
+      "lemma": "estar triste",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0070",
+      "entry_id": "0b26bf10-8baa-5e94-9aa0-68ab777fc763",
+      "lemma": "estar contento, contenta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    }
+  ],
+  "excluded": [],
+  "editorial_decisions_applied": []
+}
