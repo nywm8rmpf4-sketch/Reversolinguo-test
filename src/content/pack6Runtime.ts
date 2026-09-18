@@ -1,5 +1,5 @@
-import canonicalEntriesJson from '../../catalogs/fr-es/a1/catalog.json'
-import manifestJson from '../../catalogs/fr-es/a1/manifest.json'
+import canonicalEntriesJson from '../../catalogs/fr-es/a2/catalog.json'
+import manifestJson from '../../catalogs/fr-es/a2/manifest.json'
 import { adultPackId, adultPacksInitial } from './adultReference'
 import { materializeSchoolAssignments } from './catalogProjection'
 import { legacyPack6School6eAssignments, legacyPack6VoyageA1EntryIds } from './legacyPack6Projection'
@@ -7,10 +7,12 @@ import { resolveLearningPack, validateLearningPackGraph, type LearningPack, type
 import { boundRuntimeProjection } from './runtimeProjection'
 import { schoolPacks2026_2027 } from './schoolReference'
 import { canonicalThemeIds, canonicalThemes, themeIdsForEntry, v1_0_1ThemeAssignments, type CanonicalThemeId } from './taxonomy'
-import { voyagePackId, voyageThemePacks } from './themePaths'
+import { voyagePackId, voyageThemePacks, type ThemePathLevel } from './themePaths'
 
 interface CanonicalEntryForPack6B {
   entry_id: string
+  cefr_level: 'PRE-A1' | 'A1' | 'A2' | 'B1' | 'B2'
+  themes: CanonicalThemeId[]
   status: 'draft' | 'reviewed' | 'validated' | 'withdrawn'
   provenance: {
     reviewed_at?: string
@@ -27,28 +29,39 @@ export interface Pack6BRuntimeValidationResult {
 }
 
 export const pack6BVersion = '2026.09-pack6b-r1'
-export const a1MacroRuntimeVersion = (manifestJson as RuntimeManifest).catalog_version
+export const a1MacroRuntimeVersion = '2026.09-a1-school-r1'
+export const runtimeCatalogVersion = (manifestJson as RuntimeManifest).catalog_version
 
 const canonicalEntries = canonicalEntriesJson as CanonicalEntryForPack6B[]
 const canonicalEntryIds = new Set(canonicalEntries.map((entry) => entry.entry_id))
+const canonicalById = new Map(canonicalEntries.map((entry) => [entry.entry_id, entry]))
 const historicalV1Ids = new Set(v1_0_1ThemeAssignments.map((assignment) => assignment.entry_id))
 
-/** Historical PACK-6B promotion is derived from its immutable review metadata. */
+/** Historical A1 promotion sets remain scoped to A1 even when the runtime catalogue is cumulative. */
 export const pack6BPromotedEntryIds = canonicalEntries
-  .filter((entry) => !historicalV1Ids.has(entry.entry_id) && entry.provenance.reviewed_at === '2026-09-14')
+  .filter((entry) => entry.cefr_level === 'A1' && !historicalV1Ids.has(entry.entry_id) && entry.provenance.reviewed_at === '2026-09-14')
   .map((entry) => entry.entry_id)
 
 const pack6BPromotedSet = new Set(pack6BPromotedEntryIds)
 export const a1MacroPromotedEntryIds = canonicalEntries
-  .filter((entry) => !historicalV1Ids.has(entry.entry_id) && !pack6BPromotedSet.has(entry.entry_id))
+  .filter((entry) => entry.cefr_level === 'A1' && !historicalV1Ids.has(entry.entry_id) && !pack6BPromotedSet.has(entry.entry_id))
   .map((entry) => entry.entry_id)
 const macroPromotedSet = new Set(a1MacroPromotedEntryIds)
-const adultA1EntryIds = canonicalEntries.filter((entry) => entry.status !== 'withdrawn').map((entry) => entry.entry_id)
+
+const activeByLevel = new Map<string, string[]>()
+for (const entry of canonicalEntries) {
+  if (entry.status === 'withdrawn') continue
+  const values = activeByLevel.get(entry.cefr_level) ?? []
+  values.push(entry.entry_id)
+  activeByLevel.set(entry.cefr_level, values)
+}
+const adultA1EntryIds = activeByLevel.get('A1') ?? []
+const adultA2EntryIds = activeByLevel.get('A2') ?? []
 const boundProjection = boundRuntimeProjection()
 
-function relation(entry_id: string, priority: number, theme?: CanonicalThemeId, introducedIn = pack6BVersion): PackEntry {
-  const resolvedTheme = theme ?? themeIdsForEntry(entry_id)[0]
-  if (!resolvedTheme) throw new Error(`A1 runtime entry has no canonical theme: ${entry_id}`)
+function relation(entry_id: string, priority: number, theme?: CanonicalThemeId, introducedIn = runtimeCatalogVersion): PackEntry {
+  const resolvedTheme = theme ?? themeIdsForEntry(entry_id)[0] ?? canonicalById.get(entry_id)?.themes?.[0]
+  if (!resolvedTheme) throw new Error(`Runtime entry has no canonical theme: ${entry_id}`)
   return {
     entry_id,
     role: 'core',
@@ -82,9 +95,10 @@ function schoolEntriesFor(pack: LearningPack): PackEntry[] | undefined {
   return undefined
 }
 
-function voyageEntriesForA1(): PackEntry[] | undefined {
+function voyageEntriesForLevel(level: ThemePathLevel): PackEntry[] | undefined {
   if (boundProjection) {
-    const assignments = boundProjection.theme_path_assignments.filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === 'A1')
+    const assignments = boundProjection.theme_path_assignments
+      .filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === level)
     if (assignments.length === 0) return undefined
     return assignments.map((assignment, index) => relation(
       assignment.entry_id,
@@ -93,20 +107,30 @@ function voyageEntriesForA1(): PackEntry[] | undefined {
       boundProjection.catalog_version
     ))
   }
-  return legacyPack6VoyageA1EntryIds.map((entryId, index) => relation(entryId, index + 1, 'voyage'))
+  if (level === 'A1') return legacyPack6VoyageA1EntryIds.map((entryId, index) => relation(entryId, index + 1, 'voyage'))
+  return undefined
+}
+
+function adultEntriesForLevel(level: string): string[] {
+  if (level === 'A1') return adultA1EntryIds
+  if (level === 'A2') return adultA2EntryIds
+  return []
 }
 
 export const pack6BAdultPacks: LearningPack[] = adultPacksInitial.map((pack) => {
-  if (pack.pack_id !== adultPackId('A1')) return { ...pack, entries: [...pack.entries] }
+  const entryIds = adultEntriesForLevel(pack.cefr_target)
+  if (entryIds.length === 0) return { ...pack, entries: [...pack.entries] }
   return {
     ...pack,
-    pack_version: a1MacroRuntimeVersion,
+    pack_version: runtimeCatalogVersion,
     themes: canonicalThemes.map((theme) => theme.id),
-    entries: adultA1EntryIds.map((entryId, index) => relation(
+    entries: entryIds.map((entryId, index) => relation(
       entryId,
       index + 1,
       undefined,
-      macroPromotedSet.has(entryId) ? a1MacroRuntimeVersion : pack6BVersion
+      pack.cefr_target === 'A1'
+        ? (macroPromotedSet.has(entryId) ? a1MacroRuntimeVersion : pack6BVersion)
+        : runtimeCatalogVersion
     ))
   }
 })
@@ -116,7 +140,7 @@ export const pack6BSchoolPacks: LearningPack[] = schoolPacks2026_2027.map((pack)
   return projected
     ? {
         ...pack,
-        pack_version: boundProjection?.catalog_version ?? pack6BVersion,
+        pack_version: boundProjection?.catalog_version ?? runtimeCatalogVersion,
         themes: themesForProjectedPack(pack, projected),
         entries: projected
       }
@@ -124,10 +148,9 @@ export const pack6BSchoolPacks: LearningPack[] = schoolPacks2026_2027.map((pack)
 })
 
 export const pack6BThemePacks: LearningPack[] = voyageThemePacks.map((pack) => {
-  if (pack.pack_id !== voyagePackId('A1')) return { ...pack, entries: [...pack.entries] }
-  const projected = voyageEntriesForA1()
+  const projected = voyageEntriesForLevel(pack.cefr_target as ThemePathLevel)
   return projected
-    ? { ...pack, pack_version: boundProjection?.catalog_version ?? pack6BVersion, entries: projected }
+    ? { ...pack, pack_version: boundProjection?.catalog_version ?? runtimeCatalogVersion, entries: projected }
     : { ...pack, entries: [...pack.entries] }
 })
 
@@ -142,18 +165,21 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
   if (canonicalEntryIds.size !== canonicalEntries.length) errors.push(`canonical-unique-count:${canonicalEntryIds.size}`)
   if (new Set(pack6BPromotedEntryIds).size !== pack6BPromotedEntryIds.length) errors.push('pack6b-promoted-duplicates')
   if (macroPromotedSet.size !== a1MacroPromotedEntryIds.length) errors.push('a1-macro-promoted-duplicates')
-  if (adultA1EntryIds.length !== new Set(adultA1EntryIds).size) errors.push('adult-a1-duplicates')
-  if (adultA1EntryIds.some((entryId) => !canonicalEntryIds.has(entryId))) errors.push('adult-a1-unknown-entry')
+
+  for (const [level, entryIds] of [['A1', adultA1EntryIds], ['A2', adultA2EntryIds]] as const) {
+    if (entryIds.length !== new Set(entryIds).size) errors.push(`adult-${level.toLowerCase()}-duplicates`)
+    if (entryIds.some((entryId) => !canonicalEntryIds.has(entryId))) errors.push(`adult-${level.toLowerCase()}-unknown-entry`)
+  }
 
   for (const entryId of pack6BPromotedEntryIds) {
-    const entry = canonicalEntries.find((candidate) => candidate.entry_id === entryId)
+    const entry = canonicalById.get(entryId)
     if (!entry || entry.status === 'draft' || entry.status === 'withdrawn' || !entry.provenance.reviewed_at) {
       errors.push(`promoted-review-metadata:${entryId}`)
     }
   }
 
   for (const entryId of a1MacroPromotedEntryIds) {
-    const entry = canonicalEntries.find((candidate) => candidate.entry_id === entryId)
+    const entry = canonicalById.get(entryId)
     if (!entry || entry.status === 'draft' || entry.status === 'withdrawn' || !entry.provenance.reviewed_at) {
       errors.push(`a1-macro-review-metadata:${entryId}`)
     }
@@ -163,8 +189,15 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
   errors.push(...graph.errors.map((error) => `graph:${error}`))
 
   const adultA1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
-  if (!adultA1 || adultA1.entries.length !== adultA1EntryIds.length) errors.push(`adult-a1-direct-count:${adultA1?.entries.length ?? 0}`)
+  if (!adultA1 || adultA1.entries.length !== adultA1EntryIds.length) errors.push(`adult-a1-direct-count:${adultA1?.entries.length ?? 0}/${adultA1EntryIds.length}`)
   else if (resolveLearningPack(adultA1.pack_id, pack6BAdultPacks).length !== adultA1EntryIds.length) errors.push('adult-a1-effective-count')
+
+  const adultA2 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A2'))
+  if (!adultA2 || adultA2.entries.length !== adultA2EntryIds.length) errors.push(`adult-a2-direct-count:${adultA2?.entries.length ?? 0}/${adultA2EntryIds.length}`)
+  else {
+    const expectedCumulative = new Set([...adultA1EntryIds, ...adultA2EntryIds]).size
+    if (resolveLearningPack(adultA2.pack_id, pack6BAdultPacks).length !== expectedCumulative) errors.push(`adult-a2-effective-count:${expectedCumulative}`)
+  }
 
   if (boundProjection) {
     const expectedSchool = materializeSchoolAssignments(boundProjection)
@@ -185,14 +218,18 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
     }
   }
 
-  const voyageA1 = pack6BThemePacks.find((pack) => pack.pack_id === voyagePackId('A1'))
-  const expectedVoyageCount = boundProjection
-    ? boundProjection.theme_path_assignments.filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === 'A1').length
-    : legacyPack6VoyageA1EntryIds.length
-  if (expectedVoyageCount > 0 && (!voyageA1 || voyageA1.entries.length !== expectedVoyageCount)) {
-    errors.push(`voyage-a1-count:${voyageA1?.entries.length ?? 0}/${expectedVoyageCount}`)
+  for (const level of ['A1', 'A2'] as const) {
+    const voyage = pack6BThemePacks.find((pack) => pack.pack_id === voyagePackId(level))
+    const expectedCount = boundProjection
+      ? boundProjection.theme_path_assignments.filter((assignment) => assignment.path_id === 'voyage' && assignment.cefr_level === level).length
+      : (level === 'A1' ? legacyPack6VoyageA1EntryIds.length : 0)
+    if (expectedCount > 0 && (!voyage || voyage.entries.length !== expectedCount)) {
+      errors.push(`voyage-${level.toLowerCase()}-count:${voyage?.entries.length ?? 0}/${expectedCount}`)
+    }
+    if (voyage && new Set(voyage.entries.map((entry) => entry.entry_id)).size !== voyage.entries.length) {
+      errors.push(`voyage-${level.toLowerCase()}-duplicates`)
+    }
   }
-  if (voyageA1 && new Set(voyageA1.entries.map((entry) => entry.entry_id)).size !== voyageA1.entries.length) errors.push('voyage-a1-duplicates')
 
   return { valid: errors.length === 0, errors: [...new Set(errors)] }
 }
