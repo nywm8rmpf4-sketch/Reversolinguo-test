@@ -55,6 +55,40 @@ describe('PACK-6C lexical batch pipeline', () => {
     expect(['8', '9', 'a', 'b']).toContain(composed[19])
   })
 
+  it('keeps legacy UUIDs stable and creates a deterministic distinct UUID for a homograph sense key', async () => {
+    const legacy = await stableLexicalUuid('es', 'fr', 'la salsa', subtle)
+    const dance = await stableLexicalUuid('es', 'fr', 'la salsa', subtle, undefined, 'dance-music')
+    const danceAgain = await stableLexicalUuid(' ES ', ' FR ', '  LA SALSA  ', subtle, undefined, ' dance-music ')
+
+    expect(legacy).toBe('2de92777-5486-590a-a957-2b7983c4bf2f')
+    expect(dance).toBe('d45f1a20-8bc3-548f-bafb-22a594b9fd2e')
+    expect(danceAgain).toBe(dance)
+    expect(dance).not.toBe(legacy)
+  })
+
+  it('allows independent homograph units only when their semantic identities are discriminated', async () => {
+    const result = await prepareLexicalBatch(batch([
+      entry('la salsa', { gender: 'feminine', article: 'la' }),
+      entry('la salsa', { sense_key: 'dance-music', gender: 'feminine', article: 'la' })
+    ]), { subtle })
+
+    expect(result.valid).toBe(true)
+    expect(result.entries).toHaveLength(2)
+    expect(new Set(result.entries.map((candidate) => candidate.entry_id)).size).toBe(2)
+    expect(result.entries[1]).toMatchObject({ lemma: 'la salsa', sense_key: 'dance-music' })
+  })
+
+  it('rejects the same homograph discriminator twice', async () => {
+    const result = await prepareLexicalBatch(batch([
+      entry('la salsa', { sense_key: 'dance-music', gender: 'feminine', article: 'la' }),
+      entry(' LA SALSA ', { sense_key: 'dance-music', gender: 'feminine', article: 'la' })
+    ]), { subtle })
+
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((error) => error.includes('duplicate-batch-semantic:es:la salsa:sense:dance-music'))).toBe(true)
+    expect(result.errors.some((error) => error.includes('duplicate-batch-id:'))).toBe(true)
+  })
+
   it('materializes a valid batch as draft entries with inherited and overridden provenance', async () => {
     const input = batch([
       entry('  el árbol  ', {
