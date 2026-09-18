@@ -12,6 +12,8 @@ export interface LexicalEntry {
   article?: string
   exampleSource: string
   exampleTarget: string
+  sourceContext?: string
+  targetContext?: string
   level: CefrLevel
   theme: string
 }
