@@ -9,6 +9,7 @@
     "entry_id": { "type": "string", "format": "uuid" },
     "language_tag": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$" },
     "lemma": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "sense_key": { "type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
     "part_of_speech": { "enum": ["noun", "verb", "adjective", "adverb", "expression", "connector", "other"] },
     "gender": { "enum": ["masculine", "feminine", "common", "not_applicable"] },
     "article": { "type": "string", "minLength": 1, "maxLength": 24 },
