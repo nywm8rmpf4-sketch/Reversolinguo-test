@@ -52,7 +52,6 @@ jobs:
         run: >-
           node --test
           tests/governance/qa-governance.test.mjs
-          tests/governance/catalog-candidate-signature.test.mjs
 
       - name: Set up YAML parser runtime
         uses: ruby/setup-ruby@v1

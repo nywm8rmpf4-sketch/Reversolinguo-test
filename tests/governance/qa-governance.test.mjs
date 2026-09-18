@@ -68,6 +68,20 @@ test('F - runtime data-only catalog diff selects targeted artifact campaign with
   assert.throws(() => verifyCampaign(result, 'candidate/a1-r1', 'runtime_full', policy), /PROFILE_BRANCH_CONFLICT/);
 });
 
+test('F2 - stable public runtime bundle selects the data-only targeted campaign', () => {
+  const result = classify([
+    'public/catalogs/runtime/catalog.json',
+    'public/catalogs/runtime/manifest.json',
+    'public/catalogs/runtime/runtime-projection.json'
+  ]);
+  assert.equal(result.validation_profile, 'RUNTIME_DATA_ONLY');
+  assert.equal(result.transversal, false);
+  assert.equal(result.fail_safe, false);
+  const plan = verifyCampaign(result, 'data-proof/opt-lex-r1', 'runtime_data_targeted', policy);
+  assert.equal(plan.produces_runtime_artifact, true);
+  assert.ok(plan.required_controls.includes('CATALOG_INTEGRITY'));
+});
+
 test('all seven named profiles have a direct representative classification', () => {
   const representatives = [
     ['EDITORIAL_STAGING', ['catalogs/fr-es/a1/drafts/a1-tranche3.json']],
@@ -144,6 +158,7 @@ test('public workflow contract exposes distinct editorial, infra, data-only, run
   assert.match(dataOnly, /github\.event\.created/);
   assert.match(dataOnly, /PUSH_CREATED/);
   assert.match(dataOnly, /prepare-catalog-bundle\.mjs/);
+  assert.match(dataOnly, /public\/catalogs\/runtime\/catalog\.json/);
   assert.match(dataOnly, /catalog-bundle\.test\.mjs/);
   assert.doesNotMatch(dataOnly, /catalog-signing\.test\.mjs/);
   assert.doesNotMatch(dataOnly, /manifest\.sig\.json/);
