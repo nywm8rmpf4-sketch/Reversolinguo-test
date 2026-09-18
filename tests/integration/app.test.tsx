@@ -68,17 +68,10 @@ describe('accessible learning flow', () => {
       pathAudience: 'adult',
       selectedPackIds: ['fr-es-adult-cefr-a2'],
       selectedThemeIds: [],
-      reviewScope: 'selection-only'
+      reviewScope: 'selection-only',
+      dailyNew: 0
     })
     await ensureCatalogSchedules(db)
-    const future = new Date(Date.now() + 86_400_000).toISOString()
-    await db.schedules.toCollection().modify((schedule) => {
-      schedule.state = 'SUSPENDED'
-      schedule.intervalDays = 3
-      schedule.dueAt = future
-      schedule.updatedAt = new Date().toISOString()
-      delete schedule.learningStep
-    })
     await db.schedules.update(`${salsaDanceId}:es-fr`, {
       state: 'REVIEW',
       intervalDays: 3,
@@ -99,13 +92,15 @@ describe('accessible learning flow', () => {
     await db.settings.put({ ...defaultSettings, onboarded: true })
     await ensureCatalogSchedules(db)
     const future = new Date(Date.now() + 86_400_000).toISOString()
-    await db.schedules.toCollection().modify((schedule) => {
-      schedule.state = 'REVIEW'
-      schedule.intervalDays = 3
-      schedule.dueAt = future
-      schedule.updatedAt = new Date().toISOString()
-      delete schedule.learningStep
-    })
+    const currentSchedules = await db.schedules.where('direction').equals('fr-es').toArray()
+    await db.schedules.bulkPut(currentSchedules.map((schedule) => ({
+      ...schedule,
+      state: 'REVIEW' as const,
+      intervalDays: 3,
+      dueAt: future,
+      updatedAt: new Date().toISOString(),
+      learningStep: undefined
+    })))
 
     render(<App />)
     expect(await screen.findByText('Rien à réviser selon le planning pour le moment. Vous pouvez réviser librement ou revenir à la prochaine échéance.')).toBeVisible()
@@ -142,13 +137,15 @@ describe('accessible learning flow', () => {
     await db.settings.put({ ...defaultSettings, onboarded: true })
     await ensureCatalogSchedules(db)
     const future = new Date(now.getTime() + 86_400_000).toISOString()
-    await db.schedules.toCollection().modify((schedule) => {
-      schedule.state = 'REVIEW'
-      schedule.intervalDays = 3
-      schedule.dueAt = future
-      schedule.updatedAt = now.toISOString()
-      delete schedule.learningStep
-    })
+    const activeSchedules = await db.schedules.where('direction').equals('fr-es').toArray()
+    await db.schedules.bulkPut(activeSchedules.map((schedule) => ({
+      ...schedule,
+      state: 'REVIEW' as const,
+      intervalDays: 3,
+      dueAt: future,
+      updatedAt: now.toISOString(),
+      learningStep: undefined
+    })))
     const orphan = { ...initialSchedule('withdrawn-entry', 'fr-es', now), state: 'REVIEW' as const, intervalDays: 3, dueAt: new Date(now.getTime() - 86_400_000).toISOString() }
     await db.schedules.put(orphan)
 
