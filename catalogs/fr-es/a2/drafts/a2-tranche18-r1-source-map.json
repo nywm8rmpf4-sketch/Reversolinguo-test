@@ -1,0 +1,91 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche18-r1",
+  "source_range": [
+    "REV-A2-0596",
+    "REV-A2-0603"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0596",
+      "entry_id": "2efefba5-0431-56d5-a721-0245e2fddbed",
+      "lemma": "útil",
+      "source_type": "adjectif",
+      "source_subtheme": "utilité",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0597",
+      "entry_id": "16514b26-cf68-5df9-bc19-561a7f92df29",
+      "lemma": "poder",
+      "source_type": "verbe",
+      "source_subtheme": "capacité",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0598",
+      "entry_id": "a2607f99-e854-5c28-b9ec-b589162f6089",
+      "lemma": "importante",
+      "source_type": "adjectif",
+      "source_subtheme": "importance",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0599",
+      "entry_id": "88592616-87fd-50ed-b78e-c1bde7dc52dd",
+      "lemma": "normal",
+      "source_type": "adjectif",
+      "source_subtheme": "normalité",
+      "school_lva": "5e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0600",
+      "entry_id": "101e3ef6-6482-5cbe-84bb-f800cfef90d1",
+      "lemma": "la respuesta",
+      "source_type": "nom",
+      "source_subtheme": "expression verbale",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0601",
+      "entry_id": "30316ff9-3039-5e3e-8c98-5319589e114e",
+      "lemma": "decir",
+      "source_type": "verbe",
+      "source_subtheme": "expression verbale",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0602",
+      "entry_id": "1dd75db0-f785-5fd0-aff6-77f45d24d517",
+      "lemma": "hacer una pregunta",
+      "source_type": "expression",
+      "source_subtheme": "expression verbale",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0603",
+      "entry_id": "d45f1a20-8bc3-548f-bafb-22a594b9fd2e",
+      "lemma": "la salsa",
+      "source_type": "nom",
+      "source_subtheme": "danse / musique",
+      "school_lva": "4e",
+      "school_lvb": "Seconde",
+      "sense_key": "dance-music"
+    }
+  ],
+  "excluded": [],
+  "editorial_decisions_applied": [],
+  "semantic_notes": [
+    {
+      "review_id": "REV-A2-0603",
+      "note": "Distinct semantic unit: salsa dance/music, not sauce."
+    }
+  ]
+}
