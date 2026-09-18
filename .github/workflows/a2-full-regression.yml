@@ -1,5 +1,5 @@
 name: A2 full regression
-# rerun: localized-count-r3
+# rerun: whitespace-normalizer-r4
 
 on:
   push:
