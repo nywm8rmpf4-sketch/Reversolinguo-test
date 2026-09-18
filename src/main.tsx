@@ -1,10 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ensureCatalogSchedules } from './app/bootstrap'
-import { verifyBundledCatalogIntegrity } from './content/integrity'
+import { loadVerifiedRuntimeBundle } from './content/integrity'
 import { messages } from './i18n/messages'
 import { configureServiceWorker } from './pwa/update'
-import App from './app/App'
 
 const rootElement = document.getElementById('root')!
 
@@ -19,14 +17,22 @@ function renderIntegrityError() {
   )
 }
 
-void verifyBundledCatalogIntegrity().then((integrity) => {
+async function start() {
+  const integrity = await loadVerifiedRuntimeBundle()
   if (!integrity.ok) {
     renderIntegrityError()
     return
   }
 
   configureServiceWorker()
+  const [{ ensureCatalogSchedules }, { default: App }] = await Promise.all([
+    import('./app/bootstrap'),
+    import('./app/App')
+  ])
+
   void ensureCatalogSchedules().finally(() => {
     createRoot(rootElement).render(<StrictMode><App /></StrictMode>)
   })
-}).catch(renderIntegrityError)
+}
+
+void start().catch(renderIntegrityError)

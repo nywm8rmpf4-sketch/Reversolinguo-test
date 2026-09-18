@@ -1,18 +1,25 @@
 import { webcrypto } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import catalogText from '../../catalogs/fr-es/a2/catalog.json?raw'
-import manifestText from '../../catalogs/fr-es/a2/manifest.json?raw'
-import projectionText from '../../catalogs/fr-es/a2/runtime-projection.json?raw'
 import { verifyCatalogBundleIntegrity } from '../../src/content/integrity'
 
 const subtle = webcrypto.subtle as unknown as SubtleCrypto
+
+function runtimeText(name: string): string {
+  return readFileSync(resolve(process.cwd(), 'public/catalogs/runtime', name), 'utf8')
+}
+
+const catalogText = runtimeText('catalog.json')
+const manifestText = runtimeText('manifest.json')
+const projectionText = runtimeText('runtime-projection.json')
 
 async function verify(catalog = catalogText, projection = projectionText, manifest = manifestText) {
   return verifyCatalogBundleIntegrity(catalog, projection, manifest, subtle)
 }
 
 describe('catalog manifest hash integrity', () => {
-  it('accepts the exact manifest, catalog and projection bytes', async () => {
+  it('accepts the exact external manifest, catalog and projection bytes', async () => {
     await expect(verify()).resolves.toEqual({ ok: true })
   })
 

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import canonicalEntries from '../../catalogs/fr-es/a2/catalog.json'
-import manifest from '../../catalogs/fr-es/a2/manifest.json'
+import { canonicalCatalogEntries, catalogManifest } from '../../src/content/catalog'
 import {
   a1MacroPromotedEntryIds,
   pack6BAdultPacks,
@@ -16,13 +15,13 @@ import { resolveLearningPack } from '../../src/content/packs'
 import { boundRuntimeProjection, hasBoundRuntimeProjection } from '../../src/content/runtimeProjection'
 import { voyagePackId } from '../../src/content/themePaths'
 
-const activeCanonical = canonicalEntries.filter((entry) => entry.status !== 'withdrawn')
+const activeCanonical = canonicalCatalogEntries.filter((entry) => entry.status !== 'withdrawn')
 const activeA1 = activeCanonical.filter((entry) => entry.cefr_level === 'A1')
 const activeA2 = activeCanonical.filter((entry) => entry.cefr_level === 'A2')
 
 describe('cumulative A1-A2 canonical runtime promotion invariants', () => {
   it('derives runtime volume from the current canonical data instead of a hard-coded corpus size', () => {
-    expect(manifest.entry_count).toBe(canonicalEntries.length)
+    expect(catalogManifest.entry_count).toBe(canonicalCatalogEntries.length)
     const a1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
     const a2 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A2'))
     expect(a1?.entries).toHaveLength(activeA1.length)
@@ -55,7 +54,7 @@ describe('cumulative A1-A2 canonical runtime promotion invariants', () => {
     const projection = boundRuntimeProjection()
     if (!projection) return
     expect(projection.catalog_id).toBe('fr-es-a2')
-    expect(projection.catalog_version).toBe(manifest.catalog_version)
+    expect(projection.catalog_version).toBe(catalogManifest.catalog_version)
   })
 
   it('validates the complete runtime graph without volume-specific constants', () => {

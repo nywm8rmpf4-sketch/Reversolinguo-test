@@ -24,11 +24,14 @@ export interface CatalogProjectionSource {
   sha256?: string
 }
 
+export type CatalogPromptContextOverrides = Record<string, Partial<Record<'fr-es' | 'es-fr', string>>>
+
 export interface CatalogProjectionDocument {
   schema_version: '1.0'
   catalog_id: string
   catalog_version: string
   source: CatalogProjectionSource
+  prompt_contexts?: CatalogPromptContextOverrides
   school_source_assignments: CatalogSchoolSourceAssignment[]
   theme_path_assignments: CatalogThemePathAssignment[]
   source_counts: {
@@ -206,6 +209,18 @@ export function validateCatalogProjection(
   if (!scalar(document.catalog_version)) errors.push('missing-catalog-version')
   if (!scalar(document.source.artifact)) errors.push('missing-source-artifact')
   if (document.source.sha256 !== undefined && !/^[0-9a-f]{64}$/u.test(document.source.sha256)) errors.push('invalid-source-sha256')
+
+  for (const [entryId, directions] of Object.entries(document.prompt_contexts ?? {})) {
+    if (!canonicalEntryIds.has(entryId)) errors.push(`prompt-context-unknown-entry:${entryId}`)
+    if (!directions || typeof directions !== 'object' || Array.isArray(directions)) {
+      errors.push(`prompt-context-invalid:${entryId}`)
+      continue
+    }
+    for (const [direction, cue] of Object.entries(directions)) {
+      if (direction !== 'fr-es' && direction !== 'es-fr') errors.push(`prompt-context-invalid-direction:${entryId}:${direction}`)
+      if (typeof cue !== 'string' || !scalar(cue)) errors.push(`prompt-context-empty:${entryId}:${direction}`)
+    }
+  }
 
   const sourceKeys = new Set<string>()
   const relationThemes = new Map<string, string>()

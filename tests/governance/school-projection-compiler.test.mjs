@@ -23,7 +23,10 @@ function fixture() {
     catalog_id: 'fr-es-a1',
     catalog_entry_count: 2,
     catalog_sha256: sha256(catalogText),
-    runtime_projection: { catalog_version: 'fixture-r1', theme_aliases: { corps: 'corps-sante' } },
+    runtime_projection: {
+      catalog_version: 'fixture-r1',
+      theme_aliases: { corps: 'corps-sante' }
+    },
     school_classifications: {
       LVA: { '6e': 1, '5e': 1 },
       LVB: { '6e (bilangue)': 1, '4e': 1 }
@@ -45,11 +48,20 @@ function fixture() {
 
 test('compiles exact school codes without inferring classifications', () => {
   const { catalogText, sourceText } = fixture()
-  const output = compileSchoolProjection({ catalogText, sourceManifestText: sourceText, sourceManifestRepoPath: 'catalogs/fr-es/review/fixture/SOURCE_MANIFEST.json' })
+  const output = compileSchoolProjection({
+    catalogText,
+    sourceManifestText: sourceText,
+    sourceManifestRepoPath: 'catalogs/fr-es/review/fixture/SOURCE_MANIFEST.json'
+  })
   const projection = JSON.parse(output)
   assert.equal(projection.catalog_version, 'fixture-r1')
   assert.equal(projection.school_source_assignments.length, 4)
-  assert.deepEqual(projection.source_counts.school, { 'LVA:5e': 1, 'LVA:6e': 1, 'LVB:4e': 1, 'LVB:6e': 1 })
+  assert.deepEqual(projection.source_counts.school, {
+    'LVA:5e': 1,
+    'LVA:6e': 1,
+    'LVB:4e': 1,
+    'LVB:6e': 1
+  })
   assert.equal(projection.school_source_assignments[0].theme, 'corps-sante')
   assert.equal(projection.school_source_assignments[1].grade, '6e')
   assert.equal(projection.theme_path_assignments.length, 1)
@@ -59,14 +71,20 @@ test('compiles exact school codes without inferring classifications', () => {
 test('rejects a catalogue whose exact bytes no longer match the source manifest', () => {
   const { catalogText, sourceText } = fixture()
   const changed = `${catalogText.trim()} \n`
-  assert.throws(() => compileSchoolProjection({ catalogText: changed, sourceManifestText: sourceText, sourceManifestRepoPath: 'fixture.json' }), /CATALOG_SHA256_MISMATCH/)
+  assert.throws(
+    () => compileSchoolProjection({ catalogText: changed, sourceManifestText: sourceText, sourceManifestRepoPath: 'fixture.json' }),
+    /CATALOG_SHA256_MISMATCH/
+  )
 })
 
 test('rejects changed classification codes unless their checksum is updated', () => {
   const { catalogText, source } = fixture()
   source.compact_lossless_encoding.LVA_codes = '66'
   const sourceText = `${JSON.stringify(source, null, 2)}\n`
-  assert.throws(() => compileSchoolProjection({ catalogText, sourceManifestText: sourceText, sourceManifestRepoPath: 'fixture.json' }), /CLASSIFICATION_CODES_SHA256_MISMATCH/)
+  assert.throws(
+    () => compileSchoolProjection({ catalogText, sourceManifestText: sourceText, sourceManifestRepoPath: 'fixture.json' }),
+    /CLASSIFICATION_CODES_SHA256_MISMATCH/
+  )
 })
 
 test('rejects declared counts that do not match the exact decisions', () => {
@@ -74,5 +92,36 @@ test('rejects declared counts that do not match the exact decisions', () => {
   source.school_classifications.LVA['6e'] = 2
   source.school_classifications.LVA['5e'] = 0
   const sourceText = `${JSON.stringify(source, null, 2)}\n`
-  assert.throws(() => compileSchoolProjection({ catalogText, sourceManifestText: sourceText, sourceManifestRepoPath: 'fixture.json' }), /SCHOOL_COUNT_MISMATCH/)
+  assert.throws(
+    () => compileSchoolProjection({ catalogText, sourceManifestText: sourceText, sourceManifestRepoPath: 'fixture.json' }),
+    /SCHOOL_COUNT_MISMATCH/
+  )
+})
+
+test('supports a non-A1 catalog id and later school grades without A1 count constants', () => {
+  const { catalogText, source } = fixture()
+  source.catalog_id = 'fr-es-b1-fixture'
+  source.runtime_projection.catalog_version = 'fixture-b1-r1'
+  source.compact_lossless_encoding.LVA_codes = 'SP'
+  source.compact_lossless_encoding.LVA_legend = { S: 'Seconde', P: 'Première' }
+  source.compact_lossless_encoding.LVB_codes = 'PT'
+  source.compact_lossless_encoding.LVB_legend = { P: 'Première', T: 'Terminale' }
+  source.compact_lossless_encoding.codes_sha256 = sha256('SP\nPT\n')
+  source.school_classifications = {
+    LVA: { Seconde: 1, 'Première': 1 },
+    LVB: { 'Première': 1, Terminale: 1 }
+  }
+  const sourceText = `${JSON.stringify(source, null, 2)}\n`
+  const projection = JSON.parse(compileSchoolProjection({
+    catalogText,
+    sourceManifestText: sourceText,
+    sourceManifestRepoPath: 'fixture-b1.json'
+  }))
+  assert.equal(projection.catalog_id, 'fr-es-b1-fixture')
+  assert.deepEqual(projection.source_counts.school, {
+    'LVA:premiere': 1,
+    'LVA:seconde': 1,
+    'LVB:premiere': 1,
+    'LVB:terminale': 1
+  })
 })

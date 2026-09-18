@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import promptContextOverridesJson from '../../catalogs/fr-es/a2/prompt-context-overrides.json'
 import { catalog } from '../../src/content/catalog'
+import { runtimeBundleState } from '../../src/content/runtimeState'
 import { promptContextFor } from '../../src/i18n/languagePairs'
 
 function norm(value: string): string {
@@ -21,7 +21,8 @@ describe('ADR-038 semantic ambiguity contexts', () => {
       .filter(([, entries]) => new Set(entries.map((entry) => norm(entry.source))).size > 1)
 
     const ambiguousIds = new Set(ambiguous.flatMap(([, entries]) => entries.map((entry) => entry.id)))
-    const overrideIds = new Set(Object.keys(promptContextOverridesJson.contexts))
+    const promptContexts = runtimeBundleState().projection.prompt_contexts ?? {}
+    const overrideIds = new Set(Object.keys(promptContexts))
 
     expect(ambiguous).toHaveLength(11)
     expect(overrideIds).toEqual(ambiguousIds)
@@ -30,7 +31,7 @@ describe('ADR-038 semantic ambiguity contexts', () => {
       const contexts = entries.map((entry) => {
         const context = promptContextFor(entry, 'fr-es')
         expect(context, `missing context for ${cue}/${entry.source}`).toBeTruthy()
-        const override = promptContextOverridesJson.contexts[entry.id as keyof typeof promptContextOverridesJson.contexts]?.['fr-es']
+        const override = promptContexts[entry.id]?.['fr-es']
         expect(context).toBe(override)
         expect(norm(context ?? '')).not.toContain(norm(entry.source))
         return norm(context ?? '')

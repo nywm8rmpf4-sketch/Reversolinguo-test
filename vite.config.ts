@@ -13,6 +13,8 @@ export default defineConfig({
       srcDir: 'src/pwa',
       filename: 'sw.ts',
       injectManifest: {
+        // ADR-040: external runtime JSON remains a separate offline precache asset.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
         // ADR-039: bounded A2 transition. B1 must externalize catalog data instead
         // of increasing this 3 MiB ceiling.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024

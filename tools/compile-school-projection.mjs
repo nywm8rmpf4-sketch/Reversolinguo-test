@@ -27,8 +27,9 @@ function parseJson(text, label) {
 
 function normalizedGrade(value) {
   const grade = scalar(value)
-  if (grade === '6e (bilangue)') return '6e'
-  if (['6e', '5e', '4e', '3e', 'seconde', 'premiere', 'terminale'].includes(grade)) return grade
+  if (grade === '6e (bilangue)' || grade === '6e_bilangue') return '6e'
+  const folded = grade.normalize('NFD').replace(/[\u0300-\u036f]/gu, '').toLocaleLowerCase('fr')
+  if (['6e', '5e', '4e', '3e', 'seconde', 'premiere', 'terminale'].includes(folded)) return folded
   throw new Error(`INVALID_SCHOOL_GRADE:${grade || '<missing>'}`)
 }
 
@@ -65,7 +66,7 @@ export function compileSchoolProjection({ catalogText, sourceManifestText, sourc
   const source = parseJson(sourceManifestText, 'SOURCE_MANIFEST')
   if (!Array.isArray(catalog)) throw new Error('CATALOG_NOT_ARRAY')
   if (source.schema_version !== '1.1') throw new Error(`SOURCE_SCHEMA_UNSUPPORTED:${source.schema_version}`)
-  if (source.catalog_id !== 'fr-es-a1') throw new Error(`SOURCE_CATALOG_ID_INVALID:${source.catalog_id}`)
+  if (!scalar(source.catalog_id)) throw new Error('SOURCE_CATALOG_ID_MISSING')
   if (sha256(catalogText) !== source.catalog_sha256) throw new Error('CATALOG_SHA256_MISMATCH')
   if (catalog.length !== source.catalog_entry_count) throw new Error(`CATALOG_ENTRY_COUNT_MISMATCH:${catalog.length}/${source.catalog_entry_count}`)
 
@@ -101,13 +102,16 @@ export function compileSchoolProjection({ catalogText, sourceManifestText, sourc
   }
 
   const directCounts = count(assignments.map((assignment) => sourceCountKey(assignment.track, assignment.grade)))
-  const expectedDirectCounts = positiveCounts({
-    'LVA:5e': source.school_classifications?.LVA?.['5e'] ?? 0,
-    'LVA:6e': source.school_classifications?.LVA?.['6e'] ?? 0,
-    'LVB:4e': source.school_classifications?.LVB?.['4e'] ?? 0,
-    'LVB:5e': source.school_classifications?.LVB?.['5e'] ?? 0,
-    'LVB:6e': source.school_classifications?.LVB?.['6e (bilangue)'] ?? source.school_classifications?.LVB?.['6e_bilangue'] ?? 0
-  })
+  const expectedCounts = {}
+  for (const [track, gradesForTrack] of Object.entries(source.school_classifications ?? {})) {
+    if (!['LVA', 'LVB'].includes(track)) continue
+    for (const [sourceGrade, value] of Object.entries(gradesForTrack ?? {})) {
+      const numeric = Number(value)
+      if (!Number.isFinite(numeric) || numeric < 0) throw new Error(`SCHOOL_COUNT_INVALID:${track}:${sourceGrade}`)
+      if (numeric > 0) expectedCounts[sourceCountKey(track, normalizedGrade(sourceGrade))] = numeric
+    }
+  }
+  const expectedDirectCounts = positiveCounts(expectedCounts)
   if (!sameObject(directCounts, expectedDirectCounts)) {
     throw new Error(`SCHOOL_COUNT_MISMATCH:${JSON.stringify(directCounts)}/${JSON.stringify(expectedDirectCounts)}`)
   }

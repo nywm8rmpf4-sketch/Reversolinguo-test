@@ -1,6 +1,5 @@
-import canonicalEntriesJson from '../../catalogs/fr-es/a2/catalog.json'
-import manifestJson from '../../catalogs/fr-es/a2/manifest.json'
 import { adultPackId, adultPacksInitial } from './adultReference'
+import { canonicalCatalogEntries, catalogManifest } from './catalog'
 import { materializeSchoolAssignments } from './catalogProjection'
 import { legacyPack6School6eAssignments, legacyPack6VoyageA1EntryIds } from './legacyPack6Projection'
 import { resolveLearningPack, validateLearningPackGraph, type LearningPack, type PackEntry } from './packs'
@@ -19,9 +18,6 @@ interface CanonicalEntryForPack6B {
   }
 }
 
-interface RuntimeManifest {
-  catalog_version: string
-}
 
 export interface Pack6BRuntimeValidationResult {
   valid: boolean
@@ -30,9 +26,9 @@ export interface Pack6BRuntimeValidationResult {
 
 export const pack6BVersion = '2026.09-pack6b-r1'
 export const a1MacroRuntimeVersion = '2026.09-a1-school-r1'
-export const runtimeCatalogVersion = (manifestJson as RuntimeManifest).catalog_version
+export const runtimeCatalogVersion = catalogManifest.catalog_version
 
-const canonicalEntries = canonicalEntriesJson as CanonicalEntryForPack6B[]
+const canonicalEntries = canonicalCatalogEntries as CanonicalEntryForPack6B[]
 const canonicalEntryIds = new Set(canonicalEntries.map((entry) => entry.entry_id))
 const canonicalById = new Map(canonicalEntries.map((entry) => [entry.entry_id, entry]))
 const historicalV1Ids = new Set(v1_0_1ThemeAssignments.map((assignment) => assignment.entry_id))
