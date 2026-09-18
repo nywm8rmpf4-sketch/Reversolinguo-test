@@ -36,10 +36,10 @@ describe('language pair runtime configuration', () => {
     expect(promptContextFor(dance, 'fr-es')).toBeUndefined()
   })
 
-  it('also disambiguates identical target prompts, including non-primary translation alternatives', () => {
+  it('disambiguates identical displayed target prompts in the reverse direction', () => {
     const [first, second] = annotateAmbiguousPromptContexts([
       {
-        id: 'one', source: 'el banco', targets: ['le siège', 'le banc'], sourceLanguage: 'es', targetLanguage: 'fr',
+        id: 'one', source: 'el banco', targets: ['le banc'], sourceLanguage: 'es', targetLanguage: 'fr',
         exampleSource: 'Me siento en el banco.', exampleTarget: 'Je m’assois sur le banc.', level: 'A2', theme: 'ville-services'
       },
       {
@@ -51,6 +51,23 @@ describe('language pair runtime configuration', () => {
     expect(promptContextFor(first, 'fr-es')).toBe('Je m’assois sur le banc.')
     expect(promptContextFor(second, 'fr-es')).toBe('Le banc est près de la porte.')
     expect(promptContextFor(first, 'es-fr')).toBeUndefined()
+  })
+
+  it('does not add context for an ambiguous secondary translation that is never displayed as the prompt', () => {
+    const [first, second] = annotateAmbiguousPromptContexts([
+      {
+        id: 'one', source: 'el asiento', targets: ['le siège', 'le banc'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'Ocupo el asiento.', exampleTarget: 'J’occupe le siège.', level: 'A2', theme: 'ville-services'
+      },
+      {
+        id: 'two', source: 'la banqueta', targets: ['le banc'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'La banqueta está junto a la puerta.', exampleTarget: 'Le banc est près de la porte.', level: 'A2', theme: 'maison'
+      }
+    ])
+
+    expect(promptFor(first, 'fr-es')).toBe('le siège')
+    expect(promptContextFor(first, 'fr-es')).toBeUndefined()
+    expect(promptContextFor(second, 'fr-es')).toBeUndefined()
   })
 
   it('normalizes using the configured answer language', () => {
