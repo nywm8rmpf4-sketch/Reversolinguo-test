@@ -70,6 +70,31 @@ describe('language pair runtime configuration', () => {
     expect(promptContextFor(second, 'fr-es')).toBeUndefined()
   })
 
+  it('uses an explicit override only for an actually ambiguous displayed prompt', () => {
+    const [first, second, unique] = annotateAmbiguousPromptContexts([
+      {
+        id: 'one', source: 'grande', targets: ['grand'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'La casa es grande.', exampleTarget: 'La maison est grande.', level: 'A1', theme: 'description'
+      },
+      {
+        id: 'two', source: 'alto, alta', targets: ['grand'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'Mi hermano es alto.', exampleTarget: 'Mon frère est grand.', level: 'A1', theme: 'description'
+      },
+      {
+        id: 'unique', source: 'pequeño, pequeña', targets: ['petit'], sourceLanguage: 'es', targetLanguage: 'fr',
+        exampleSource: 'La casa es pequeña.', exampleTarget: 'La maison est petite.', level: 'A1', theme: 'description'
+      }
+    ], {
+      one: { 'fr-es': 'Dimensions générales d’une chose ou d’un lieu.' },
+      two: { 'fr-es': 'Hauteur d’une personne ou d’un objet vertical.' },
+      unique: { 'fr-es': 'Cet override doit être ignoré.' }
+    })
+
+    expect(promptContextFor(first, 'fr-es')).toBe('Dimensions générales d’une chose ou d’un lieu.')
+    expect(promptContextFor(second, 'fr-es')).toBe('Hauteur d’une personne ou d’un objet vertical.')
+    expect(promptContextFor(unique, 'fr-es')).toBeUndefined()
+  })
+
   it('normalizes using the configured answer language', () => {
     expect(normalizeAnswer('  ÁRBOL. ', getDirectionConfig('fr-es').answerLanguage)).toBe('árbol')
   })
