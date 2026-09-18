@@ -1,0 +1,265 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche1-r1",
+  "source_range": [
+    "REV-A2-0001",
+    "REV-A2-0035"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0002",
+      "entry_id": "f436fa50-ea24-5fae-b49c-5cf6bb0da5fc",
+      "lemma": "la cara",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0003",
+      "entry_id": "1c200d6e-3fa6-5e2b-a9de-264d6dbddb09",
+      "lemma": "el brazo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0004",
+      "entry_id": "4c03e816-f926-5163-a418-ee0adfa98a8b",
+      "lemma": "el dedo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0005",
+      "entry_id": "afd31841-868d-5c22-89bf-f01b33d4d71c",
+      "lemma": "la pierna",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0006",
+      "entry_id": "c42ca0df-efb4-5c22-a39a-f4c073996611",
+      "lemma": "el pie",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0007",
+      "entry_id": "6078798c-9dd7-51be-83a4-853ee52eb82d",
+      "lemma": "el oído",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0008",
+      "entry_id": "59495052-9ad4-5999-8aab-df8ecf94d19a",
+      "lemma": "la muela",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0009",
+      "entry_id": "a2fc511b-e02c-52ef-8388-6d9491a2556f",
+      "lemma": "la garganta",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0010",
+      "entry_id": "788d2865-6d4f-5aa0-90ce-73118569b932",
+      "lemma": "el estómago",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0011",
+      "entry_id": "ca6659da-e30a-53fa-8291-5af95160677d",
+      "lemma": "la espalda",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0012",
+      "entry_id": "d01ab050-22c3-5b0d-9b61-f02516d0cc57",
+      "lemma": "calvo, calva",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0013",
+      "entry_id": "c0acc25d-b2c6-5441-bd00-07d1e5dc3522",
+      "lemma": "el pelo liso",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0014",
+      "entry_id": "2874a5a7-92c7-537a-8260-ed06815b5ea8",
+      "lemma": "el pelo rizado",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0015",
+      "entry_id": "6ca6f7ab-3f60-507f-8d88-bf30508b6636",
+      "lemma": "el pelo largo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0016",
+      "entry_id": "b9805068-e98b-5652-9985-60c2698b716c",
+      "lemma": "el pelo corto",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0017",
+      "entry_id": "243fffaf-7286-58de-8b7e-e1e0eb1a561a",
+      "lemma": "peinarse",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0018",
+      "entry_id": "a0969f14-3f76-5c07-9a7f-a0d84ad6b864",
+      "lemma": "afeitarse",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0019",
+      "entry_id": "10113d2c-3d07-5149-8725-5b13c8fdfbdf",
+      "lemma": "sentarse",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0020",
+      "entry_id": "1fdbdb6e-b57f-5923-aa29-f27b613f69cb",
+      "lemma": "subir",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0021",
+      "entry_id": "438b291d-2e8d-556f-abbf-2a0eccdd5f72",
+      "lemma": "bajar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0022",
+      "entry_id": "c638ce02-35b9-551b-9da6-948851e38ef8",
+      "lemma": "ver",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0023",
+      "entry_id": "c7557d10-2a30-514f-be64-c83c44a80c9c",
+      "lemma": "oír",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0024",
+      "entry_id": "ebce750e-9337-5be0-ae8b-f9b557d3a31a",
+      "lemma": "mirar",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0025",
+      "entry_id": "b0b55ed3-f71d-5153-b4fa-5102171de5f3",
+      "lemma": "coger",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0026",
+      "entry_id": "a1f9783e-8f07-5a4c-a9cc-40ac1198f869",
+      "lemma": "nacer",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0027",
+      "entry_id": "8ac0c920-8366-5c97-9074-8ebcdaed15df",
+      "lemma": "crecer",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0028",
+      "entry_id": "18e1ac14-5e07-5edc-86d2-11226b4a9d58",
+      "lemma": "tener un hijo",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0029",
+      "entry_id": "57e9484f-a7a4-5ea6-94b4-f169db46baf3",
+      "lemma": "morir",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0030",
+      "entry_id": "644a77ef-52d4-5e89-91f6-fdb1723d70d3",
+      "lemma": "el sexo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0031",
+      "entry_id": "9e1b46ca-9768-5133-b6f8-881e0a9337da",
+      "lemma": "la gripe",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0032",
+      "entry_id": "755ec1a8-5870-54f9-8289-48b121b31457",
+      "lemma": "la alergia",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0033",
+      "entry_id": "5c861a49-d087-5e29-826a-0597df56bb31",
+      "lemma": "la fiebre",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0034",
+      "entry_id": "faa8ac61-3415-5a94-849e-7e629e0f51d0",
+      "lemma": "la tos",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0035",
+      "entry_id": "84fd1307-cc24-5e17-a98a-ec36e54f9ace",
+      "lemma": "tener fiebre",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    }
+  ],
+  "excluded": [
+    {
+      "review_id": "REV-A2-0001",
+      "entry_id": "06dcb787-68c0-5ab9-97de-27fb5166f384",
+      "lemma": "la cabeza",
+      "reason": "A1 collision revalidated PASS; exclude from A2 delta and reuse accepted A1 UUID",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    }
+  ],
+  "editorial_decisions_applied": [
+    {
+      "review_id": "REV-A2-0025",
+      "decision": "KEEP_ACTIVE_WITH_PANHISPANIC_VARIANT_OR_CONTEXT",
+      "human_decision": "PASS"
+    }
+  ]
+}
