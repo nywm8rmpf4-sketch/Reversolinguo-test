@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/app/App'
 import { ensureCatalogSchedules } from '../../src/app/bootstrap'
+import { summarizePath, themePackIdFor } from '../../src/domain/pathSelection'
 import { db, defaultSettings } from '../../src/storage/database'
 
 const MANO_ID = '69046998-47e6-5570-b469-5a5cc961a97e'
@@ -63,11 +64,31 @@ describe('R4 unknown answer and exploration', () => {
 
   it('exposes exploration only on home after the daily session and keeps Je ne sais pas neutral in exploration', async () => {
     const user = userEvent.setup()
-    await db.settings.put({ ...defaultSettings, onboarded: true, dailyNew: 1 })
-    await ensureCatalogSchedules(db)
-    await db.schedules.where('direction').equals('fr-es').modify((schedule) => {
-      if (schedule.entryId !== MANO_ID && schedule.entryId !== CASA_ID) schedule.state = 'SUSPENDED'
+    const selectedPackIds = [themePackIdFor('A1')]
+    const selected = summarizePath({
+      audience: 'theme',
+      selectedPackIds,
+      selectedThemeIds: [],
+      reviewScope: 'selection-only'
     })
+    expect(selected.selectedNewEntries.length).toBeGreaterThanOrEqual(2)
+    await db.settings.put({
+      ...defaultSettings,
+      onboarded: true,
+      dailyNew: 1,
+      pathAudience: 'theme',
+      selectedPackIds,
+      selectedThemeIds: [],
+      reviewScope: 'selection-only'
+    })
+    await ensureCatalogSchedules(db)
+    const selectedSchedules = (await db.schedules.bulkGet(
+      selected.selectedNewEntries.map((entry) => `${entry.entry_id}:fr-es`)
+    )).filter((schedule): schedule is NonNullable<typeof schedule> => Boolean(schedule))
+    await db.schedules.bulkPut(selectedSchedules.map((schedule, index) => ({
+      ...schedule,
+      ...(index < 2 ? {} : { state: 'SUSPENDED' as const })
+    })))
 
     render(<App />)
     expect(await screen.findByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
