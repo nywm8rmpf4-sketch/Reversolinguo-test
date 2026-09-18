@@ -1,5 +1,5 @@
 name: A2 full regression
-# rerun: post-lint-fix-r2
+# rerun: localized-count-r3
 
 on:
   push:
