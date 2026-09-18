@@ -7,7 +7,6 @@ import { summarizePath, themePackIdFor } from '../../src/domain/pathSelection'
 import { db, defaultSettings } from '../../src/storage/database'
 
 const MANO_ID = '69046998-47e6-5570-b469-5a5cc961a97e'
-const CASA_ID = '36e27c44-5b63-5024-bd41-81546b1e9191'
 
 describe('R4 unknown answer and exploration', () => {
   afterEach(async () => {
