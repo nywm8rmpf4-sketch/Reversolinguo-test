@@ -1,7 +1,8 @@
 import canonicalEntries from '../../catalogs/fr-es/a2/catalog.json'
 import manifest from '../../catalogs/fr-es/a2/manifest.json'
+import promptContextOverridesJson from '../../catalogs/fr-es/a2/prompt-context-overrides.json'
 import type { CefrLevel, LexicalEntry } from '../domain/model'
-import { annotateAmbiguousPromptContexts } from '../i18n/languagePairs'
+import { annotateAmbiguousPromptContexts, type PromptContextOverrides } from '../i18n/languagePairs'
 
 interface CanonicalSense {
   translations: string[]
@@ -41,4 +42,15 @@ const runtimeEntries: LexicalEntry[] = (canonicalEntries as CanonicalEntry[])
     }
   })
 
-export const catalog: LexicalEntry[] = annotateAmbiguousPromptContexts(runtimeEntries)
+interface PromptContextOverrideFile {
+  schema_version: string
+  catalog_id: string
+  contexts: PromptContextOverrides
+}
+
+const promptContextOverrides = promptContextOverridesJson as PromptContextOverrideFile
+if (promptContextOverrides.catalog_id !== manifest.catalog_id) {
+  throw new Error(`Prompt context catalog mismatch: ${promptContextOverrides.catalog_id} != ${manifest.catalog_id}`)
+}
+
+export const catalog: LexicalEntry[] = annotateAmbiguousPromptContexts(runtimeEntries, promptContextOverrides.contexts)
