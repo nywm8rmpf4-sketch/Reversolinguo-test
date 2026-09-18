@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "validation_profile": "EDITORIAL_STAGING",
+  "micro_manifest": "catalogs/fr-es/a2/drafts/staging-batches.manifest.json",
+  "policy": {
+    "micro_tranches_remain_atomic": true,
+    "exact_source_coverage": true,
+    "cross_micro_collision_guard": true,
+    "single_public_materialization": true,
+    "aggregate_semantic_review_complete": true,
+    "school_projection_complete": true,
+    "homograph_context_contract": "ADR-038",
+    "fail_closed": true
+  },
+  "macro_batches": [
+    {
+      "macro_batch_id": "a2-level-macro-r1",
+      "cefr_level": "A2",
+      "micro_tranche_ids": [
+        "a2-tranche1-r1",
+        "a2-tranche2-r1",
+        "a2-tranche3-r1",
+        "a2-tranche4-r1",
+        "a2-tranche5-r1",
+        "a2-tranche6-r1",
+        "a2-tranche7-r1",
+        "a2-tranche8-r1",
+        "a2-tranche9-r1",
+        "a2-tranche10-r1",
+        "a2-tranche11-r1",
+        "a2-tranche12-r1",
+        "a2-tranche13-r1",
+        "a2-tranche14-r1",
+        "a2-tranche15-r1",
+        "a2-tranche16-r1",
+        "a2-tranche17-r1",
+        "a2-tranche18-r1"
+      ],
+      "source_range": [
+        "REV-A2-0001",
+        "REV-A2-0603"
+      ],
+      "expected_source_units": 603,
+      "expected_drafts": 592,
+      "expected_excluded_or_reconciled": 11,
+      "expected_school_source": {
+        "LVA:5e": 338,
+        "LVA:4e": 265,
+        "LVB:3e": 323,
+        "LVB:Seconde": 280
+      },
+      "expected_school_active": {
+        "LVA:5e": 333,
+        "LVA:4e": 259,
+        "LVB:3e": 318,
+        "LVB:Seconde": 274
+      },
+      "reuse_mode": "data_identity_only_no_verdict_reuse",
+      "qualification_mode": "single_public_editorial_staging",
+      "semantic_review_mode": "complete_aggregate"
+    }
+  ]
+}
