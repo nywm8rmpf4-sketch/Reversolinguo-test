@@ -59,16 +59,24 @@ export function validateCatalogBundle(entries: unknown[], manifest: unknown): Ca
       entry_id: string
       language_tag: string
       lemma: string
+      sense_key?: string
       cefr_level: string
       provenance: { license: string }
     }
     if (ids.has(entry.entry_id)) errors.push(`duplicate-id:${entry.entry_id}`)
     ids.add(entry.entry_id)
-    const semanticKey = `${entry.language_tag}:${entry.lemma.normalize('NFC').trim().toLocaleLowerCase()}`
+    const baseSemanticKey = `${entry.language_tag}:${entry.lemma.normalize('NFC').trim().toLocaleLowerCase()}`
+    const senseKey = entry.sense_key?.normalize('NFC').trim().toLocaleLowerCase()
+    const semanticKey = senseKey ? `${baseSemanticKey}:sense:${senseKey}` : baseSemanticKey
     if (semanticKeys.has(semanticKey)) errors.push(`duplicate-semantic:${semanticKey}`)
     semanticKeys.add(semanticKey)
     if (typedManifest.source_language && entry.language_tag !== typedManifest.source_language) errors.push(`language-mismatch:${entry.entry_id}`)
-    if (typedManifest.cefr_level && entry.cefr_level !== typedManifest.cefr_level) errors.push(`level-mismatch:${entry.entry_id}`)
+    if (typedManifest.cefr_level) {
+      const order = ['PRE-A1', 'A1', 'A2', 'B1', 'B2']
+      const entryRank = order.indexOf(entry.cefr_level)
+      const manifestRank = order.indexOf(typedManifest.cefr_level)
+      if (entryRank < 0 || manifestRank < 0 || entryRank > manifestRank) errors.push(`level-above-manifest:${entry.entry_id}`)
+    }
     if (typedManifest.license && entry.provenance.license !== typedManifest.license) errors.push(`license-mismatch:${entry.entry_id}`)
   }
 
