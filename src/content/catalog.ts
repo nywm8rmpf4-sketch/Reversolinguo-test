@@ -1,6 +1,7 @@
-import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
-import manifest from '../../catalogs/fr-es/a1/manifest.json'
+import canonicalEntries from '../../catalogs/fr-es/a2/catalog.json'
+import manifest from '../../catalogs/fr-es/a2/manifest.json'
 import type { CefrLevel, LexicalEntry } from '../domain/model'
+import { annotateAmbiguousPromptContexts } from '../i18n/languagePairs'
 
 interface CanonicalSense {
   translations: string[]
@@ -21,7 +22,7 @@ interface CanonicalEntry {
 
 export const catalogVersion = manifest.catalog_version
 export const catalogManifest = manifest
-export const catalog: LexicalEntry[] = (canonicalEntries as CanonicalEntry[])
+const runtimeEntries: LexicalEntry[] = (canonicalEntries as CanonicalEntry[])
   .filter((entry) => entry.status !== 'withdrawn')
   .map((entry) => {
     const sense = entry.senses[0]
@@ -39,3 +40,5 @@ export const catalog: LexicalEntry[] = (canonicalEntries as CanonicalEntry[])
       theme: entry.themes[0] ?? 'général'
     }
   })
+
+export const catalog: LexicalEntry[] = annotateAmbiguousPromptContexts(runtimeEntries)
