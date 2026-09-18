@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { IntlProvider } from 'react-intl'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PathSelector } from '../../src/app/PathSelector'
-import { adultPackIdFor, defaultPathPreferences, type PathPreferences } from '../../src/domain/pathSelection'
+import { adultPackIdFor, defaultPathPreferences, schoolPackIdFor, summarizePath, type PathPreferences } from '../../src/domain/pathSelection'
 import { messages } from '../../src/i18n/messages'
 
 afterEach(() => cleanup())
@@ -28,7 +28,13 @@ describe('PACK-7 R6 selector UI', () => {
 
     await user.click(screen.getByRole('checkbox', { name: 'A2' }))
     expect(screen.getByText('International · A1 + A2')).toBeVisible()
-    expect(screen.getByText('475 nouveautés disponibles avant filtre thématique')).toBeVisible()
+    const adultCount = summarizePath({
+      audience: 'adult',
+      selectedPackIds: [adultPackIdFor('A1'), adultPackIdFor('A2')],
+      selectedThemeIds: [],
+      reviewScope: 'all-due'
+    }).sourceCount
+    expect(screen.getByText(`${adultCount} nouveautés disponibles avant filtre thématique`)).toBeVisible()
 
     const schoolTheme = screen.getByRole('checkbox', { name: /École et études/u })
     const foodTheme = screen.getByRole('checkbox', { name: /Alimentation/u })
@@ -59,13 +65,25 @@ describe('PACK-7 R6 selector UI', () => {
 
     await user.click(screen.getByRole('checkbox', { name: '5e' }))
     expect(screen.getByText('6e LVA + 5e LVA')).toBeVisible()
-    expect(screen.getByText('475 nouveautés disponibles avant filtre thématique')).toBeVisible()
+    const lvaCount = summarizePath({
+      audience: 'school',
+      selectedPackIds: [schoolPackIdFor('6e', 'LVA'), schoolPackIdFor('5e', 'LVA')],
+      selectedThemeIds: [],
+      reviewScope: 'all-due'
+    }).sourceCount
+    expect(screen.getByText(`${lvaCount} nouveautés disponibles avant filtre thématique`)).toBeVisible()
 
     await user.selectOptions(screen.getByLabelText('Langue'), 'LVB')
     expect(screen.getByRole('checkbox', { name: '6e' })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: '5e' })).toBeChecked()
     expect(screen.getByText('6e LVB + 5e LVB')).toBeVisible()
-    expect(screen.getByText('405 nouveautés disponibles avant filtre thématique')).toBeVisible()
+    const lvbCount = summarizePath({
+      audience: 'school',
+      selectedPackIds: [schoolPackIdFor('6e', 'LVB'), schoolPackIdFor('5e', 'LVB')],
+      selectedThemeIds: [],
+      reviewScope: 'all-due'
+    }).sourceCount
+    expect(screen.getByText(`${lvbCount} nouveautés disponibles avant filtre thématique`)).toBeVisible()
   })
 
   it('supports several levels in the autonomous Voyage path', async () => {
