@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "status": "PASS",
+  "date": "2026-09-17",
+  "source_artifact": {
+    "filename": "Reversolinguo_catalogue_complet_A1_B2_progression_scolaire_2026-09-15.xlsx",
+    "sha256": "3508e25088829190bb55b9fadf91c356ad43a53d9f898602cdb05bca51cbd0cc",
+    "historical_a2_delta": 603
+  },
+  "accepted_a1_runtime": {
+    "candidate_sha": "01318dfb939c77f7ee4a79407a9c51aceb65357e",
+    "entry_count": 475,
+    "catalog_sha256": "bb67e6903e7129b72e339b39b782e428bb8f3b35dbbf614db80a381c315d1be5",
+    "human_verdict": "PASS"
+  },
+  "method": "Revalidate historical A2 new-only rows against the accepted A1 canonical catalogue. Preserve the human-authored LVA/LVB assignments from the complete A1-B2 workbook; do not infer or recalculate school levels.",
+  "collisions_reconciled_to_a1": [
+    {
+      "review_id": "REV-A2-0001",
+      "lemma": "la cabeza",
+      "a1_entry_id": "06dcb787-68c0-5ab9-97de-27fb5166f384",
+      "a2_school": {"LVA": "5e", "LVB": "3e"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    },
+    {
+      "review_id": "REV-A2-0148",
+      "lemma": "el queso",
+      "a1_entry_id": "fb376961-e569-5785-ad44-71a322efaedd",
+      "a2_school": {"LVA": "5e", "LVB": "3e"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    },
+    {
+      "review_id": "REV-A2-0231",
+      "lemma": "el cuaderno",
+      "a1_entry_id": "2f63de83-9ba8-54c8-b5ed-eb90fde64bb0",
+      "a2_school": {"LVA": "5e", "LVB": "3e"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    },
+    {
+      "review_id": "REV-A2-0286",
+      "lemma": "la piscina",
+      "a1_entry_id": "e34538ad-78cc-51a3-99ca-81bec718ddcb",
+      "a2_school": {"LVA": "5e", "LVB": "3e"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    },
+    {
+      "review_id": "REV-A2-0431",
+      "lemma": "la mochila",
+      "a1_entry_id": "e2fb7261-9bb9-5c64-81b6-0c54019d8fb7",
+      "a2_school": {"LVA": "5e", "LVB": "3e"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    },
+    {
+      "review_id": "REV-A2-0499",
+      "lemma": "el perro",
+      "a1_entry_id": "acd64004-1e77-5d46-97ab-ffb890a5c716",
+      "a2_school": {"LVA": "4e", "LVB": "Seconde"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    },
+    {
+      "review_id": "REV-A2-0500",
+      "lemma": "el gato",
+      "a1_entry_id": "40a225c7-86ab-5220-968d-9aee82d4a189",
+      "a2_school": {"LVA": "4e", "LVB": "Seconde"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    },
+    {
+      "review_id": "REV-A2-0501",
+      "lemma": "el pájaro",
+      "a1_entry_id": "333820c1-60c2-58b5-a9f7-beb68fe50d9f",
+      "a2_school": {"LVA": "4e", "LVB": "Seconde"},
+      "disposition": "EXCLUDE_FROM_A2_DELTA_REUSE_A1_UUID"
+    }
+  ],
+  "result": {
+    "collision_count": 8,
+    "a2_new_only_count": 595,
+    "school_counts": {
+      "LVA:5e": 333,
+      "LVA:4e": 262,
+      "LVB:3e": 318,
+      "LVB:Seconde": 277
+    }
+  },
+  "runtime_import": "NOT_EXECUTED",
+  "public_qa": "NOT_EXECUTED",
+  "semantic_review": "NOT_EXECUTED"
+}
