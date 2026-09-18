@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test'
 
+function localizedCount(text: string | null): number {
+  return Number((text ?? '').replace(/[^0-9]/gu, ''))
+}
+
 async function onboard(page: import('@playwright/test').Page) {
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
@@ -47,7 +51,7 @@ test('R7 vocabulary follows saved A1+A2 themes and survives reload without all-d
   await page.getByRole('checkbox', { name: 'A2' }).click()
   const availableCountText = page.getByText(/nouveautés disponibles avant filtre thématique/u)
   await expect(availableCountText).toBeVisible()
-  const availableCount = Number((await availableCountText.textContent())?.match(/\d+/u)?.[0] ?? 0)
+  const availableCount = localizedCount(await availableCountText.textContent())
   expect(availableCount).toBeGreaterThan(0)
 
   await page.getByRole('checkbox', { name: /École et études/u }).click()
@@ -58,7 +62,7 @@ test('R7 vocabulary follows saved A1+A2 themes and survives reload without all-d
   await expect(page.getByText('International · A1 + A2')).toBeVisible()
   const selectedCountText = page.getByText(/nouveaux mots dans votre sélection/u)
   await expect(selectedCountText).toBeVisible()
-  const selectedCount = Number((await selectedCountText.textContent())?.match(/\d+/u)?.[0] ?? 0)
+  const selectedCount = localizedCount(await selectedCountText.textContent())
   expect(selectedCount).toBeGreaterThan(0)
   expect(selectedCount).toBeLessThan(availableCount)
 
