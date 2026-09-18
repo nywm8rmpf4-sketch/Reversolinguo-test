@@ -1,5 +1,5 @@
 name: A2 runtime assembly
-# rerun: fixture-scalability-r2
+# rerun: fixture-scalability-r3
 
 on:
   push:
