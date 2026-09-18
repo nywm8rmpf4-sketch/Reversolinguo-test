@@ -1,0 +1,354 @@
+{
+  "schema_version": "1.0",
+  "validation_profile": "EDITORIAL_STAGING",
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "source_language": "es",
+  "target_language": "fr",
+  "expected_license": "CC BY 4.0",
+  "canonical_catalog": "catalogs/fr-es/a2/reference/a1-human-validated-01318dfb939c/catalog.json",
+  "canonical_manifest": "catalogs/fr-es/a2/reference/a1-human-validated-01318dfb939c/manifest.json",
+  "canonical_candidate_sha": "01318dfb939c77f7ee4a79407a9c51aceb65357e",
+  "policy": {
+    "exact_source_coverage": true,
+    "cross_tranche_uniqueness": true,
+    "deterministic_uuid": true,
+    "homograph_sense_key": "ADR-038",
+    "ambiguous_prompt_context": "ADR-038",
+    "slash_translation_requires_explicit_pair": true,
+    "school_assignments_exact_source_data": true,
+    "fail_closed": true
+  },
+  "expected_source_counts": {
+    "total": 603,
+    "school": {
+      "LVA:5e": 338,
+      "LVA:4e": 265,
+      "LVB:3e": 323,
+      "LVB:Seconde": 280
+    }
+  },
+  "expected_active_counts": {
+    "total": 592,
+    "school": {
+      "LVA:5e": 333,
+      "LVA:4e": 259,
+      "LVB:3e": 318,
+      "LVB:Seconde": 274
+    }
+  },
+  "expected_excluded_counts": {
+    "total": 11,
+    "school": {
+      "LVA:5e": 5,
+      "LVA:4e": 6,
+      "LVB:3e": 5,
+      "LVB:Seconde": 6
+    }
+  },
+  "tranches": [
+    {
+      "tranche_id": "a2-tranche1-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0001",
+        "REV-A2-0035"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche1-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche1-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche1-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche1-r1-part-c.json"
+      ],
+      "expected_included": 34,
+      "expected_excluded": 1,
+      "materializer_batch_id": "a2-tranche1-r1"
+    },
+    {
+      "tranche_id": "a2-tranche2-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0036",
+        "REV-A2-0070"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche2-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche2-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche2-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche2-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche2-r1"
+    },
+    {
+      "tranche_id": "a2-tranche3-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0071",
+        "REV-A2-0105"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche3-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche3-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche3-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche3-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche3-r1"
+    },
+    {
+      "tranche_id": "a2-tranche4-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0106",
+        "REV-A2-0140"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche4-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche4-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche4-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche4-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche4-r1"
+    },
+    {
+      "tranche_id": "a2-tranche5-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0141",
+        "REV-A2-0175"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche5-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche5-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche5-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche5-r1-part-c.json"
+      ],
+      "expected_included": 34,
+      "expected_excluded": 1,
+      "materializer_batch_id": "a2-tranche5-r1"
+    },
+    {
+      "tranche_id": "a2-tranche6-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0176",
+        "REV-A2-0210"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche6-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche6-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche6-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche6-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche6-r1"
+    },
+    {
+      "tranche_id": "a2-tranche7-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0211",
+        "REV-A2-0245"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche7-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche7-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche7-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche7-r1-part-c.json"
+      ],
+      "expected_included": 34,
+      "expected_excluded": 1,
+      "materializer_batch_id": "a2-tranche7-r1"
+    },
+    {
+      "tranche_id": "a2-tranche8-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0246",
+        "REV-A2-0280"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche8-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche8-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche8-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche8-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche8-r1"
+    },
+    {
+      "tranche_id": "a2-tranche9-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0281",
+        "REV-A2-0315"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche9-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche9-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche9-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche9-r1-part-c.json"
+      ],
+      "expected_included": 34,
+      "expected_excluded": 1,
+      "materializer_batch_id": "a2-tranche9-r1"
+    },
+    {
+      "tranche_id": "a2-tranche10-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0316",
+        "REV-A2-0350"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche10-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche10-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche10-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche10-r1-part-c.json"
+      ],
+      "expected_included": 32,
+      "expected_excluded": 3,
+      "materializer_batch_id": "a2-tranche10-r1"
+    },
+    {
+      "tranche_id": "a2-tranche11-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0351",
+        "REV-A2-0385"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche11-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche11-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche11-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche11-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche11-r1"
+    },
+    {
+      "tranche_id": "a2-tranche12-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0386",
+        "REV-A2-0420"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche12-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche12-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche12-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche12-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche12-r1"
+    },
+    {
+      "tranche_id": "a2-tranche13-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0421",
+        "REV-A2-0455"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche13-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche13-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche13-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche13-r1-part-c.json"
+      ],
+      "expected_included": 34,
+      "expected_excluded": 1,
+      "materializer_batch_id": "a2-tranche13-r1"
+    },
+    {
+      "tranche_id": "a2-tranche14-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0456",
+        "REV-A2-0490"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche14-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche14-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche14-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche14-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche14-r1"
+    },
+    {
+      "tranche_id": "a2-tranche15-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0491",
+        "REV-A2-0525"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche15-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche15-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche15-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche15-r1-part-c.json"
+      ],
+      "expected_included": 32,
+      "expected_excluded": 3,
+      "materializer_batch_id": "a2-tranche15-r1"
+    },
+    {
+      "tranche_id": "a2-tranche16-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0526",
+        "REV-A2-0560"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche16-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche16-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche16-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche16-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche16-r1"
+    },
+    {
+      "tranche_id": "a2-tranche17-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0561",
+        "REV-A2-0595"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche17-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche17-r1-part-a.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche17-r1-part-b.json",
+        "catalogs/fr-es/a2/drafts/a2-tranche17-r1-part-c.json"
+      ],
+      "expected_included": 35,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche17-r1"
+    },
+    {
+      "tranche_id": "a2-tranche18-r1",
+      "cefr_level": "A2",
+      "source_range": [
+        "REV-A2-0596",
+        "REV-A2-0603"
+      ],
+      "source_map": "catalogs/fr-es/a2/drafts/a2-tranche18-r1-source-map.json",
+      "entry_files": [
+        "catalogs/fr-es/a2/drafts/a2-tranche18-r1-part-a.json"
+      ],
+      "expected_included": 8,
+      "expected_excluded": 0,
+      "materializer_batch_id": "a2-tranche18-r1"
+    }
+  ]
+}
