@@ -80,8 +80,9 @@ export function annotateAmbiguousPromptContexts(entries: readonly LexicalEntry[]
     sourceAnswers.add(answerSignature(entry.targets))
     sourceGroups.set(sourceKey, sourceAnswers)
 
-    for (const target of entry.targets) {
-      const targetKey = normalizedCue(target)
+    const primaryTarget = entry.targets[0]
+    if (primaryTarget) {
+      const targetKey = normalizedCue(primaryTarget)
       const targetAnswers = targetGroups.get(targetKey) ?? new Set<string>()
       targetAnswers.add(answerSignature([entry.source]))
       targetGroups.set(targetKey, targetAnswers)
@@ -94,7 +95,7 @@ export function annotateAmbiguousPromptContexts(entries: readonly LexicalEntry[]
   return entries.map((entry) => ({
     ...entry,
     ...(ambiguousSources.has(normalizedCue(entry.source)) ? { sourceContext: entry.exampleSource } : {}),
-    ...(entry.targets.some((target) => ambiguousTargets.has(normalizedCue(target))) ? { targetContext: entry.exampleTarget } : {})
+    ...(entry.targets[0] && ambiguousTargets.has(normalizedCue(entry.targets[0])) ? { targetContext: entry.exampleTarget } : {})
   }))
 }
 
