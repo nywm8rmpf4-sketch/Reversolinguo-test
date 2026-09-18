@@ -1,0 +1,40 @@
+[
+  {
+    "entry_id": "2874a5a7-92c7-537a-8260-ed06815b5ea8",
+    "language_tag": "es",
+    "lemma": "el pelo rizado",
+    "part_of_speech": "noun",
+    "senses": [{"sense_id":"s1","translations":["les cheveux bouclés"],"example_source":"Luis tiene el pelo rizado.","example_target":"Luis a les cheveux bouclés."}],
+    "cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"6ca6f7ab-3f60-507f-8d88-bf30508b6636","language_tag":"es","lemma":"el pelo largo","part_of_speech":"noun","senses":[{"sense_id":"s1","translations":["les cheveux longs"],"example_source":"Marta tiene el pelo largo.","example_target":"Marta a les cheveux longs."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"b9805068-e98b-5652-9985-60c2698b716c","language_tag":"es","lemma":"el pelo corto","part_of_speech":"noun","senses":[{"sense_id":"s1","translations":["les cheveux courts"],"example_source":"Pablo tiene el pelo corto.","example_target":"Pablo a les cheveux courts."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"243fffaf-7286-58de-8b7e-e1e0eb1a561a","language_tag":"es","lemma":"peinarse","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["se peigner / se coiffer"],"example_source":"Me peino antes de salir.","example_target":"Je me coiffe avant de sortir."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"a0969f14-3f76-5c07-9a7f-a0d84ad6b864","language_tag":"es","lemma":"afeitarse","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["se raser"],"example_source":"Mi padre se afeita por la mañana.","example_target":"Mon père se rase le matin."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"10113d2c-3d07-5149-8725-5b13c8fdfbdf","language_tag":"es","lemma":"sentarse","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["s’asseoir"],"example_source":"Nos sentamos cerca de la ventana.","example_target":"Nous nous asseyons près de la fenêtre."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"1fdbdb6e-b57f-5923-aa29-f27b613f69cb","language_tag":"es","lemma":"subir","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["monter"],"example_source":"Subimos al segundo piso.","example_target":"Nous montons au deuxième étage."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"438b291d-2e8d-556f-abbf-2a0eccdd5f72","language_tag":"es","lemma":"bajar","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["descendre"],"example_source":"Bajo las escaleras.","example_target":"Je descends l’escalier."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"c638ce02-35b9-551b-9da6-948851e38ef8","language_tag":"es","lemma":"ver","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["voir"],"example_source":"Veo a mis amigos mañana.","example_target":"Je vois mes amis demain."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"c7557d10-2a30-514f-be64-c83c44a80c9c","language_tag":"es","lemma":"oír","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["entendre"],"example_source":"No oigo bien la televisión.","example_target":"Je n’entends pas bien la télévision."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  },
+  {
+    "entry_id":"ebce750e-9337-5be0-ae8b-f9b557d3a31a","language_tag":"es","lemma":"mirar","part_of_speech":"verb","senses":[{"sense_id":"s1","translations":["regarder"],"example_source":"Miramos una película esta noche.","example_target":"Nous regardons un film ce soir."}],"cefr_level":"A2","cefr_rationale":"Candidat éditorial A2 — inventaires notionnels PCIC à valider","themes":["corps-sante"],"variety":"pan-hispanic-common","provenance":{"source":"Reversolinguo editorial archive fr-es-a1-b2-school-progression-r1-2026-09-15; external references are used only for CEFR/domain framing","license":"CC BY 4.0","authored_by":"Reversolinguo project editorial draft"},"status":"draft","version":1
+  }
+]
