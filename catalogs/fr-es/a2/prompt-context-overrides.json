@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "fr-es-a2",
+  "policy": "ADR-038",
+  "contexts": {
+    "9fe30411-ac09-519e-bf69-ef6173f9bb86": {
+      "fr-es": "Dimensions générales d’une chose ou d’un lieu."
+    },
+    "0fe1892f-6c12-5e49-a7f4-869b087c2f5f": {
+      "fr-es": "Hauteur d’une personne ou d’un objet vertical."
+    },
+    "beb23a33-b6d4-527d-b43c-cfe8298b1f4e": {
+      "fr-es": "Salle de classe : surface sur laquelle on écrit."
+    },
+    "507fca59-caa6-54c8-aee3-6857b38b4c5d": {
+      "fr-es": "Musée : œuvre peinte exposée au mur."
+    },
+    "274d9de5-d1ce-5aee-b6db-8ce6e2846b11": {
+      "fr-es": "Travail : responsable hiérarchique d’une équipe."
+    },
+    "677b944d-8c0b-5c12-a12e-6da31ea209ee": {
+      "fr-es": "Cuisine : personne qui dirige la préparation des plats."
+    },
+    "96467a7e-db14-5f38-a118-b271b82abce8": {
+      "fr-es": "Verbe très général de déplacement ; il peut aussi vouloir dire « fonctionner » pour une machine."
+    },
+    "0664d3af-cac0-505e-8b41-1f278b6cfa46": {
+      "fr-es": "Verbe centré sur l’action de marcher à pied ou de progresser sur un chemin."
+    },
+    "63bb7c70-90ac-5a3e-97da-a199ba9b094f": {
+      "fr-es": "Commerce : personne dont l’activité est de vendre, par exemple au marché."
+    },
+    "c81ea052-4c1b-5626-9851-ec0c12e372d9": {
+      "fr-es": "Magasin : employé(e) qui accueille et sert les clients."
+    },
+    "97abadc1-27ef-5eeb-8d47-aea892ce3aa4": {
+      "fr-es": "Construction : « avant » employé seul ou dans une comparaison, sans complément en « de »."
+    },
+    "f12a442f-8e7c-5bd0-82fa-89150920ee83": {
+      "fr-es": "Construction : « avant de » suivi d’un nom ou d’un infinitif."
+    },
+    "f6b9aacc-5b2c-56bf-ba63-1aed5c4c6360": {
+      "fr-es": "Qualité générale d’une personne, d’un objet ou d’une idée."
+    },
+    "943f2db3-5354-5342-a69e-51f3edf18746": {
+      "fr-es": "Alimentation : quelque chose d’agréable au goût."
+    },
+    "8e50d398-2f1a-513f-830b-47e61444dd25": {
+      "fr-es": "Variante attendue : usage courant en Espagne."
+    },
+    "fab8c1f4-7212-56e2-931c-fba2ce1e1909": {
+      "fr-es": "Variante attendue : forme utilisable dans l’ensemble du monde hispanophone."
+    },
+    "93bf6a68-8358-531e-993e-9c4a166daa60": {
+      "fr-es": "Variante attendue : usage courant en Espagne."
+    },
+    "da686af9-5485-553d-9f57-4dc8b5b23cd9": {
+      "fr-es": "Variante attendue : forme utilisable dans l’ensemble du monde hispanophone."
+    },
+    "55fce41d-b525-5ad7-8f95-bbc64a8daae9": {
+      "fr-es": "Variante attendue : usage courant en Espagne."
+    },
+    "e2e520b0-62e1-5e3e-a17e-096cf3f45d91": {
+      "fr-es": "Variante attendue : forme utilisable dans l’ensemble du monde hispanophone."
+    },
+    "7cc8f6a7-aabe-5336-8092-07e1e1516af7": {
+      "fr-es": "Variante attendue : usage courant en Espagne."
+    },
+    "1a55cbb0-c697-575e-98bc-53020003cc73": {
+      "fr-es": "Variante attendue : forme utilisable dans l’ensemble du monde hispanophone."
+    }
+  }
+}
