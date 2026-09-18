@@ -1,0 +1,273 @@
+{
+  "archive_id": "fr-es-a1-b2-school-progression-r1-2026-09-15",
+  "tranche_id": "a2-tranche4-r1",
+  "source_range": [
+    "REV-A2-0106",
+    "REV-A2-0140"
+  ],
+  "included": [
+    {
+      "review_id": "REV-A2-0106",
+      "entry_id": "361ba768-4bb0-55f1-8cbd-f576ea5a1766",
+      "lemma": "la exmujer",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0107",
+      "entry_id": "6506245b-f798-5d71-9365-d65bdfa13cfe",
+      "lemma": "vivir juntos",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0108",
+      "entry_id": "99182e78-0209-5842-a432-878e9b006eab",
+      "lemma": "vivir en pareja",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0109",
+      "entry_id": "1078df3e-5c26-5bb2-856f-ba5633da6574",
+      "lemma": "el vecino / la vecina",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0110",
+      "entry_id": "bafb2044-284f-5b35-9a0f-a4769e17f757",
+      "lemma": "el socio / la socia",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0111",
+      "entry_id": "95e02846-b5b9-5a1e-af2f-d69c522681fe",
+      "lemma": "el compañero de clase / la compañera de clase",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0112",
+      "entry_id": "f8555347-31f0-5852-8399-f86df8a023e4",
+      "lemma": "el compañero de trabajo / la compañera de trabajo",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0113",
+      "entry_id": "0a65fc7e-ece4-5f3c-a3de-82315d887ead",
+      "lemma": "el compañero de piso / la compañera de piso",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0114",
+      "entry_id": "f0974c51-1dd5-5a8a-968c-67d05d5e1c44",
+      "lemma": "la reunión",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0115",
+      "entry_id": "c8c4b731-10c6-5e11-845b-032561659479",
+      "lemma": "la cita",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0116",
+      "entry_id": "82388496-b8ac-5547-ad95-89ce24d430c5",
+      "lemma": "visitar",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0117",
+      "entry_id": "35c1cbeb-ea68-5ca7-a36f-902d49bc23e2",
+      "lemma": "invitar",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0118",
+      "entry_id": "74efff25-382b-5dba-8fc6-b99e820e0052",
+      "lemma": "la fiesta de cumpleaños",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0119",
+      "entry_id": "d52a5fd3-8353-5ee3-b1fe-29c2764616d5",
+      "lemma": "la fiesta de fin de curso",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0120",
+      "entry_id": "6d71e1dd-3a1e-50b9-bf98-7258680d14e2",
+      "lemma": "el regalo",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0121",
+      "entry_id": "0aa8d735-b310-5a46-b180-65347f770328",
+      "lemma": "regalar",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0122",
+      "entry_id": "34768dcd-94ba-5ce2-ace1-6be0394baed0",
+      "lemma": "hacer una fiesta",
+      "school_lva": "4e",
+      "school_lvb": "Seconde"
+    },
+    {
+      "review_id": "REV-A2-0123",
+      "entry_id": "e7b8a320-39ae-58cb-97d4-0f2905d70eae",
+      "lemma": "vegetariano, vegetariana",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0124",
+      "entry_id": "6a76bf20-3dde-59f3-97b6-dd31320149eb",
+      "lemma": "sin alcohol",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0125",
+      "entry_id": "197b1264-927f-5efc-b24a-2d0e2d40ffb0",
+      "lemma": "con hielo",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0126",
+      "entry_id": "a294de9f-90e0-58bd-b41d-f6b2584be8ec",
+      "lemma": "sin hielo",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0127",
+      "entry_id": "e13905f7-355e-5759-bb8e-e9c7974ab9e0",
+      "lemma": "el zumo de naranja",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0128",
+      "entry_id": "0a216e55-f88d-524b-8e6f-c44fe89ab2f5",
+      "lemma": "el zumo de tomate",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0129",
+      "entry_id": "090c0941-4a73-5440-b8e9-5fc01c1a7615",
+      "lemma": "el zumo de frutas",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0130",
+      "entry_id": "4a0d5e63-d63b-5882-be8c-f3f70ae3368e",
+      "lemma": "la infusión",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0131",
+      "entry_id": "6a98c0c4-2ce6-5e20-8bd6-f7b490f6993a",
+      "lemma": "el ron",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0132",
+      "entry_id": "37dc64cf-8238-5322-b9d1-c05c6e135e36",
+      "lemma": "la ginebra",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0133",
+      "entry_id": "d9405d96-a9f7-521e-b287-a2441022fdb2",
+      "lemma": "el cava",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0134",
+      "entry_id": "5e4feee8-8d87-5005-8870-edf151ae79e2",
+      "lemma": "el champán",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0135",
+      "entry_id": "7e22aa8e-b72d-5a83-be28-11f9597351dc",
+      "lemma": "la botella",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0136",
+      "entry_id": "430c02dd-77f7-5c98-bf36-d927dbef8033",
+      "lemma": "la lata",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0137",
+      "entry_id": "55f58919-3015-5e83-86cc-87308cf5ba2c",
+      "lemma": "tomar algo",
+      "school_lva": "4e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0138",
+      "entry_id": "d4183943-dc2e-5c45-ae51-6e564969e015",
+      "lemma": "la lechuga",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0139",
+      "entry_id": "82ade6ed-bc96-5dcb-897f-f37ebed4d1b8",
+      "lemma": "el tomate",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    },
+    {
+      "review_id": "REV-A2-0140",
+      "entry_id": "d7f638c6-44a2-5f68-b6fa-276ccb18bf94",
+      "lemma": "la zanahoria",
+      "school_lva": "5e",
+      "school_lvb": "3e"
+    }
+  ],
+  "excluded": [],
+  "editorial_decisions_applied": [
+    {
+      "review_id": "REV-A2-0127",
+      "decision": "KEEP_ACTIVE_WITH_JUGO_VARIANT",
+      "human_decision": "PASS"
+    },
+    {
+      "review_id": "REV-A2-0128",
+      "decision": "KEEP_ACTIVE_WITH_JUGO_VARIANT",
+      "human_decision": "PASS"
+    },
+    {
+      "review_id": "REV-A2-0129",
+      "decision": "KEEP_ACTIVE_WITH_JUGO_VARIANT",
+      "human_decision": "PASS"
+    }
+  ]
+}
