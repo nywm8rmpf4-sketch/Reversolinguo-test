@@ -1,6 +1,6 @@
-import canonicalEntriesJson from '../../catalogs/fr-es/a1/catalog.json'
-import manifestJson from '../../catalogs/fr-es/a1/manifest.json'
-import projectionJson from '../../catalogs/fr-es/a1/runtime-projection.json'
+import canonicalEntriesJson from '../../catalogs/fr-es/a2/catalog.json'
+import manifestJson from '../../catalogs/fr-es/a2/manifest.json'
+import projectionJson from '../../catalogs/fr-es/a2/runtime-projection.json'
 import { validateCatalogProjection, type CatalogProjectionDocument } from './catalogProjection'
 import { canonicalThemeIds } from './taxonomy'
 
