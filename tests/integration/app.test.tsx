@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/app/App'
 import { ensureCatalogSchedules } from '../../src/app/bootstrap'
+import { catalog } from '../../src/content/catalog'
+import { activeLanguagePair } from '../../src/i18n/languagePairs'
 import { initialSchedule } from '../../src/domain/scheduler'
 import type { ReviewEvent } from '../../src/domain/model'
 import { db, defaultSettings } from '../../src/storage/database'
@@ -53,7 +55,44 @@ describe('accessible learning flow', () => {
 
     render(<App />)
     expect(await screen.findByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
-    expect(await db.schedules.count()).toBe(950)
+    expect(await db.schedules.count()).toBe(catalog.length * activeLanguagePair.directions.length)
+  })
+
+  it('shows the ADR-038 context before revealing an ambiguous Spanish prompt', async () => {
+    const user = userEvent.setup()
+    const salsaDanceId = 'd45f1a20-8bc3-548f-bafb-22a594b9fd2e'
+    await db.settings.put({
+      ...defaultSettings,
+      onboarded: true,
+      direction: 'es-fr',
+      pathAudience: 'adult',
+      selectedPackIds: ['fr-es-adult-cefr-a2'],
+      selectedThemeIds: [],
+      reviewScope: 'selection-only'
+    })
+    await ensureCatalogSchedules(db)
+    const future = new Date(Date.now() + 86_400_000).toISOString()
+    await db.schedules.toCollection().modify((schedule) => {
+      schedule.state = 'SUSPENDED'
+      schedule.intervalDays = 3
+      schedule.dueAt = future
+      schedule.updatedAt = new Date().toISOString()
+      delete schedule.learningStep
+    })
+    await db.schedules.update(`${salsaDanceId}:es-fr`, {
+      state: 'REVIEW',
+      intervalDays: 3,
+      dueAt: new Date(Date.now() - 60_000).toISOString(),
+      updatedAt: new Date().toISOString(),
+      learningStep: undefined
+    })
+
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Réviser maintenant' }))
+    expect(await screen.findByRole('heading', { name: 'la salsa' })).toBeVisible()
+    expect(screen.getByText('Bailamos salsa en la fiesta.')).toBeVisible()
+    expect(screen.queryByText('la salsa (danse / musique)')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Voir la réponse' })).toBeVisible()
   })
 
   it('offers free review instead of a fake scheduled session when every studied card is scheduled for later', async () => {
