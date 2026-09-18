@@ -34,7 +34,7 @@ describe('PACK-7 R6 selector UI', () => {
       selectedThemeIds: [],
       reviewScope: 'all-due'
     }).sourceCount
-    expect(screen.getByText(`${adultCount} nouveautés disponibles avant filtre thématique`)).toBeVisible()
+    expect(screen.getByText(`${new Intl.NumberFormat('fr').format(adultCount)} nouveautés disponibles avant filtre thématique`)).toBeVisible()
 
     const schoolTheme = screen.getByRole('checkbox', { name: /École et études/u })
     const foodTheme = screen.getByRole('checkbox', { name: /Alimentation/u })
@@ -71,7 +71,7 @@ describe('PACK-7 R6 selector UI', () => {
       selectedThemeIds: [],
       reviewScope: 'all-due'
     }).sourceCount
-    expect(screen.getByText(`${lvaCount} nouveautés disponibles avant filtre thématique`)).toBeVisible()
+    expect(screen.getByText(`${new Intl.NumberFormat('fr').format(lvaCount)} nouveautés disponibles avant filtre thématique`)).toBeVisible()
 
     await user.selectOptions(screen.getByLabelText('Langue'), 'LVB')
     expect(screen.getByRole('checkbox', { name: '6e' })).toBeChecked()
@@ -83,7 +83,7 @@ describe('PACK-7 R6 selector UI', () => {
       selectedThemeIds: [],
       reviewScope: 'all-due'
     }).sourceCount
-    expect(screen.getByText(`${lvbCount} nouveautés disponibles avant filtre thématique`)).toBeVisible()
+    expect(screen.getByText(`${new Intl.NumberFormat('fr').format(lvbCount)} nouveautés disponibles avant filtre thématique`)).toBeVisible()
   })
 
   it('supports several levels in the autonomous Voyage path', async () => {
