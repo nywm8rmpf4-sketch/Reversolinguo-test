@@ -31,7 +31,8 @@ Après A2 et avant toute matérialisation B1, mettre en place **OPT-LEX-PIPELINE
 6. les validations sont fail-closed sur schéma, champs requis, traduction, exemple, taxonomie, provenance, licence, volumes, doublons et relations ;
 7. le chemin nominal ne requiert aucune revue humaine ligne par ligne ; seules les exceptions non résolubles automatiquement sont soumises à arbitrage ;
 8. `catalog.json`, `runtime-projection.json` et `manifest.json` sont générés avec leurs hashes exacts ;
-8a. avant B1, les données catalogue doivent être découplées du chunk JavaScript applicatif (ou mécanisme équivalent démontré) afin de rester précachables/offline sans relever le plafond PWA transitoire A2 de 3 MiB ; l'intégrité hash-only doit rester vérifiée ;
+8a. les collisions de recto doivent être détectées dans les deux directions ; lorsque l'exemple canonique ne suffit pas à rendre la réponse unique, le pipeline doit produire un rapport d'exception et accepter uniquement une cue éditoriale explicite versionnée, jamais une heuristique inventée automatiquement ;
+8b. avant B1, les données catalogue doivent être découplées du chunk JavaScript applicatif (ou mécanisme équivalent démontré) afin de rester précachables/offline sans relever le plafond PWA transitoire A2 de 3 MiB ; l'intégrité hash-only doit rester vérifiée ;
 9. les modifications de tooling/code sont qualifiées une fois dans `Reversolinguo-test` uniquement ;
 10. une fois le mécanisme qualifié, un futur niveau dont le diff réel est strictement données/manifeste suit `RUNTIME_DATA_ONLY` conformément à ADR-034/036 et à la gouvernance d'impact ;
 11. chaque niveau reste un macro-lot unique pour sa qualification publique ; les micro-tranches sont réservées au diagnostic local ;
