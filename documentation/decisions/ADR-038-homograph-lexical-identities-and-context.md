@@ -79,12 +79,21 @@ Le runtime détecte les collisions de **cue affichée** dans chaque direction de
 Si plusieurs entrées actives présentent le même texte de recto normalisé mais attendent des réponses différentes :
 
 - le mot/lemme reste affiché tel quel ;
-- avant la réponse, l'application affiche un contexte tiré de l'exemple dans la langue du recto ;
-- pour source → cible, le contexte est `example_source` ;
-- pour cible → source, le contexte est `example_target` ;
+- avant la réponse, l'application affiche un contexte dans la langue du recto ;
+- par défaut, ce contexte provient de l'exemple correspondant (`example_source` pour source → cible, `example_target` pour cible → source) ;
+- si l'exemple ne suffit pas à rendre le choix unique, ou s'il révèle accidentellement la réponse attendue, une **cue éditoriale explicite** peut surcharger ce contexte sans modifier l'entrée lexicale canonique ;
+- ces overrides sont versionnés dans le bundle du niveau, liés par `entry_id + direction`, et ne sont appliqués qu'aux rectos réellement ambigus ;
+- aucune cue ne doit contenir textuellement la réponse attendue ;
 - le contexte n'est pas ajouté aux rectos non ambigus.
 
-Le contexte doit permettre de choisir le sens attendu sans révéler directement la traduction. La revue sémantique vérifie ce point.
+Les collisions de recto sont de deux natures et doivent être traitées différemment :
+
+1. **polysémie / sens distincts** : le contexte doit sélectionner le sens attendu ;
+2. **synonymie ou variante lexicale** : la cue doit expliciter la nuance utile au choix (registre, aire d'usage, construction grammaticale ou usage lexical) sans donner le mot lui-même.
+
+Si aucune distinction linguistique honnête ne permet de choisir une forme unique, le cas doit être renvoyé en arbitrage éditorial plutôt que de fabriquer un faux contraste.
+
+La revue sémantique vérifie exhaustivement que chaque collision de recto actif dispose d'un contexte distinctif, compréhensible et non révélateur.
 
 ### 6. Vocabulaire et affichages non interrogatifs
 
@@ -97,7 +106,8 @@ ADR-037 devra traiter les homographes comme exceptions structurées :
 - détection automatique du groupe de lemmes homographes ;
 - fail-closed si plusieurs unités indépendantes n'ont pas d'identité discriminée suffisante ;
 - `sense_key` fourni par la donnée/arbitrage éditorial, jamais inventé par heuristique ;
-- rapport d'exception uniquement lorsque la source ne permet pas de résoudre déterministiquement le cas.
+- rapport d'exception uniquement lorsque la source ne permet pas de résoudre déterministiquement le cas ;
+- détection des collisions de recto dans les deux directions et génération/validation d'overrides éditoriaux lorsque l'exemple canonique ne suffit pas.
 
 ## Conséquences
 
@@ -115,7 +125,8 @@ ADR-037 devra traiter les homographes comme exceptions structurées :
 - évolution du schéma lexical, du pipeline d'identité et du contrat d'unicité ;
 - le candidat A2 ne sera plus strictement data-only puisque le runtime doit apprendre à afficher un contexte conditionnel ;
 - la détection des cues ambiguës doit être testée dans les deux directions ;
-- un mauvais exemple contextuel peut rester insuffisant : la revue sémantique doit le détecter.
+- un mauvais exemple contextuel peut rester insuffisant : la revue sémantique doit le détecter ;
+- les overrides de contexte deviennent une donnée éditoriale versionnée supplémentaire et doivent rester synchronisés avec les collisions réellement actives.
 
 ## Rollback
 
@@ -131,6 +142,7 @@ Avant promotion A2, rollback = revenir aux fichiers/code précédents et bloquer
 - test runtime : même cue + réponses différentes → contexte visible avant révélation ;
 - test runtime : cue unique → aucun contexte supplémentaire ;
 - test dans les deux directions de traduction ;
+- test exhaustif : chaque cue ambiguë active possède un contexte, chaque override correspond à une cue réellement ambiguë, aucun contexte ne révèle textuellement la réponse attendue ;
 - contrôle A2 macro : 603 unités source, 592 inclusions, 11 exclusions, 592 UUID uniques ;
 - conservation des affectations scolaires humaines ;
 - QA publique sur `Reversolinguo-test` uniquement ;
