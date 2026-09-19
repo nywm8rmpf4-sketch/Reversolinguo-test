@@ -28,7 +28,7 @@ jobs:
           test "$(git hash-object package-lock.json)" = 'a22b8ebe265ee44c392967a615c949039a2890ad'
       - name: Install exact dependencies
         run: npm ci
-      - name: Rehydrate exact transferred canonical CSV
+      - name: Rehydrate r1 canonical transport
         shell: bash
         run: |
           set -euo pipefail
@@ -38,6 +38,29 @@ jobs:
           test "$(sha256sum /tmp/b1.csv.bz2 | awk '{print $1}')" = '8a4bd2210b1da4041528f89cfe9c8756125671abb7cf47dad61c96507a12057a'
           bunzip2 -c /tmp/b1.csv.bz2 > catalogs/fr-es/b1/b1-canonical.csv
           test "$(sha256sum catalogs/fr-es/b1/b1-canonical.csv | awk '{print $1}')" = '9460e9a06bca52cd1998eab5bd2b1d8a5bda7b6ddfcfcfa45f1617a2a09f3b6e'
+      - name: Materialize source-controlled cues r2
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs'
+          import { parseCanonicalCsv, serializeCanonicalCsv } from './tools/tabular-catalog-pipeline.mjs'
+          const path = 'catalogs/fr-es/b1/b1-canonical.csv'
+          const rows = parseCanonicalCsv(readFileSync(path, 'utf8'))
+          const cues = JSON.parse(readFileSync('catalogs/fr-es/b1/b1-cues-r2.json', 'utf8'))
+          const seen = new Set()
+          for (const row of rows) {
+            const cue = cues[row.review_id]
+            if (!cue) continue
+            if (row.alias_of_review_id || row.alias_of_entry_id) throw new Error('CUE_ON_ALIAS:' + row.review_id)
+            row.prompt_context_fr_es = cue
+            seen.add(row.review_id)
+          }
+          const missing = Object.keys(cues).filter((id) => !seen.has(id))
+          if (missing.length) throw new Error('MISSING_CUE_ROWS:' + missing.join(','))
+          writeFileSync(path, serializeCanonicalCsv(rows), 'utf8')
+          NODE
+          test "$(sha256sum catalogs/fr-es/b1/b1-canonical.csv | awk '{print $1}')" = 'd4e3dbc39b347d23829a7bdba2880daf48626c715580dfde1ee844b8555633ac'
       - name: Run qualified ADR-042 pipeline twice
         shell: bash
         run: |
