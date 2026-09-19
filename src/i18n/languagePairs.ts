@@ -59,7 +59,7 @@ export function getDirectionConfig(direction: Direction, pair = activeLanguagePa
 }
 
 export function lexicalValues(entry: LexicalEntry, side: LexicalSide): string[] {
-  return side === 'source' ? [entry.source] : entry.targets
+  return side === 'source' ? [entry.source, ...(entry.sourceAliases ?? [])] : entry.targets
 }
 
 function normalizedCue(value: string): string {
@@ -89,7 +89,7 @@ export function annotateAmbiguousPromptContexts(
     if (primaryTarget) {
       const targetKey = normalizedCue(primaryTarget)
       const targetAnswers = targetGroups.get(targetKey) ?? new Set<string>()
-      targetAnswers.add(answerSignature([entry.source]))
+      targetAnswers.add(answerSignature(lexicalValues(entry, 'source')))
       targetGroups.set(targetKey, targetAnswers)
     }
   }

@@ -6,6 +6,7 @@ export type CefrLevel = 'PRE-A1' | 'A1' | 'A2' | 'B1' | 'B2'
 export interface LexicalEntry {
   id: string
   source: string
+  sourceAliases?: string[]
   targets: string[]
   sourceLanguage: string
   targetLanguage: string

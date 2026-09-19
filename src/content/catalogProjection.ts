@@ -32,6 +32,7 @@ export interface CatalogProjectionDocument {
   catalog_version: string
   source: CatalogProjectionSource
   prompt_contexts?: CatalogPromptContextOverrides
+  source_aliases?: Record<string, string[]>
   school_source_assignments: CatalogSchoolSourceAssignment[]
   theme_path_assignments: CatalogThemePathAssignment[]
   source_counts: {
@@ -209,6 +210,18 @@ export function validateCatalogProjection(
   if (!scalar(document.catalog_version)) errors.push('missing-catalog-version')
   if (!scalar(document.source.artifact)) errors.push('missing-source-artifact')
   if (document.source.sha256 !== undefined && !/^[0-9a-f]{64}$/u.test(document.source.sha256)) errors.push('invalid-source-sha256')
+
+  for (const [entryId, aliases] of Object.entries(document.source_aliases ?? {})) {
+    if (!canonicalEntryIds.has(entryId)) errors.push(`source-alias-unknown-entry:${entryId}`)
+    if (!Array.isArray(aliases) || aliases.length === 0) {
+      errors.push(`source-alias-invalid:${entryId}`)
+      continue
+    }
+    const normalized = aliases.map((alias) => scalar(alias))
+    if (normalized.some((alias) => !alias)) errors.push(`source-alias-empty:${entryId}`)
+    const folded = normalized.map((alias) => alias.toLocaleLowerCase())
+    if (new Set(folded).size !== folded.length) errors.push(`source-alias-duplicate:${entryId}`)
+  }
 
   for (const [entryId, directions] of Object.entries(document.prompt_contexts ?? {})) {
     if (!canonicalEntryIds.has(entryId)) errors.push(`prompt-context-unknown-entry:${entryId}`)

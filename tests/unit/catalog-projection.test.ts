@@ -81,6 +81,23 @@ describe('catalog data-only projection contract', () => {
     expect(unresolved.errors).toContain('row:0:school-entry-id-unresolved:REV-3')
   })
 
+  it('validates source aliases as projection data bound to known entry ids', () => {
+    const document: CatalogProjectionDocument = {
+      schema_version: '1.0',
+      catalog_id: 'fr-es-b1',
+      catalog_version: 'fixture-b1',
+      source: { artifact: 'fixture.csv' },
+      source_aliases: { [firstId]: ['tal vez'] },
+      school_source_assignments: [],
+      theme_path_assignments: [],
+      source_counts: { school: {}, theme_paths: {} }
+    }
+    expect(validateCatalogProjection(document, ids, themes)).toEqual({ valid: true, errors: [] })
+
+    const unknown = { ...document, source_aliases: { ['33333333-3333-5333-8333-333333333333']: ['tal vez'] } }
+    expect(validateCatalogProjection(unknown, ids, themes).errors).toContain('source-alias-unknown-entry:33333333-3333-5333-8333-333333333333')
+  })
+
   it('rejects unknown UUIDs, themes and inconsistent declared source counts', () => {
     const document: CatalogProjectionDocument = {
       schema_version: '1.0',

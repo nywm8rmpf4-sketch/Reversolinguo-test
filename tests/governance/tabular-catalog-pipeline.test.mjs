@@ -157,6 +157,77 @@ test('reuses an exact semantic identity and requires an explicit decision when i
   assert.equal(projection.school_source_assignments[0].entry_id, BASE_ID)
 })
 
+test('merges an intra-batch source alias into one identity while preserving both source review assignments', () => {
+  const primary = row({
+    review_id: 'REV-B1-0100',
+    spanish: 'quizás',
+    french: 'peut-être',
+    type: 'adverbe',
+    theme: 'communication',
+    example_source: 'Quizás venga mañana.',
+    example_target: 'Peut-être viendra-t-il demain.'
+  })
+  const alias = row({
+    review_id: 'REV-B1-0101',
+    spanish: 'tal vez',
+    french: 'peut-être',
+    type: 'adverbe',
+    theme: 'communication',
+    example_source: 'Tal vez venga mañana.',
+    example_target: 'Peut-être viendra-t-il demain.',
+    alias_of_review_id: 'REV-B1-0100'
+  })
+  const result = run([primary, alias], { expected_source_rows: 2 })
+  assert.equal(result.valid, true)
+  assert.equal(result.report.new_entries, 1)
+  assert.equal(result.report.reconciled_entries, 0)
+  assert.equal(result.report.alias_rows, 1)
+  const catalog = JSON.parse(result.outputs.catalogText)
+  const created = catalog.find((entry) => entry.lemma === 'quizás')
+  assert.ok(created)
+  const projection = JSON.parse(result.outputs.projectionText)
+  assert.deepEqual(projection.source_aliases[created.entry_id], ['tal vez'])
+  const assignments = projection.school_source_assignments.filter((item) => item.entry_id === created.entry_id)
+  assert.equal(new Set(assignments.map((item) => item.review_id)).size, 2)
+})
+
+test('can attach a new source alias to an existing baseline identity without rewriting the baseline lexical object', () => {
+  const alias = row({
+    review_id: 'REV-B1-0200',
+    spanish: 'la manita',
+    french: 'la main',
+    type: 'nom',
+    theme: 'corps-sante',
+    example_source: 'Levanta la manita.',
+    example_target: 'Lève la main.',
+    alias_of_entry_id: BASE_ID
+  })
+  const result = run([alias])
+  assert.equal(result.valid, true)
+  assert.equal(result.report.new_entries, 0)
+  assert.equal(result.report.alias_rows, 1)
+  const catalog = JSON.parse(result.outputs.catalogText)
+  assert.equal(catalog[0].lemma, 'la mano')
+  assert.equal(catalog[0].source_aliases, undefined)
+  const projection = JSON.parse(result.outputs.projectionText)
+  assert.deepEqual(projection.source_aliases[BASE_ID], ['la manita'])
+})
+
+test('fails closed when an alias changes the target meaning', () => {
+  const primary = row({ review_id: 'REV-B1-0300', spanish: 'quizás', french: 'peut-être', type: 'adverbe', theme: 'communication' })
+  const alias = row({
+    review_id: 'REV-B1-0301',
+    spanish: 'tal vez',
+    french: 'certainement',
+    type: 'adverbe',
+    theme: 'communication',
+    alias_of_review_id: 'REV-B1-0300'
+  })
+  const result = run([primary, alias], { expected_source_rows: 2 })
+  assert.equal(result.valid, false)
+  assert.ok(result.exceptions.some((error) => error.includes('alias-translation-mismatch')))
+})
+
 test('reports a newly introduced reverse-prompt collision until explicit versioned cues cover every answer', () => {
   const colliding = row({
     spanish: 'la mano de obra',

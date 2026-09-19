@@ -95,6 +95,19 @@ describe('language pair runtime configuration', () => {
     expect(promptContextFor(unique, 'fr-es')).toBeUndefined()
   })
 
+  it('accepts source aliases as equivalent FR→ES answers while keeping the primary ES→FR prompt stable', () => {
+    const entry = {
+      id: 'alias', source: 'quizás', sourceAliases: ['tal vez'], targets: ['peut-être'],
+      sourceLanguage: 'es', targetLanguage: 'fr',
+      exampleSource: 'Quizás venga mañana.', exampleTarget: 'Peut-être viendra-t-il demain.',
+      level: 'B1' as const, theme: 'communication'
+    }
+    expect(promptFor(entry, 'fr-es')).toBe('peut-être')
+    expect(expectedFor(entry, 'fr-es')).toEqual(['quizás', 'tal vez'])
+    expect(promptFor(entry, 'es-fr')).toBe('quizás')
+    expect(expectedFor(entry, 'es-fr')).toEqual(['peut-être'])
+  })
+
   it('normalizes using the configured answer language', () => {
     expect(normalizeAnswer('  ÁRBOL. ', getDirectionConfig('fr-es').answerLanguage)).toBe('árbol')
   })

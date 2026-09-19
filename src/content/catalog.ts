@@ -24,6 +24,7 @@ export interface CanonicalCatalogEntry {
 }
 
 const bundle = runtimeBundleState()
+const sourceAliasesByEntry = bundle.projection.source_aliases ?? {}
 export const catalogVersion = bundle.manifest.catalog_version
 export const catalogManifest = bundle.manifest
 export const canonicalCatalogEntries = bundle.catalog as CanonicalCatalogEntry[]
@@ -36,6 +37,7 @@ const runtimeEntries: LexicalEntry[] = canonicalCatalogEntries
     return {
       id: entry.entry_id,
       source: entry.lemma,
+      ...(sourceAliasesByEntry[entry.entry_id]?.length ? { sourceAliases: sourceAliasesByEntry[entry.entry_id] } : {}),
       targets: sense.translations,
       sourceLanguage: entry.language_tag,
       targetLanguage: catalogManifest.target_language,

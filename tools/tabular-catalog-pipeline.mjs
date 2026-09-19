@@ -31,8 +31,8 @@ export const CANONICAL_COLUMNS = [
   'relation', 'rationale', 'cefr_level', 'school_lva', 'school_lvb',
   'reversolinguo_sublevel', 'intra_cefr_index', 'confidence_lva', 'confidence_lvb',
   'review_status', 'note', 'source_url', 'example_source', 'example_target', 'variety',
-  'existing_identity_decision', 'prompt_context_fr_es', 'prompt_context_es_fr',
-  'path_id', 'path_level'
+  'existing_identity_decision', 'alias_of_review_id', 'alias_of_entry_id',
+  'prompt_context_fr_es', 'prompt_context_es_fr', 'path_id', 'path_level'
 ]
 
 function text(value) {
@@ -188,14 +188,18 @@ function lexicalSchemaValidator() {
   return ajv.compile(schema)
 }
 
-function promptGroups(entries, side) {
+function sourceForms(entry, sourceAliases = {}) {
+  return [entry.lemma, ...(sourceAliases[entry.entry_id] ?? [])]
+}
+
+function promptGroups(entries, side, sourceAliases = {}) {
   const groups = new Map()
   for (const entry of entries) {
     if (entry.status === 'withdrawn') continue
     const sense = entry.senses?.[0]
     if (!sense) continue
     const prompt = side === 'source' ? entry.lemma : sense.translations?.[0]
-    const answers = side === 'source' ? sense.translations : [entry.lemma]
+    const answers = side === 'source' ? sense.translations : sourceForms(entry, sourceAliases)
     if (!text(prompt) || !Array.isArray(answers) || answers.length === 0) continue
     const promptKey = key(prompt)
     const item = { entry, answerSignature: answers.map(key).sort().join('\u001f') }
@@ -206,9 +210,9 @@ function promptGroups(entries, side) {
   return groups
 }
 
-function ambiguousMembership(entries, side) {
+function ambiguousMembership(entries, side, sourceAliases = {}) {
   const result = new Map()
-  for (const [prompt, items] of promptGroups(entries, side)) {
+  for (const [prompt, items] of promptGroups(entries, side, sourceAliases)) {
     if (new Set(items.map((item) => item.answerSignature)).size <= 1) continue
     result.set(prompt, items.map((item) => item.entry.entry_id).sort())
   }
@@ -219,12 +223,12 @@ function sameMembers(a = [], b = []) {
   return a.length === b.length && a.every((value, index) => value === b[index])
 }
 
-function validateNewPromptCollisions(baseline, cumulative, contexts, exceptions) {
+function validateNewPromptCollisions(baseline, cumulative, contexts, baselineAliases, cumulativeAliases, exceptions) {
   for (const side of ['source', 'target']) {
     const direction = side === 'source' ? 'es-fr' : 'fr-es'
-    const before = ambiguousMembership(baseline, side)
-    const after = ambiguousMembership(cumulative, side)
-    const groups = promptGroups(cumulative, side)
+    const before = ambiguousMembership(baseline, side, baselineAliases)
+    const after = ambiguousMembership(cumulative, side, cumulativeAliases)
+    const groups = promptGroups(cumulative, side, cumulativeAliases)
     for (const [prompt, members] of after) {
       if (sameMembers(before.get(prompt), members)) continue
       const items = groups.get(prompt) ?? []
@@ -235,7 +239,7 @@ function validateNewPromptCollisions(baseline, cumulative, contexts, exceptions)
           exceptions.push(`prompt-collision:${direction}:${prompt}:missing-explicit-cue:${item.entry.entry_id}`)
           continue
         }
-        const expected = side === 'source' ? item.entry.senses[0].translations : [item.entry.lemma]
+        const expected = side === 'source' ? item.entry.senses[0].translations : sourceForms(item.entry, cumulativeAliases)
         if (expected.some((answer) => key(cue).includes(key(answer)))) {
           exceptions.push(`prompt-collision:${direction}:${prompt}:cue-leaks-answer:${item.entry.entry_id}`)
         }
@@ -257,6 +261,16 @@ function sortedPromptContexts(contexts) {
       if (text(source[direction])) directions[direction] = text(source[direction])
     }
     if (Object.keys(directions).length) result[entryId] = directions
+  }
+  return result
+}
+
+function sortedSourceAliases(sourceAliases) {
+  const result = {}
+  for (const entryId of Object.keys(sourceAliases).sort()) {
+    const aliases = [...new Set((sourceAliases[entryId] ?? []).map(text).filter(Boolean))]
+      .sort((left, right) => key(left).localeCompare(key(right)))
+    if (aliases.length) result[entryId] = aliases
   }
   return result
 }
@@ -328,19 +342,23 @@ export function runTabularCatalogPipeline({
   const newEntries = []
   const reviewToEntry = new Map()
   const contexts = {}
-  for (const contextSource of [baselineProjection.prompt_contexts ?? {}, source.prompt_contexts ?? {}]) {
-    for (const [entryId, directions] of Object.entries(contextSource)) {
-      contexts[entryId] = { ...(contexts[entryId] ?? {}), ...(directions ?? {}) }
-    }
-  }
+  const baselineAliases = sortedSourceAliases(baselineProjection.source_aliases ?? {})
+  const sourceAliases = Object.fromEntries(Object.entries(baselineAliases).map(([entryId, aliases]) => [entryId, [...aliases]]))
+  const entryById = new Map(baselineCatalog.map((entry) => [entry.entry_id, entry]))
+  const normalizedRows = rows.map((raw) => Object.fromEntries(Object.entries(raw).map(([name, value]) => [name, text(value)])))
+  const rowByReviewId = new Map()
+  const primaryRows = []
+  const aliasRows = []
 
-  for (const [index, raw] of rows.entries()) {
-    const row = Object.fromEntries(Object.entries(raw).map(([name, value]) => [name, text(value)]))
+  for (const [index, row] of normalizedRows.entries()) {
     const prefix = `row:${index + 2}`
     const reviewId = row.review_id
     if (!reviewId) exceptions.push(`${prefix}:missing-review-id`)
     else if (reviewIds.has(reviewId)) exceptions.push(`${prefix}:duplicate-review-id:${reviewId}`)
-    else reviewIds.add(reviewId)
+    else {
+      reviewIds.add(reviewId)
+      rowByReviewId.set(reviewId, row)
+    }
 
     for (const [field, value] of [['spanish', row.spanish], ['french', row.french], ['type', row.type], ['theme', row.theme], ['rationale', row.rationale], ['cefr_level', row.cefr_level], ['review_status', row.review_status], ['example_source', row.example_source], ['example_target', row.example_target]]) {
       if (!text(value)) exceptions.push(`${prefix}:missing-${field}`)
@@ -365,6 +383,17 @@ export function runTabularCatalogPipeline({
     if (sourceSemantics.has(identity)) exceptions.push(`${prefix}:duplicate-source-semantic:${identity}`)
     sourceSemantics.add(identity)
 
+    const aliasReview = text(row.alias_of_review_id)
+    const aliasEntry = text(row.alias_of_entry_id)
+    if (aliasReview && aliasEntry) exceptions.push(`${prefix}:alias-multiple-targets`)
+    const meta = { index, row, prefix, reviewId, partOfSpeech, rowTranslations }
+    if (aliasReview || aliasEntry) aliasRows.push(meta)
+    else primaryRows.push(meta)
+  }
+
+  for (const meta of primaryRows) {
+    const { row, prefix, reviewId, partOfSpeech, rowTranslations } = meta
+    const identity = semanticKey(source.source_language, row.spanish, row.sense_key)
     const existing = existingBySemantic.get(identity)
     let entryId
     if (existing) {
@@ -408,6 +437,7 @@ export function runTabularCatalogPipeline({
         exceptions.push(`${prefix}:entry-schema:${detail}`)
       }
       newEntries.push(entry)
+      entryById.set(entryId, entry)
     }
     reviewToEntry.set(reviewId, entryId)
 
@@ -417,6 +447,44 @@ export function runTabularCatalogPipeline({
     if (Object.keys(cue).length) contexts[entryId] = cue
   }
 
+  for (const meta of aliasRows) {
+    const { row, prefix, reviewId, partOfSpeech, rowTranslations } = meta
+    const aliasReview = text(row.alias_of_review_id)
+    const aliasEntry = text(row.alias_of_entry_id)
+    let entryId
+    if (aliasReview) {
+      const targetRow = rowByReviewId.get(aliasReview)
+      if (!targetRow) exceptions.push(`${prefix}:alias-review-target-missing:${aliasReview}`)
+      else if (text(targetRow.alias_of_review_id) || text(targetRow.alias_of_entry_id)) exceptions.push(`${prefix}:alias-review-target-is-alias:${aliasReview}`)
+      entryId = reviewToEntry.get(aliasReview)
+      if (!entryId && targetRow) exceptions.push(`${prefix}:alias-review-target-unresolved:${aliasReview}`)
+    } else if (aliasEntry) {
+      if (!baselineCatalog.some((entry) => entry.entry_id === aliasEntry)) exceptions.push(`${prefix}:alias-entry-target-missing:${aliasEntry}`)
+      else entryId = aliasEntry
+    } else {
+      exceptions.push(`${prefix}:alias-target-missing`)
+    }
+
+    if (!entryId) continue
+    const targetEntry = entryById.get(entryId)
+    if (!targetEntry) {
+      exceptions.push(`${prefix}:alias-target-entry-unresolved:${entryId}`)
+      continue
+    }
+    const targetTranslations = (targetEntry.senses?.[0]?.translations ?? []).map(key).sort()
+    const incomingTranslations = rowTranslations.map(key).sort()
+    if (JSON.stringify(targetTranslations) !== JSON.stringify(incomingTranslations)) {
+      exceptions.push(`${prefix}:alias-translation-mismatch:${reviewId}:${entryId}`)
+    }
+    if (targetEntry.part_of_speech !== partOfSpeech) exceptions.push(`${prefix}:alias-type-mismatch:${reviewId}:${entryId}`)
+    if (key(row.spanish) === key(targetEntry.lemma)) exceptions.push(`${prefix}:alias-redundant-primary:${reviewId}:${entryId}`)
+    if (row.prompt_context_fr_es || row.prompt_context_es_fr) exceptions.push(`${prefix}:alias-prompt-context-not-supported:${reviewId}`)
+
+    const currentAliases = sourceAliases[entryId] ?? []
+    if (!currentAliases.some((alias) => key(alias) === key(row.spanish))) currentAliases.push(row.spanish)
+    sourceAliases[entryId] = currentAliases
+    reviewToEntry.set(reviewId, entryId)
+  }
   if (exceptions.length) return { valid: false, exceptions: [...new Set(exceptions)].sort() }
 
   const cumulativeCatalog = [...baselineCatalog, ...newEntries]
@@ -424,7 +492,13 @@ export function runTabularCatalogPipeline({
   for (const entryId of Object.keys(contexts)) {
     if (!cumulativeIds.has(entryId)) exceptions.push(`prompt-context-unknown-entry:${entryId}`)
   }
-  validateNewPromptCollisions(baselineCatalog, cumulativeCatalog, contexts, exceptions)
+  for (const entryId of Object.keys(sourceAliases)) {
+    if (!cumulativeIds.has(entryId)) exceptions.push(`source-alias-unknown-entry:${entryId}`)
+    const entry = entryById.get(entryId)
+    if (entry && (sourceAliases[entryId] ?? []).some((alias) => key(alias) === key(entry.lemma))) exceptions.push(`source-alias-redundant-primary:${entryId}`)
+  }
+  const normalizedAliases = sortedSourceAliases(sourceAliases)
+  validateNewPromptCollisions(baselineCatalog, cumulativeCatalog, contexts, baselineAliases, normalizedAliases, exceptions)
 
   const school = [...(baselineProjection.school_source_assignments ?? [])]
   const themePaths = [...(baselineProjection.theme_path_assignments ?? [])]
@@ -457,6 +531,7 @@ export function runTabularCatalogPipeline({
     catalog_version: source.catalog_version,
     source: { artifact: sourceManifestRepoPath, sha256: sha256(sourceManifestText) },
     prompt_contexts: sortedPromptContexts(contexts),
+    ...(Object.keys(normalizedAliases).length ? { source_aliases: normalizedAliases } : {}),
     school_source_assignments: school,
     theme_path_assignments: themePaths,
     source_counts: {
@@ -509,7 +584,8 @@ export function runTabularCatalogPipeline({
       result: 'PASS',
       source_rows: rows.length,
       new_entries: newEntries.length,
-      reconciled_entries: rows.length - newEntries.length,
+      reconciled_entries: primaryRows.length - newEntries.length,
+      alias_rows: aliasRows.length,
       cumulative_entries: cumulativeCatalog.length,
       catalog_sha256: manifest.catalog_sha256,
       projection_sha256: manifest.projection_sha256,
