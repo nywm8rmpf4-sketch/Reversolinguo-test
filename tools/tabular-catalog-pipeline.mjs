@@ -342,6 +342,11 @@ export function runTabularCatalogPipeline({
   const newEntries = []
   const reviewToEntry = new Map()
   const contexts = {}
+  for (const contextSource of [baselineProjection.prompt_contexts ?? {}, source.prompt_contexts ?? {}]) {
+    for (const [entryId, directions] of Object.entries(contextSource)) {
+      contexts[entryId] = { ...(contexts[entryId] ?? {}), ...(directions ?? {}) }
+    }
+  }
   const baselineAliases = sortedSourceAliases(baselineProjection.source_aliases ?? {})
   const sourceAliases = Object.fromEntries(Object.entries(baselineAliases).map(([entryId, aliases]) => [entryId, [...aliases]]))
   const entryById = new Map(baselineCatalog.map((entry) => [entry.entry_id, entry]))
