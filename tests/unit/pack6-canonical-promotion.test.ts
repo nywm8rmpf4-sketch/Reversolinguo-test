@@ -53,7 +53,7 @@ describe('cumulative A1-A2 canonical runtime promotion invariants', () => {
   it('uses only hash-bound projection data when the manifest binds a projection', () => {
     const projection = boundRuntimeProjection()
     if (!projection) return
-    expect(projection.catalog_id).toBe('fr-es-a2')
+    expect(projection.catalog_id).toBe(catalogManifest.catalog_id)
     expect(projection.catalog_version).toBe(catalogManifest.catalog_version)
   })
 
