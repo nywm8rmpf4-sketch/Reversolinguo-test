@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "archive_id": "reversolinguo-b1-enriched-2026-09-17-human-validated-2026-09-19",
+  "catalog_id": "fr-es-b1",
+  "catalog_version": "2026.09-b1-r1",
+  "source_language": "es",
+  "target_language": "fr",
+  "cefr_level": "B1",
+  "license": "CC BY 4.0",
+  "authored_by": "Reversolinguo editorial catalogue (Product Owner validated)",
+  "source_excel": {
+    "filename": "Reversolinguo_B1_complet_exemples_revue_semantique_2026-09-17(1).xlsx",
+    "sha256": "a2fc015dad4a90c91703301755b213ef0f803427ca6384c4fe54ffee5541fd13"
+  },
+  "canonical_csv": {
+    "filename": "b1-canonical.csv",
+    "sha256": "9460e9a06bca52cd1998eab5bd2b1d8a5bda7b6ddfcfcfa45f1617a2a09f3b6e"
+  },
+  "expected_source_rows": 1189,
+  "required_tracks": [
+    "LVA",
+    "LVB"
+  ],
+  "min_app_version": "0.1.0",
+  "prompt_contexts": {
+    "90650084-958e-587c-b25d-b376edb19176": {
+      "es-fr": "Correspondencia: mensaje escrito enviado a alguien."
+    },
+    "f0f75806-96ee-54a8-8a4f-5c342de4ad79": {
+      "es-fr": "Restaurante: importe que se paga al final de la comida.",
+      "fr-es": "Restaurant : forme usuelle courte."
+    },
+    "7e64a5f6-3b1a-5c7f-bdd9-09f1c55c89ed": {
+      "es-fr": "Datos para localizar una vivienda o un lugar."
+    },
+    "5dfa8c1f-dd4d-53a3-a2c9-65a27e96eeae": {
+      "es-fr": "Acceso o lugar por donde se entra."
+    },
+    "977878c6-c3b4-5461-977e-23a9f7384e99": {
+      "es-fr": "Asignatura o disciplina sobre hechos del pasado."
+    },
+    "1ee13a65-66d9-5731-bcfc-21d0a11375fc": {
+      "es-fr": "Comunicación: mensaje breve escrito."
+    },
+    "7e0e6639-2bd4-51b8-b4f9-d47d0f114eb0": {
+      "es-fr": "Meteorología: masa visible en el cielo."
+    },
+    "b616de3e-e59f-55b0-9d1d-d0a7d1385bdb": {
+      "fr-es": "Espace : extrémité d’un lieu ou d’un parcours."
+    },
+    "444ddfca-e21e-5e44-ab15-0d8e98019ea7": {
+      "fr-es": "Temps : commencement d’une période."
+    },
+    "c6b944b0-950f-5292-9ddb-f3f15888abe1": {
+      "fr-es": "Expression distributive avec un nom de période."
+    },
+    "bb0ef67e-f0f3-5a8c-ad7c-0612a7f52454": {
+      "fr-es": "Adverbe temporel courant."
+    },
+    "1a7316b3-5fbd-53c9-8344-7ba38f51fc7f": {
+      "fr-es": "Activité publicitaire en général."
+    },
+    "15a265f4-4751-5709-91f9-eac0a076a0c3": {
+      "fr-es": "Transport : titre permettant de voyager."
+    },
+    "0ca4437c-4efa-5614-ae1c-e4977906baf3": {
+      "fr-es": "Adaptation orthographique espagnole recommandée."
+    },
+    "b91f369d-70c7-5f80-a6cb-1ff328ef0424": {
+      "fr-es": "Deuxième service d’un menu traditionnel."
+    },
+    "d0994dea-0dcb-58d3-9660-1ebd24d5da83": {
+      "fr-es": "Forme courte lorsque le contexte informatique est déjà établi."
+    },
+    "d83ac15e-71fd-57f4-b68d-81b9b5265b8e": {
+      "fr-es": "Forme développée."
+    },
+    "6506245b-f798-5d71-9365-d65bdfa13cfe": {
+      "fr-es": "Expression descriptive avec le verbe vivre."
+    },
+    "0275934b-3f72-5ee8-91d9-b7e19b749711": {
+      "fr-es": "Locution courante."
+    },
+    "c1b12ab5-aefb-5a63-9716-9b3d1355c098": {
+      "fr-es": "Locution courante, notamment en Espagne."
+    }
+  }
+}

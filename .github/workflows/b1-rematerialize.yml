@@ -1,0 +1,47 @@
+name: B1 ADR-042 rematerialization diagnostic
+
+on:
+  push:
+    branches:
+      - 'assembly/b1-rematerialize-r1'
+
+permissions:
+  contents: read
+
+jobs:
+  rematerialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - run: npm install --global npm@11.9.0
+      - run: npm ci
+      - name: Rehydrate canonical CSV and verify input hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          gunzip -c catalogs/fr-es/b1/b1-canonical.csv.gz > catalogs/fr-es/b1/b1-canonical.csv
+          test "$(sha256sum catalogs/fr-es/b1/b1-canonical.csv | awk '{print $1}')" = "9460e9a06bca52cd1998eab5bd2b1d8a5bda7b6ddfcfcfa45f1617a2a09f3b6e"
+      - name: Run qualified ADR-042 pipeline
+        shell: bash
+        run: |
+          set +e
+          mkdir -p generated/b1
+          node tools/tabular-catalog-pipeline.mjs build             --csv catalogs/fr-es/b1/b1-canonical.csv             --source-manifest catalogs/fr-es/b1/source-manifest.json             --baseline-dir public/catalogs/runtime             --output-dir generated/b1             --exceptions generated/b1/exceptions.json 2>&1 | tee generated/b1/pipeline.log
+          code=${PIPESTATUS[0]}
+          echo "$code" > generated/b1/exit-code.txt
+          exit 0
+      - name: Upload diagnostic outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: b1-adr042-rematerialization-diagnostic-${{ github.sha }}
+          path: generated/b1/
+          if-no-files-found: error
+      - name: Enforce pipeline result
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cat generated/b1/exit-code.txt)" = "0"
