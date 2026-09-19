@@ -21,7 +21,15 @@ test('ADR-040 external runtime bundle is hash-bound and level-path independent',
   assert.equal(sha256(projectionText), manifest.projection_sha256)
   assert.equal(projection.catalog_id, manifest.catalog_id)
   assert.equal(projection.catalog_version, manifest.catalog_version)
-  assert.equal(Object.keys(projection.prompt_contexts ?? {}).length, 22)
+  const catalogIds = new Set(catalog.map((entry) => entry.entry_id))
+  for (const [entryId, directions] of Object.entries(projection.prompt_contexts ?? {})) {
+    assert.equal(catalogIds.has(entryId), true, `unknown prompt context entry: ${entryId}`)
+    assert.equal(typeof directions, 'object', `invalid prompt context: ${entryId}`)
+    for (const [direction, cue] of Object.entries(directions)) {
+      assert.equal(direction === 'fr-es' || direction === 'es-fr', true, `invalid prompt context direction: ${entryId}/${direction}`)
+      assert.equal(typeof cue === 'string' && cue.trim().length > 0, true, `empty prompt context: ${entryId}/${direction}`)
+    }
+  }
 })
 
 test('runtime modules no longer import a CEFR-specific catalog path', () => {
