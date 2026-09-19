@@ -18,18 +18,23 @@ import { voyagePackId } from '../../src/content/themePaths'
 const activeCanonical = canonicalCatalogEntries.filter((entry) => entry.status !== 'withdrawn')
 const activeA1 = activeCanonical.filter((entry) => entry.cefr_level === 'A1')
 const activeA2 = activeCanonical.filter((entry) => entry.cefr_level === 'A2')
+const activeB1 = activeCanonical.filter((entry) => entry.cefr_level === 'B1')
 
-describe('cumulative A1-A2 canonical runtime promotion invariants', () => {
+describe('cumulative A1-B1 canonical runtime promotion invariants', () => {
   it('derives runtime volume from the current canonical data instead of a hard-coded corpus size', () => {
     expect(catalogManifest.entry_count).toBe(canonicalCatalogEntries.length)
     const a1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A1'))
     const a2 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('A2'))
+    const b1 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('B1'))
     expect(a1?.entries).toHaveLength(activeA1.length)
     expect(a2?.entries).toHaveLength(activeA2.length)
+    expect(b1?.entries).toHaveLength(activeB1.length)
     expect(new Set(a1?.entries.map((entry) => entry.entry_id))).toEqual(new Set(activeA1.map((entry) => entry.entry_id)))
     expect(new Set(a2?.entries.map((entry) => entry.entry_id))).toEqual(new Set(activeA2.map((entry) => entry.entry_id)))
+    expect(new Set(b1?.entries.map((entry) => entry.entry_id))).toEqual(new Set(activeB1.map((entry) => entry.entry_id)))
     expect(resolveLearningPack(adultPackId('A1'), pack6BAdultPacks)).toHaveLength(activeA1.length)
     expect(resolveLearningPack(adultPackId('A2'), pack6BAdultPacks)).toHaveLength(new Set([...activeA1, ...activeA2].map((entry) => entry.entry_id)).size)
+    expect(resolveLearningPack(adultPackId('B1'), pack6BAdultPacks)).toHaveLength(new Set([...activeA1, ...activeA2, ...activeB1].map((entry) => entry.entry_id)).size)
   })
 
   it('derives promotion groups from immutable review metadata and keeps them disjoint', () => {
