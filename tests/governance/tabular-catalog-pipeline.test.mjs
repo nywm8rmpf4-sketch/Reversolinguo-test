@@ -150,7 +150,7 @@ test('reuses an exact semantic identity and requires an explicit decision when i
   assert.ok(blocked.exceptions.some((error) => error.includes('existing-translation-conflict')))
 
   const accepted = run([{ ...conflict, existing_identity_decision: 'REUSE' }])
-  assert.equal(accepted.valid, true)
+  assert.equal(accepted.valid, true, accepted.exceptions.join('|'))
   assert.equal(accepted.report.new_entries, 0)
   assert.equal(accepted.report.reconciled_entries, 1)
   const projection = JSON.parse(accepted.outputs.projectionText)
