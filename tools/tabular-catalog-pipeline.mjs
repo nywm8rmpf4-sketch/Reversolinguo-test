@@ -2,7 +2,7 @@
 
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
@@ -49,6 +49,17 @@ function sha256(value) {
 
 function stableJson(value) {
   return `${JSON.stringify(value, null, 2)}\n`
+}
+
+function canonicalRepoPath(value) {
+  const raw = text(value)
+  if (!raw) throw new Error('SOURCE_MANIFEST_PATH_MISSING')
+  const absolute = resolve(ROOT, raw)
+  const repoPath = relative(ROOT, absolute)
+  if (!repoPath || repoPath === '..' || repoPath.startsWith(`..${sep}`)) {
+    throw new Error(`SOURCE_MANIFEST_PATH_OUTSIDE_ROOT:${raw}`)
+  }
+  return repoPath.split(sep).join('/')
 }
 
 function count(values) {
@@ -314,6 +325,7 @@ export function runTabularCatalogPipeline({
     baselineCatalog = JSON.parse(baselineCatalogText)
     baselineProjection = JSON.parse(baselineProjectionText)
     baselineManifest = JSON.parse(baselineManifestText)
+    sourceManifestRepoPath = canonicalRepoPath(sourceManifestRepoPath)
   } catch (error) {
     return { valid: false, exceptions: [`parse:${error.message}`] }
   }

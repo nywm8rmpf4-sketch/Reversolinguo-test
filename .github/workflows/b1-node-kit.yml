@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout exact source-alias baseline
+      - name: Checkout current qualified ADR-042 baseline
         uses: actions/checkout@v4
       - name: Use baseline Node
         uses: actions/setup-node@v4
@@ -28,29 +28,29 @@ jobs:
           test "$(git hash-object package-lock.json)" = 'a22b8ebe265ee44c392967a615c949039a2890ad'
       - name: Install exact dependencies
         run: npm ci
-      - name: Assemble exact pipeline kit
+      - name: Rehydrate rebuilt B1 canonical CSV
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p b1-node-kit/node_modules b1-node-kit/tools b1-node-kit/src/content/schemas b1-node-kit/public/catalogs/runtime
-          cp "$(command -v node)" b1-node-kit/node
-          cp -a node_modules/ajv b1-node-kit/node_modules/
-          cp -a node_modules/ajv-formats b1-node-kit/node_modules/
-          cp -a node_modules/fast-deep-equal b1-node-kit/node_modules/
-          cp -a node_modules/fast-uri b1-node-kit/node_modules/
-          cp -a node_modules/json-schema-traverse b1-node-kit/node_modules/
-          cp -a node_modules/require-from-string b1-node-kit/node_modules/
-          cp tools/tabular-catalog-pipeline.mjs b1-node-kit/tools/
-          cp src/content/schemas/lexical-entry.schema.json b1-node-kit/src/content/schemas/
-          cp public/catalogs/runtime/catalog.json b1-node-kit/public/catalogs/runtime/
-          cp public/catalogs/runtime/runtime-projection.json b1-node-kit/public/catalogs/runtime/
-          cp public/catalogs/runtime/manifest.json b1-node-kit/public/catalogs/runtime/
-          cp package.json package-lock.json b1-node-kit/
-          sha256sum b1-node-kit/node b1-node-kit/tools/tabular-catalog-pipeline.mjs b1-node-kit/src/content/schemas/lexical-entry.schema.json b1-node-kit/public/catalogs/runtime/* > b1-node-kit/kit.sha256
-          cat b1-node-kit/kit.sha256
-      - name: Upload exact node kit
+          gunzip -c catalogs/fr-es/b1/b1-canonical.csv.gz > catalogs/fr-es/b1/b1-canonical.csv
+          test "$(sha256sum catalogs/fr-es/b1/b1-canonical.csv | awk '{print $1}')" = '9460e9a06bca52cd1998eab5bd2b1d8a5bda7b6ddfcfcfa45f1617a2a09f3b6e'
+      - name: Run qualified ADR-042 pipeline
+        shell: bash
+        run: |
+          set +e
+          mkdir -p generated/b1
+          node tools/tabular-catalog-pipeline.mjs build             --csv catalogs/fr-es/b1/b1-canonical.csv             --source-manifest catalogs/fr-es/b1/source-manifest.json             --baseline-dir public/catalogs/runtime             --output-dir generated/b1             --exceptions generated/b1/exceptions.json 2>&1 | tee generated/b1/pipeline.log
+          code=${PIPESTATUS[0]}
+          echo "$code" > generated/b1/exit-code.txt
+          exit 0
+      - name: Upload exact diagnostic outputs
         uses: actions/upload-artifact@v4
         with:
-          name: b1-exact-pipeline-node-kit-${{ github.sha }}
-          path: b1-node-kit/
+          name: b1-adr042-rematerialization-diagnostic-${{ github.sha }}
+          path: generated/b1/
           if-no-files-found: error
+      - name: Enforce pipeline result
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(cat generated/b1/exit-code.txt)" = "0"
