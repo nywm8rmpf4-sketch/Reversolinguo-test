@@ -1,0 +1,15 @@
+{
+  "catalog_id": "fr-es-a2",
+  "catalog_version": "2026.09-a2-r1",
+  "source_language": "es",
+  "target_language": "fr",
+  "cefr_level": "A2",
+  "entry_count": 1067,
+  "license": "CC BY 4.0",
+  "schema_id": "https://reversolinguo.app/schemas/lexical-entry-v2.json",
+  "min_app_version": "0.1.0",
+  "catalog_sha256": "90f43f84994da68285064db572bb00a6835c1d2595c365cfadf19969f3642152",
+  "projection_sha256": "38438f93231dae20b45be78054802544c7eac6ff04ce3036ac198ca878cf4582",
+  "status": "draft-human-review",
+  "human_review": "NOT_EXECUTED"
+}
