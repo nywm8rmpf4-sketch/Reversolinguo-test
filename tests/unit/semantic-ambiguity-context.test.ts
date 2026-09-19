@@ -22,10 +22,12 @@ describe('ADR-038 semantic ambiguity contexts', () => {
 
     const ambiguousIds = new Set(ambiguous.flatMap(([, entries]) => entries.map((entry) => entry.id)))
     const promptContexts = runtimeBundleState().projection.prompt_contexts ?? {}
-    const overrideIds = new Set(Object.keys(promptContexts))
+    const frEsOverrideIds = new Set(Object.entries(promptContexts)
+      .filter(([, directions]) => Boolean(directions?.['fr-es']))
+      .map(([entryId]) => entryId))
 
-    expect(ambiguous).toHaveLength(11)
-    expect(overrideIds).toEqual(ambiguousIds)
+    expect(ambiguous.length).toBeGreaterThan(0)
+    expect(frEsOverrideIds).toEqual(ambiguousIds)
 
     for (const [cue, entries] of ambiguous) {
       const contexts = entries.map((entry) => {
@@ -49,15 +51,27 @@ describe('ADR-038 semantic ambiguity contexts', () => {
     const ambiguous = [...groups.entries()]
       .filter(([, entries]) => new Set(entries.map((entry) => JSON.stringify(entry.targets.map(norm).sort()))).size > 1)
 
-    expect(ambiguous).toHaveLength(1)
-    expect(ambiguous[0]?.[0]).toBe('la salsa')
-    const entries = ambiguous[0]?.[1] ?? []
-    expect(entries).toHaveLength(2)
-    for (const entry of entries) {
-      expect(entry.source).toBe('la salsa')
-      const context = promptContextFor(entry, 'es-fr')
-      expect(context).toBeTruthy()
-      expect(entry.targets.some((answer) => norm(context ?? '').includes(norm(answer)))).toBe(false)
+    const ambiguousIds = new Set(ambiguous.flatMap(([, entries]) => entries.map((entry) => entry.id)))
+    const promptContexts = runtimeBundleState().projection.prompt_contexts ?? {}
+    const esFrOverrideIds = new Set(Object.entries(promptContexts)
+      .filter(([, directions]) => Boolean(directions?.['es-fr']))
+      .map(([entryId]) => entryId))
+
+    expect(ambiguous.length).toBeGreaterThan(0)
+    expect(ambiguous.some(([lemma]) => lemma === 'la salsa')).toBe(true)
+    for (const entryId of esFrOverrideIds) expect(ambiguousIds.has(entryId)).toBe(true)
+
+    for (const [lemma, entries] of ambiguous) {
+      const contexts = entries.map((entry) => {
+        expect(norm(entry.source)).toBe(lemma)
+        const context = promptContextFor(entry, 'es-fr')
+        expect(context, `missing context for ${lemma}/${entry.targets.join(';')}`).toBeTruthy()
+        const override = promptContexts[entry.id]?.['es-fr']
+        expect(context).toBe(override?.trim() || entry.exampleSource)
+        expect(entry.targets.some((answer) => norm(context ?? '').includes(norm(answer)))).toBe(false)
+        return norm(context ?? '')
+      })
+      expect(new Set(contexts).size, `contexts must differ for ${lemma}`).toBe(entries.length)
     }
   })
 })
