@@ -28,20 +28,36 @@ jobs:
           test "$(git hash-object package-lock.json)" = 'a22b8ebe265ee44c392967a615c949039a2890ad'
       - name: Install exact dependencies
         run: npm ci
-      - name: Rehydrate rebuilt B1 canonical CSV
+      - name: Rehydrate exact transferred canonical CSV
         shell: bash
         run: |
           set -euo pipefail
-          gunzip -c catalogs/fr-es/b1/b1-canonical.csv.gz > catalogs/fr-es/b1/b1-canonical.csv
+          cat catalogs/fr-es/b1/b64/r* > /tmp/b1.bz2.b64
+          test "$(wc -c < /tmp/b1.bz2.b64)" = "46748"
+          base64 -d /tmp/b1.bz2.b64 > /tmp/b1.csv.bz2
+          test "$(sha256sum /tmp/b1.csv.bz2 | awk '{print $1}')" = '8a4bd2210b1da4041528f89cfe9c8756125671abb7cf47dad61c96507a12057a'
+          bunzip2 -c /tmp/b1.csv.bz2 > catalogs/fr-es/b1/b1-canonical.csv
           test "$(sha256sum catalogs/fr-es/b1/b1-canonical.csv | awk '{print $1}')" = '9460e9a06bca52cd1998eab5bd2b1d8a5bda7b6ddfcfcfa45f1617a2a09f3b6e'
-      - name: Run qualified ADR-042 pipeline
+      - name: Run qualified ADR-042 pipeline twice
         shell: bash
         run: |
           set +e
-          mkdir -p generated/b1
-          node tools/tabular-catalog-pipeline.mjs build             --csv catalogs/fr-es/b1/b1-canonical.csv             --source-manifest catalogs/fr-es/b1/source-manifest.json             --baseline-dir public/catalogs/runtime             --output-dir generated/b1             --exceptions generated/b1/exceptions.json 2>&1 | tee generated/b1/pipeline.log
-          code=${PIPESTATUS[0]}
-          echo "$code" > generated/b1/exit-code.txt
+          mkdir -p generated/b1/run1 generated/b1/run2
+          node tools/tabular-catalog-pipeline.mjs build             --csv catalogs/fr-es/b1/b1-canonical.csv             --source-manifest catalogs/fr-es/b1/source-manifest.json             --baseline-dir public/catalogs/runtime             --output-dir generated/b1/run1             --exceptions generated/b1/run1-exceptions.json             > generated/b1/run1.log 2>&1
+          code1=$?
+          echo "$code1" > generated/b1/run1-exit-code.txt
+          if [ "$code1" = "0" ]; then
+            node tools/tabular-catalog-pipeline.mjs build               --csv catalogs/fr-es/b1/b1-canonical.csv               --source-manifest catalogs/fr-es/b1/source-manifest.json               --baseline-dir public/catalogs/runtime               --output-dir generated/b1/run2               --exceptions generated/b1/run2-exceptions.json               > generated/b1/run2.log 2>&1
+            code2=$?
+            echo "$code2" > generated/b1/run2-exit-code.txt
+            if [ "$code2" = "0" ]; then
+              cmp generated/b1/run1/catalog.json generated/b1/run2/catalog.json
+              cmp generated/b1/run1/runtime-projection.json generated/b1/run2/runtime-projection.json
+              cmp generated/b1/run1/manifest.json generated/b1/run2/manifest.json
+              sha256sum generated/b1/run1/catalog.json generated/b1/run1/runtime-projection.json generated/b1/run1/manifest.json > generated/b1/output.sha256
+              echo PASS_BYTE_IDENTICAL > generated/b1/determinism.txt
+            fi
+          fi
           exit 0
       - name: Upload exact diagnostic outputs
         uses: actions/upload-artifact@v4
@@ -53,4 +69,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(cat generated/b1/exit-code.txt)" = "0"
+          test "$(cat generated/b1/run1-exit-code.txt)" = "0"
+          test "$(cat generated/b1/run2-exit-code.txt)" = "0"
+          test "$(cat generated/b1/determinism.txt)" = "PASS_BYTE_IDENTICAL"
