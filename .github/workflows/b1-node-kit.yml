@@ -1,0 +1,56 @@
+name: B1 exact pipeline node kit
+
+on:
+  push:
+    branches:
+      - 'assembly/b1-node-kit-r1'
+
+permissions:
+  contents: read
+
+jobs:
+  kit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact source-alias baseline
+        uses: actions/checkout@v4
+      - name: Use baseline Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Use baseline npm
+        run: npm install --global npm@11.9.0
+      - name: Verify exact lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object package-lock.json)" = 'a22b8ebe265ee44c392967a615c949039a2890ad'
+      - name: Install exact dependencies
+        run: npm ci
+      - name: Assemble exact pipeline kit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p b1-node-kit/node_modules b1-node-kit/tools b1-node-kit/src/content/schemas b1-node-kit/public/catalogs/runtime
+          cp "$(command -v node)" b1-node-kit/node
+          cp -a node_modules/ajv b1-node-kit/node_modules/
+          cp -a node_modules/ajv-formats b1-node-kit/node_modules/
+          cp -a node_modules/fast-deep-equal b1-node-kit/node_modules/
+          cp -a node_modules/fast-uri b1-node-kit/node_modules/
+          cp -a node_modules/json-schema-traverse b1-node-kit/node_modules/
+          cp -a node_modules/require-from-string b1-node-kit/node_modules/
+          cp tools/tabular-catalog-pipeline.mjs b1-node-kit/tools/
+          cp src/content/schemas/lexical-entry.schema.json b1-node-kit/src/content/schemas/
+          cp public/catalogs/runtime/catalog.json b1-node-kit/public/catalogs/runtime/
+          cp public/catalogs/runtime/runtime-projection.json b1-node-kit/public/catalogs/runtime/
+          cp public/catalogs/runtime/manifest.json b1-node-kit/public/catalogs/runtime/
+          cp package.json package-lock.json b1-node-kit/
+          sha256sum b1-node-kit/node b1-node-kit/tools/tabular-catalog-pipeline.mjs b1-node-kit/src/content/schemas/lexical-entry.schema.json b1-node-kit/public/catalogs/runtime/* > b1-node-kit/kit.sha256
+          cat b1-node-kit/kit.sha256
+      - name: Upload exact node kit
+        uses: actions/upload-artifact@v4
+        with:
+          name: b1-exact-pipeline-node-kit-${{ github.sha }}
+          path: b1-node-kit/
+          if-no-files-found: error
