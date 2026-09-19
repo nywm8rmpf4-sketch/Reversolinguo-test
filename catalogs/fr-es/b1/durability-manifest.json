@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "fr-es-b1",
+  "catalog_version": "2026.09-b1-r1",
+  "status": "HUMAN_VALIDATED",
+  "source_editorial": {
+    "filename": "Reversolinguo_B1_complet_exemples_revue_semantique_2026-09-17.xlsx",
+    "sha256": "a2fc015dad4a90c91703301755b213ef0f803427ca6384c4fe54ffee5541fd13",
+    "size_bytes": 176796,
+    "rows": 1189,
+    "retention_class": "CHECKPOINT",
+    "note": "Original workbook identity retained; canonical CSV below is the durable rematerialization input."
+  },
+  "canonical_input": {
+    "path": "catalogs/fr-es/b1/b1-canonical-r2.csv.bz2.base64",
+    "encoding": "base64(bzip2(csv))",
+    "decoded_csv_sha256": "d4e3dbc39b347d23829a7bdba2880daf48626c715580dfde1ee844b8555633ac",
+    "rows": 1189,
+    "retention_class": "CHECKPOINT",
+    "lossless_for_pipeline": true,
+    "recovery": "base64 decode -> bzip2 decompress -> verify decoded CSV SHA-256 and row count"
+  },
+  "reusable_intermediates": [
+    {
+      "path": "catalogs/fr-es/b1/b1-cues-r2.json",
+      "role": "validated prompt-context restoration",
+      "retention_class": "CHECKPOINT"
+    },
+    {
+      "path": "catalogs/fr-es/b1/source-manifest.json",
+      "role": "pipeline source/provenance parameters",
+      "retention_class": "CHECKPOINT"
+    },
+    {
+      "path": "evidence/active/B1_RUNTIME_GENERATION_REPORT.json",
+      "role": "generation/reconciliation/alias mapping summary",
+      "retention_class": "CHECKPOINT"
+    }
+  ],
+  "pipeline": {
+    "tool": "tools/tabular-catalog-pipeline.mjs",
+    "qualified_commit": "537648500f3262fb14d14837bc6cc7b060a0c954",
+    "adr": "ADR-037 + ADR-040 + ADR-042",
+    "node_version": "24.19.0",
+    "parameters": {
+      "source_manifest": "catalogs/fr-es/b1/source-manifest.json",
+      "cefr_level": "B1"
+    }
+  },
+  "rematerialization": {
+    "result": "PASS",
+    "run_id": "35461798866",
+    "artifact_id": "10590550224",
+    "artifact_digest": "sha256:6875bfb0079543a6848ef511496fd4d9a2f750945436b984120180e822aab922",
+    "determinism": "PASS_BYTE_IDENTICAL",
+    "retention_class": "QUALIFYING_EVIDENCE"
+  },
+  "runtime_outputs": {
+    "catalog_sha256": "bcaa9b78c3fb72571f89f2b997c06282cfaa0384dd994d515c738f25e792ce84",
+    "projection_sha256": "9042be51bf6a1eab8963123c103ded926ed8ea65db18b786ea55224eacd418aa",
+    "manifest_sha256": "57e78b67f6522660e8308004f3a5897ae11f70d115d2c49718f62789bd33a873",
+    "cumulative_entries": 2246,
+    "new_entries": 1179,
+    "reconciled_entries": 6,
+    "alias_rows": 4
+  },
+  "final_qa": {
+    "result": "PASS",
+    "candidate_sha": "b4e635b963887e6c54956a3b817831e3ad035cf3",
+    "run_id": "35468988837",
+    "artifact_id": "10592900346",
+    "artifact_digest": "sha256:c7f9dedf85fb2512959932d6439282d7f2a947a75b1a7234bc20719c6385fd7d",
+    "promotion_run": "35469123230 PASS",
+    "rebuild": "NO",
+    "retention_class": "QUALIFYING_EVIDENCE"
+  },
+  "reuse_contract": {
+    "lookup_order": [
+      "durability manifest/versioned repository",
+      "referenced CI artifacts",
+      "File Library when available",
+      "request retransmission only with documented absence/integrity failure"
+    ],
+    "match_keys": [
+      "canonical_input.decoded_csv_sha256",
+      "pipeline.qualified_commit",
+      "pipeline.parameters"
+    ],
+    "exact_match_action": "REUSE_OR_NO_OP",
+    "mismatch_action": "RECOMPUTE_OR_FAIL_CLOSED"
+  },
+  "retention_policy": {
+    "keep": [
+      "active CHECKPOINT",
+      "QUALIFYING_EVIDENCE references"
+    ],
+    "archive_or_delete": [
+      "superseded WIP_RECOVERABLE with no recovery value"
+    ]
+  }
+}
