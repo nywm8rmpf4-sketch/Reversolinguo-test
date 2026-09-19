@@ -247,7 +247,7 @@ test('reports a newly introduced reverse-prompt collision until explicit version
       [BASE_ID]: { 'fr-es': 'Anatomie : partie du corps au bout du bras.' }
     }
   })
-  assert.equal(accepted.valid, true)
+  assert.equal(accepted.valid, true, accepted.exceptions.join('|'))
   const projection = JSON.parse(accepted.outputs.projectionText)
   assert.equal(Object.keys(projection.prompt_contexts).length, 2)
 })
