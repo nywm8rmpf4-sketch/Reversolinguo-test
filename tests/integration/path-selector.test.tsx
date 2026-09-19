@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PathSelector } from '../../src/app/PathSelector'
 import { adultPackIdFor, defaultPathPreferences, schoolPackIdFor, summarizePath, type PathPreferences } from '../../src/domain/pathSelection'
 import { messages } from '../../src/i18n/messages'
+import { canonicalCatalogEntries } from '../../src/content/catalog'
 
 afterEach(() => cleanup())
 
@@ -35,11 +36,17 @@ describe('PACK-7 R6 selector UI', () => {
     expect(screen.getByText('International · A1 + A2')).toBeVisible()
     const adultCount = summarizePath({
       audience: 'adult',
-      selectedPackIds: [adultPackIdFor('A1'), adultPackIdFor('A2')],
+      selectedPackIds: [adultPackIdFor('A1'), adultPackIdFor('A2'), adultPackIdFor('B1')],
       selectedThemeIds: [],
       reviewScope: 'all-due'
     }).sourceCount
     expectSourceCount(adultCount)
+
+    const activeB1Count = canonicalCatalogEntries.filter((entry) => entry.status !== 'withdrawn' && entry.cefr_level === 'B1').length
+    expect(activeB1Count).toBeGreaterThan(0)
+    await user.click(screen.getByRole('checkbox', { name: 'B1' }))
+    expect(screen.getByText('International · A1 + A2 + B1')).toBeVisible()
+    expectSourceCount(adultCount + activeB1Count)
 
     const schoolTheme = screen.getByRole('checkbox', { name: /École et études/u })
     const foodTheme = screen.getByRole('checkbox', { name: /Alimentation/u })
