@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { resolve } from 'node:path'
 import {
   CANONICAL_COLUMNS,
   runTabularCatalogPipeline,
@@ -99,18 +100,39 @@ function source(csvText, overrides = {}) {
   }
 }
 
-function run(rows, sourceOverrides = {}) {
+function run(rows, sourceOverrides = {}, sourceManifestRepoPath = 'catalogs/fr-es/import/fixture/SOURCE_MANIFEST.json') {
   const csvText = serializeCanonicalCsv(rows)
   const sourceManifestText = `${JSON.stringify(source(csvText, sourceOverrides), null, 2)}\n`
   return runTabularCatalogPipeline({
     csvText,
     sourceManifestText,
-    sourceManifestRepoPath: 'catalogs/fr-es/import/fixture/SOURCE_MANIFEST.json',
+    sourceManifestRepoPath,
     baselineCatalogText: baseline().catalogText,
     baselineProjectionText: baseline().projectionText,
     baselineManifestText: baseline().manifestText
   })
 }
+
+
+test('canonicalizes source manifest provenance so absolute and relative invocations are byte-identical', () => {
+  const relativePath = 'catalogs/fr-es/import/fixture/SOURCE_MANIFEST.json'
+  const absolutePath = resolve(process.cwd(), relativePath)
+  const relativeRun = run([row()], {}, relativePath)
+  const absoluteRun = run([row()], {}, absolutePath)
+  assert.equal(relativeRun.valid, true, relativeRun.exceptions.join('|'))
+  assert.equal(absoluteRun.valid, true, absoluteRun.exceptions.join('|'))
+  assert.deepEqual(relativeRun.outputs, absoluteRun.outputs)
+  const projection = JSON.parse(relativeRun.outputs.projectionText)
+  assert.equal(projection.source.artifact, relativePath)
+})
+
+test('fails closed when source manifest provenance resolves outside the repository root', () => {
+  const outsidePath = resolve(process.cwd(), '..', 'outside', 'SOURCE_MANIFEST.json')
+  const result = run([row()], {}, outsidePath)
+  assert.equal(result.valid, false)
+  assert.equal(result.outputs, undefined)
+  assert.ok(result.exceptions.some((error) => error.includes('SOURCE_MANIFEST_PATH_OUTSIDE_ROOT')))
+})
 
 test('builds byte-identical runtime outputs from the same canonical B1 input', () => {
   const first = run([row()])
