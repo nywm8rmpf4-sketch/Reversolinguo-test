@@ -92,8 +92,10 @@ jobs:
         run: |
           set -euo pipefail
           dist_bytes="$(find dist -type f -printf '%s\n' | awk '{sum += $1} END {print sum+0}')"
+          max_file_bytes="$(find dist -type f -printf '%s\n' | awk 'max < $1 { max = $1 } END { print max+0 }')"
           echo "dist uncompressed bytes: $dist_bytes"
-          test "$dist_bytes" -le 3145728
+          echo "largest dist file bytes: $max_file_bytes"
+          test "$max_file_bytes" -le 3145728
           grep -Fq "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" dist/index.html
           grep -Eq 'src="\./assets/' dist/index.html
           grep -Fq 'href="./manifest.webmanifest"' dist/index.html

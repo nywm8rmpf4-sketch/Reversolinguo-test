@@ -167,6 +167,13 @@ test('public workflow contract exposes distinct editorial, infra, data-only, run
   assert.doesNotMatch(dataOnly, /playwright install/);
   assert.doesNotMatch(dataOnly, /test:e2e/);
 
+  for (const [name, workflow] of [['runtime', runtime], ['data-only', dataOnly]]) {
+    assert.ok(workflow.includes('echo "dist uncompressed bytes: $dist_bytes"'), `${name} workflow must retain total dist observability`);
+    assert.ok(workflow.includes('echo "largest dist file bytes: $max_file_bytes"'), `${name} workflow must report the largest individual precache asset`);
+    assert.ok(workflow.includes('test "$max_file_bytes" -le 3145728'), `${name} workflow must enforce the ADR-039/040 3 MiB per-file ceiling`);
+    assert.equal(workflow.includes('test "$dist_bytes" -le 3145728'), false, `${name} workflow must not misapply the per-file ceiling to aggregate dist size`);
+  }
+
   assert.match(editorial, /staging\/\*\*/);
   assert.match(editorial, /push:/);
   assert.doesNotMatch(editorial, /^\s*create:/m);
