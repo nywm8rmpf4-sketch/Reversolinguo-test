@@ -6,7 +6,7 @@ on:
       - 'assembly/b1-node-kit-r1'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   kit:
@@ -95,3 +95,47 @@ jobs:
           test "$(cat generated/b1/run1-exit-code.txt)" = "0"
           test "$(cat generated/b1/run2-exit-code.txt)" = "0"
           test "$(cat generated/b1/determinism.txt)" = "PASS_BYTE_IDENTICAL"
+
+      - name: Materialize immutable B1 data candidate from exact run1 outputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_BRANCH: data-candidate/b1-runtime-r2
+        run: |
+          set -euo pipefail
+          test "$(cat generated/b1/run1-exit-code.txt)" = "0"
+          test "$(cat generated/b1/run2-exit-code.txt)" = "0"
+          test "$(cat generated/b1/determinism.txt)" = "PASS_BYTE_IDENTICAL"
+          test "$(sha256sum generated/b1/run1/catalog.json | awk '{print $1}')" = "bcaa9b78c3fb72571f89f2b997c06282cfaa0384dd994d515c738f25e792ce84"
+          test "$(sha256sum generated/b1/run1/runtime-projection.json | awk '{print $1}')" = "9042be51bf6a1eab8963123c103ded926ed8ea65db18b786ea55224eacd418aa"
+          test "$(sha256sum generated/b1/run1/manifest.json | awk '{print $1}')" = "57e78b67f6522660e8308004f3a5897ae11f70d115d2c49718f62789bd33a873"
+
+          mkdir -p "$RUNNER_TEMP/b1-runtime"
+          cp generated/b1/run1/catalog.json "$RUNNER_TEMP/b1-runtime/catalog.json"
+          cp generated/b1/run1/runtime-projection.json "$RUNNER_TEMP/b1-runtime/runtime-projection.json"
+          cp generated/b1/run1/manifest.json "$RUNNER_TEMP/b1-runtime/manifest.json"
+
+          git fetch origin main --quiet
+          git checkout --detach origin/main
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cp "$RUNNER_TEMP/b1-runtime/catalog.json" public/catalogs/runtime/catalog.json
+          cp "$RUNNER_TEMP/b1-runtime/runtime-projection.json" public/catalogs/runtime/runtime-projection.json
+          cp "$RUNNER_TEMP/b1-runtime/manifest.json" public/catalogs/runtime/manifest.json
+
+          mapfile -t changed < <(git diff --name-only)
+          printf '%s\n' "${changed[@]}"
+          test "${#changed[@]}" -eq 3
+          test "${changed[0]}" = "public/catalogs/runtime/catalog.json"
+          test "${changed[1]}" = "public/catalogs/runtime/manifest.json"
+          test "${changed[2]}" = "public/catalogs/runtime/runtime-projection.json"
+
+          git add public/catalogs/runtime/catalog.json public/catalogs/runtime/runtime-projection.json public/catalogs/runtime/manifest.json
+          git commit -m "data: B1 runtime r2"
+          candidate_sha="$(git rev-parse HEAD)"
+          echo "candidate_sha=$candidate_sha"
+          git ls-remote --exit-code origin "refs/heads/$CANDIDATE_BRANCH" >/dev/null 2>&1 && {
+            echo "ERROR: immutable candidate branch already exists" >&2
+            exit 1
+          } || true
+          git push origin "HEAD:refs/heads/$CANDIDATE_BRANCH"
