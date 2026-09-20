@@ -59,8 +59,6 @@ export const messages = {
   storageUnavailable: 'indisponible',
   direction: 'Sens d’apprentissage',
   directionHelper: 'Chaque sens conserve sa propre progression.',
-  changeDirectionCurrent: 'Changer de sens. Sens actuel : {direction}',
-  directionRestartConfirm: 'Vous avez commencé cette carte. Changer de sens recommencera la séance avec l’autre progression. Continuer ?',
   frEs: 'Français vers espagnol',
   esFr: 'Espagnol vers français',
   translateToSpanish: 'Traduisez en espagnol',

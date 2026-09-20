@@ -80,27 +80,14 @@ describe('accessible learning flow', () => {
     expect(screen.getByText('Chaque sens conserve sa propre progression.')).toBeVisible()
   })
 
-  it('switches an untouched session immediately and confirms after an answer has started', async () => {
+  it('keeps direction information non-interactive during a session', async () => {
     const user = userEvent.setup()
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
 
-    const switchButton = await screen.findByRole('button', { name: /Changer de sens/u })
-    await user.click(switchButton)
-    expect(confirmSpy).not.toHaveBeenCalled()
-    expect(await screen.findByText('Espagnol d’Espagne (es-ES) → Français (fr-FR)')).toBeVisible()
-    expect((await db.settings.get('settings'))?.direction).toBe('es-fr')
-
-    await user.type(screen.getByRole('textbox', { name: 'Votre réponse' }), 'main')
-    await user.click(screen.getByRole('button', { name: /Changer de sens/u }))
-    expect(confirmSpy).toHaveBeenCalledOnce()
-    expect(screen.getByText('Espagnol d’Espagne (es-ES) → Français (fr-FR)')).toBeVisible()
-
-    confirmSpy.mockReturnValue(true)
-    await user.click(screen.getByRole('button', { name: /Changer de sens/u }))
     expect(await screen.findByText('Français (fr-FR) → Espagnol d’Espagne (es-ES)')).toBeVisible()
+    expect(screen.queryByRole('button', { name: /Changer de sens/u })).not.toBeInTheDocument()
     expect((await db.settings.get('settings'))?.direction).toBe('fr-es')
   })
 
