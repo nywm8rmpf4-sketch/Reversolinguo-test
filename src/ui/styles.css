@@ -344,11 +344,21 @@ select:focus-visible,
   accent-color: var(--coral);
 }
 
-.session-header > span {
-  min-width: 2ch;
+.session-progress-meta {
+  display: grid;
+  min-width: 7.5rem;
+  gap: .2rem;
   color: var(--navy-strong);
+  font-size: .78rem;
   font-weight: 750;
   text-align: right;
+}
+
+.card-state {
+  color: var(--coral-dark);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 .undo-banner {
@@ -386,9 +396,24 @@ select:focus-visible,
   min-height: calc(100vh - 7rem);
   margin-top: 1rem;
   text-align: center;
-  background:
-    radial-gradient(circle at 92% 8%, rgba(244, 201, 93, .16) 0 3rem, transparent 3.1rem),
-    rgba(255, 253, 248, .98);
+  background-color: rgba(255, 253, 248, .98);
+  background-image:
+    linear-gradient(rgba(255, 253, 248, .88), rgba(255, 253, 248, .88)),
+    var(--flashcard-theme-image, none);
+  background-position: center;
+  background-size: cover;
+}
+
+.language-route {
+  align-self: center;
+  margin-bottom: .45rem;
+  padding: .35rem .7rem;
+  color: var(--navy-strong);
+  background: rgba(255, 253, 248, .9);
+  border: 1px solid rgba(36, 67, 90, .14);
+  border-radius: 999px;
+  font-size: .76rem;
+  font-weight: 750;
 }
 
 .flashcard h1 {
@@ -618,4 +643,9 @@ button:not(:disabled):active, .file-button:active { transform: translateY(1px); 
 @media (min-width: 700px) {
   .shell { padding-inline: 2rem; }
   .hero-card, .panel, .flashcard { padding: 2rem; }
+}
+
+@media (forced-colors: active), (prefers-contrast: more) {
+  .flashcard { background-image: none; }
+  .language-route { border: 1px solid currentColor; }
 }

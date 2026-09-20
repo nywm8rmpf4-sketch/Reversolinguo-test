@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { FormattedMessage, IntlProvider, useIntl } from 'react-intl'
 import { ensureCatalogSchedules } from './bootstrap'
 import { PathSelector } from './PathSelector'
@@ -14,12 +14,13 @@ import { summarizeProgress, type ProgressSummary } from '../domain/progress'
 import { remainingDailyNew, reviewSchedule } from '../domain/scheduler'
 import { entryIdsForReviewScope, orderSelectedSession, reviewsForSelection, statesForSelection } from '../domain/selectionSession'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
-import { activeLanguagePair, examplesFor, expectedFor, getDirectionConfig, promptContextFor, promptFor } from '../i18n/languagePairs'
+import { activeLanguagePair, directionDisplayLabel, examplesFor, expectedFor, getDirectionConfig, promptContextFor, promptFor } from '../i18n/languagePairs'
 import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
 import { messages } from '../i18n/messages'
 import { applyServiceWorkerUpdate } from '../pwa/update'
 import { playSound } from '../audio/engine'
 import { isSoundMode, type SoundEvent } from '../audio/model'
+import { themeBackgroundFor } from '../ui/themeBackgrounds'
 import '../ui/styles.css'
 
 type Screen = 'loading' | 'onboarding' | 'home' | 'paths' | 'session' | 'settings' | 'vocabulary' | 'complete'
@@ -30,6 +31,12 @@ const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, lea
 const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
 const catalogEntryIds = new Set(catalog.map((item) => item.id))
 const ratingSound: Record<Rating, SoundEvent> = { 0: 'forgotten', 1: 'hard', 2: 'correct', 3: 'easy' }
+
+function cardStateMessageId(state: ScheduleState['state']): MessageId {
+  if (state === 'NEW') return 'cardStateNew'
+  if (state === 'REVIEW') return 'cardStateReview'
+  return 'cardStateLearning'
+}
 
 function challenge(summary: ProgressSummary, configuredDailyNew: number, remainingNew: number, freeReviewAvailable: boolean): { id: MessageId; values?: { count: number } } {
   if (summary.dueCount > 0) return { id: 'challengeDue', values: { count: Math.min(3, summary.dueCount) } }
@@ -132,6 +139,8 @@ function AppContent() {
   const comparison = directionConfig && answer.trim() ? bestAnswerDifference(answer, expected, directionConfig.answerLanguage) : { expected: expected[0] ?? '', difference: 'spelling' as const }
   const answerMatches = comparison.difference === 'exact'
   const examples = entry && current ? examplesFor(entry, current.direction) : null
+  const themeBackground = entry ? themeBackgroundFor(entry.theme) : null
+  const flashcardStyle = themeBackground ? ({ '--flashcard-theme-image': `url("${themeBackground}")` } as CSSProperties) : undefined
 
   async function persistSettings(patch: Partial<SettingsRecord>) {
     const next: SettingsRecord = { ...settings, ...patch, id: 'settings' }
@@ -389,10 +398,10 @@ function AppContent() {
   const modePrefix = sessionMode === 'free' ? `${intl.formatMessage({ id: 'freeReviewLabel' })} · ` : sessionMode === 'exploration' ? `${intl.formatMessage({ id: 'explorationLabel' })} · ` : ''
   const differenceMessage: MessageId = comparison.difference === 'accent' ? 'differenceAccent' : comparison.difference === 'article-or-gender' ? 'differenceArticleGender' : 'differenceSpelling'
   return (
-    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only"><FormattedMessage id="closeSession" /></span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label={intl.formatMessage({ id: 'sessionProgress' })}/><span>{queue.length}</span></header>
+    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only"><FormattedMessage id="closeSession" /></span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label={intl.formatMessage({ id: 'sessionProgress' })}/><div className="session-progress-meta"><span><FormattedMessage id="sessionPosition" values={{ current: Math.max(1, sessionTotal - queue.length + 1), total: Math.max(1, sessionTotal) }} /></span><span className="card-state"><FormattedMessage id={cardStateMessageId(current?.state ?? 'NEW')} /></span></div></header>
       {lastReview && sessionMode === 'scheduled' && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {notice && <p className="notice" role="alert">{notice}</p>}
-      {entry && current && directionConfig && examples && <section className="flashcard" aria-live="polite"><span className="direction-label">{modePrefix}<FormattedMessage id={directionConfig.promptMessageId} /></span><h1 lang={directionConfig.promptLanguage} dir="auto">{prompt}</h1>{promptContext && <p className="prompt-context" lang={directionConfig.promptLanguage} dir="auto">{promptContext}</p>}<label htmlFor="answer"><FormattedMessage id="answerLabel" /></label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} lang={directionConfig.answerLanguage} />
+      {entry && current && directionConfig && examples && <section className="flashcard" aria-live="polite" data-theme={entry.theme} style={flashcardStyle}><span className="language-route">{directionDisplayLabel(directionConfig)}</span><span className="direction-label">{modePrefix}<FormattedMessage id={directionConfig.promptMessageId} /></span><h1 lang={directionConfig.promptLanguage} dir="auto">{prompt}</h1>{promptContext && <p className="prompt-context" lang={directionConfig.promptLanguage} dir="auto">{promptContext}</p>}<label htmlFor="answer"><FormattedMessage id="answerLabel" /></label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} lang={directionConfig.answerLanguage} />
         {!revealed ? <><button className="primary" onClick={revealAnswer} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={unknownAnswer ? 'answer-review' : answerMatches ? 'answer-ok' : 'answer-review'}>{unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? <FormattedMessage id="answerExact" /> : <FormattedMessage id="answerCompare" />}</p>{!unknownAnswer && !answerMatches && <div className="answer-difference"><p><FormattedMessage id="answerGiven" values={{ answer }} /></p><p><strong><FormattedMessage id={differenceMessage} /></strong></p><p><FormattedMessage id="answerExpected" values={{ expected: comparison.expected }} /></p></div>}<h2 lang={directionConfig.answerLanguage} dir="auto">{comparison.expected || expected[0]}</h2><p><span lang={directionConfig.promptLanguage} dir="auto">{examples.prompt}</span><br/><span lang={directionConfig.answerLanguage} dir="auto">{examples.answer}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend><FormattedMessage id="recallRating" /></legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
       </section>}
     </main>

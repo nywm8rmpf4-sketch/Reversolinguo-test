@@ -11,6 +11,10 @@ export interface DirectionConfig {
   promptMessageId: string
   selectMessageId: string
   displayMessageId: string
+  promptLocale?: string
+  answerLocale?: string
+  promptLanguageName?: string
+  answerLanguageName?: string
 }
 
 export interface LanguagePairConfig {
@@ -35,7 +39,11 @@ export const activeLanguagePair: LanguagePairConfig = {
       answerLanguage: 'es',
       promptMessageId: 'translateToSpanish',
       selectMessageId: 'frEs',
-      displayMessageId: 'vocabularyFrEs'
+      displayMessageId: 'vocabularyFrEs',
+      promptLocale: 'fr-FR',
+      answerLocale: 'es-ES',
+      promptLanguageName: 'Français',
+      answerLanguageName: 'Espagnol d’Espagne'
     },
     {
       id: 'es-fr',
@@ -45,11 +53,23 @@ export const activeLanguagePair: LanguagePairConfig = {
       answerLanguage: 'fr',
       promptMessageId: 'translateToFrench',
       selectMessageId: 'esFr',
-      displayMessageId: 'vocabularyEsFr'
+      displayMessageId: 'vocabularyEsFr',
+      promptLocale: 'es-ES',
+      answerLocale: 'fr-FR',
+      promptLanguageName: 'Espagnol d’Espagne',
+      answerLanguageName: 'Français'
     }
   ],
   voices: [],
   resources: []
+}
+
+export function directionDisplayLabel(config: DirectionConfig): string {
+  const prompt = config.promptLanguageName ?? config.promptLanguage
+  const answer = config.answerLanguageName ?? config.answerLanguage
+  const promptLocale = config.promptLocale ? ` (${config.promptLocale})` : ''
+  const answerLocale = config.answerLocale ? ` (${config.answerLocale})` : ''
+  return `${prompt}${promptLocale} → ${answer}${answerLocale}`
 }
 
 export function getDirectionConfig(direction: Direction, pair = activeLanguagePair): DirectionConfig {
