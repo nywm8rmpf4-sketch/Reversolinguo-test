@@ -27,6 +27,65 @@ async function expectPersistedOfflineProgress(page: import('@playwright/test').P
   await expect(page.getByRole('textbox', { name: 'Votre réponse' })).toBeVisible()
 }
 
+async function openExactDueCard(page: import('@playwright/test').Page, entryId: string) {
+  await page.evaluate(async (requestedEntryId) => {
+    const request = indexedDB.open('reversolinguo')
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(['schedules', 'settings'], 'readwrite')
+      const schedules = transaction.objectStore('schedules')
+      const scheduleRequest = schedules.get(`${requestedEntryId}:fr-es`)
+      scheduleRequest.onsuccess = () => {
+        if (!scheduleRequest.result) {
+          transaction.abort()
+          reject(new Error(`Missing schedule for ${requestedEntryId}`))
+          return
+        }
+        schedules.put({
+          ...scheduleRequest.result,
+          state: 'REVIEW',
+          intervalDays: 3,
+          dueAt: new Date(Date.now() - 60_000).toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+      }
+
+      const settings = transaction.objectStore('settings')
+      const settingsRequest = settings.get('settings')
+      settingsRequest.onsuccess = () => settings.put({
+        ...settingsRequest.result,
+        soundMode: 'off',
+        motionEnabled: false
+      })
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+      transaction.onabort = () => reject(transaction.error ?? new Error('IndexedDB transaction aborted'))
+    })
+    database.close()
+  }, entryId)
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Réviser maintenant' }).click()
+  await expect(page.locator('.flashcard')).toBeVisible()
+}
+
+async function expectStableResponsiveCard(page: import('@playwright/test').Page, expectedTheme: string) {
+  const card = page.locator('.flashcard')
+  await expect(card).toHaveAttribute('data-theme', expectedTheme)
+  const rectoBackground = await card.evaluate((element) => getComputedStyle(element).backgroundImage)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+
+  await page.getByRole('button', { name: 'Je ne sais pas' }).click()
+  await expect(page.locator('.correction')).toBeVisible()
+  await expect(card).toHaveAttribute('data-theme', expectedTheme)
+  expect(await card.evaluate((element) => getComputedStyle(element).backgroundImage)).toBe(rectoBackground)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+}
+
 test('onboarding and first recall', async ({ page }) => {
   await onboard(page)
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
@@ -45,6 +104,24 @@ test('learning direction can be reversed on home but not during a session', asyn
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByText('Espagnol d’Espagne (es-ES) → Français (fr-FR)')).toBeVisible()
   await expect(page.getByRole('button', { name: /Changer de sens/u })).toHaveCount(0)
+})
+
+test('a multitheme card uses its deterministic primary theme on both faces without audio', async ({ page }) => {
+  await onboard(page)
+  await openExactDueCard(page, '97cccb34-ce0e-520f-9c02-081b30a17e2f')
+
+  await expect(page.getByRole('heading', { name: 'être' })).toBeVisible()
+  await expect(page.getByText('Thème : Identité')).toBeVisible()
+  await expectStableResponsiveCard(page, 'identite')
+})
+
+test('the longest representative card wraps without horizontal overflow on both faces', async ({ page }) => {
+  await onboard(page)
+  await openExactDueCard(page, '9da47870-240d-54dc-a24e-54bb1ed6f656')
+
+  await expect(page.getByRole('heading', { name: 'activer la vérification en deux étapes' })).toBeVisible()
+  await expect(page.getByText('Thème : Numérique')).toBeVisible()
+  await expectStableResponsiveCard(page, 'numerique')
 })
 
 test('installed shell and progress remain usable offline', async ({ page, context, browserName }) => {
