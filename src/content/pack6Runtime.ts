@@ -54,6 +54,7 @@ for (const entry of canonicalEntries) {
 const adultA1EntryIds = activeByLevel.get('A1') ?? []
 const adultA2EntryIds = activeByLevel.get('A2') ?? []
 const adultB1EntryIds = activeByLevel.get('B1') ?? []
+const adultB2EntryIds = activeByLevel.get('B2') ?? []
 const boundProjection = boundRuntimeProjection()
 
 function relation(entry_id: string, priority: number, theme?: CanonicalThemeId, introducedIn = runtimeCatalogVersion): PackEntry {
@@ -112,6 +113,7 @@ function adultEntriesForLevel(level: string): string[] {
   if (level === 'A1') return adultA1EntryIds
   if (level === 'A2') return adultA2EntryIds
   if (level === 'B1') return adultB1EntryIds
+  if (level === 'B2') return adultB2EntryIds
   return []
 }
 
@@ -164,7 +166,7 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
   if (new Set(pack6BPromotedEntryIds).size !== pack6BPromotedEntryIds.length) errors.push('pack6b-promoted-duplicates')
   if (macroPromotedSet.size !== a1MacroPromotedEntryIds.length) errors.push('a1-macro-promoted-duplicates')
 
-  for (const [level, entryIds] of [['A1', adultA1EntryIds], ['A2', adultA2EntryIds], ['B1', adultB1EntryIds]] as const) {
+  for (const [level, entryIds] of [['A1', adultA1EntryIds], ['A2', adultA2EntryIds], ['B1', adultB1EntryIds], ['B2', adultB2EntryIds]] as const) {
     if (entryIds.length !== new Set(entryIds).size) errors.push(`adult-${level.toLowerCase()}-duplicates`)
     if (entryIds.some((entryId) => !canonicalEntryIds.has(entryId))) errors.push(`adult-${level.toLowerCase()}-unknown-entry`)
   }
@@ -202,6 +204,13 @@ export function validatePack6BRuntime(): Pack6BRuntimeValidationResult {
   else {
     const expectedCumulative = new Set([...adultA1EntryIds, ...adultA2EntryIds, ...adultB1EntryIds]).size
     if (resolveLearningPack(adultB1.pack_id, pack6BAdultPacks).length !== expectedCumulative) errors.push(`adult-b1-effective-count:${expectedCumulative}`)
+  }
+
+  const adultB2 = pack6BAdultPacks.find((pack) => pack.pack_id === adultPackId('B2'))
+  if (!adultB2 || adultB2.entries.length !== adultB2EntryIds.length) errors.push(`adult-b2-direct-count:${adultB2?.entries.length ?? 0}/${adultB2EntryIds.length}`)
+  else {
+    const expectedCumulative = new Set([...adultA1EntryIds, ...adultA2EntryIds, ...adultB1EntryIds, ...adultB2EntryIds]).size
+    if (resolveLearningPack(adultB2.pack_id, pack6BAdultPacks).length !== expectedCumulative) errors.push(`adult-b2-effective-count:${expectedCumulative}`)
   }
 
   if (boundProjection) {

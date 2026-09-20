@@ -134,13 +134,14 @@ test('legacy progress import remains usable under the strict browser CSP', async
     reviews: [],
     settings: [{ id: 'settings', onboarded: true, direction: 'fr-es', dailyNew: 5 }]
   })
-  await page.locator('input[type="file"]').setInputFiles({
-    name: 'reversolinguo-legacy.json',
-    mimeType: 'application/json',
-    buffer: Buffer.from(backup)
-  })
-
-  await page.waitForLoadState('domcontentloaded')
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+    page.locator('input[type="file"]').setInputFiles({
+      name: 'reversolinguo-legacy.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(backup)
+    })
+  ])
   await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible({ timeout: 5_000 })
   await expect(page.getByText('International · A1')).toBeVisible()
 })

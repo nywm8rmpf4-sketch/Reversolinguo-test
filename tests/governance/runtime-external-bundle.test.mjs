@@ -50,4 +50,7 @@ test('PWA precaches external JSON without increasing the ADR-039 ceiling', () =>
   const vite = read('vite.config.ts')
   assert.match(vite, /globPatterns:.*json/u)
   assert.match(vite, /maximumFileSizeToCacheInBytes:\s*3 \* 1024 \* 1024/u)
+  assert.ok(Buffer.byteLength(read('public/catalogs/runtime/catalog.json'), 'utf8') <= 3 * 1024 * 1024)
+  assert.ok(Buffer.byteLength(read('public/catalogs/runtime/runtime-projection.json'), 'utf8') <= 3 * 1024 * 1024)
+  assert.ok(Buffer.byteLength(read('public/catalogs/runtime/manifest.json'), 'utf8') <= 3 * 1024 * 1024)
 })

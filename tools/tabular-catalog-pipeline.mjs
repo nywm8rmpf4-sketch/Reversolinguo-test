@@ -48,7 +48,7 @@ function sha256(value) {
 }
 
 function stableJson(value) {
-  return `${JSON.stringify(value, null, 2)}\n`
+  return `${JSON.stringify(value)}\n`
 }
 
 function canonicalRepoPath(value) {
@@ -526,6 +526,7 @@ export function runTabularCatalogPipeline({
       exceptions.push(`projection-unresolved-entry:${reviewId}`)
       continue
     }
+    const projectionTheme = text(entryById.get(entryId)?.themes?.[0]) || text(row.theme)
     for (const track of ['LVA', 'LVB']) {
       const rawGrade = track === 'LVA' ? text(row.school_lva) : text(row.school_lvb)
       if (!rawGrade) continue
@@ -534,12 +535,12 @@ export function runTabularCatalogPipeline({
         exceptions.push(`projection:${reviewId}:${error.message}`)
         continue
       }
-      school.push({ review_id: reviewId, entry_id: entryId, track, grade, theme: text(row.theme) })
+      school.push({ review_id: reviewId, entry_id: entryId, track, grade, theme: projectionTheme })
     }
     const pathId = text(row.path_id)
     const pathLevel = text(row.path_level)
     if ((pathId && !pathLevel) || (!pathId && pathLevel)) exceptions.push(`projection:${reviewId}:incomplete-theme-path`)
-    if (pathId && pathLevel) themePaths.push({ entry_id: entryId, path_id: pathId, cefr_level: pathLevel, theme: text(row.theme) })
+    if (pathId && pathLevel) themePaths.push({ entry_id: entryId, path_id: pathId, cefr_level: pathLevel, theme: projectionTheme })
   }
 
   const projection = {
@@ -558,11 +559,16 @@ export function runTabularCatalogPipeline({
   }
 
   const seenSchool = new Set()
+  const schoolRelationThemes = new Map()
   for (const assignment of school) {
     if (!cumulativeCatalog.some((entry) => entry.entry_id === assignment.entry_id)) exceptions.push(`projection-unknown-entry:${assignment.entry_id}`)
     const sourceKey = `${assignment.review_id}:${assignment.track}`
     if (seenSchool.has(sourceKey)) exceptions.push(`projection-duplicate-source:${sourceKey}`)
     seenSchool.add(sourceKey)
+    const relationKey = `${assignment.track}:${assignment.grade}:${assignment.entry_id}`
+    const previousTheme = schoolRelationThemes.get(relationKey)
+    if (previousTheme && previousTheme !== assignment.theme) exceptions.push(`projection-conflicting-theme:${relationKey}`)
+    else schoolRelationThemes.set(relationKey, assignment.theme)
   }
 
   const seenPaths = new Set()

@@ -24,7 +24,7 @@ describe('catalog manifest hash integrity', () => {
   })
 
   it('accepts a non-integrity manifest metadata change when hashes remain exact', async () => {
-    const changedMetadata = manifestText.replace('"license": "CC BY 4.0"', '"license": "internal-test-label"')
+    const changedMetadata = JSON.stringify({ ...JSON.parse(manifestText), license: 'internal-test-label' })
     await expect(verify(catalogText, projectionText, changedMetadata)).resolves.toEqual({ ok: true })
   })
 
@@ -37,7 +37,7 @@ describe('catalog manifest hash integrity', () => {
   })
 
   it('rejects a malformed catalog hash in the manifest', async () => {
-    const invalid = manifestText.replace(/"catalog_sha256": "[0-9a-f]{64}"/u, '"catalog_sha256": "invalid"')
+    const invalid = JSON.stringify({ ...JSON.parse(manifestText), catalog_sha256: 'invalid' })
     await expect(verify(catalogText, projectionText, invalid)).resolves.toEqual({ ok: false, reason: 'invalid-manifest' })
   })
 })
