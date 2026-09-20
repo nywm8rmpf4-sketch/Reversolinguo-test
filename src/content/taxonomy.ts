@@ -1,4 +1,4 @@
-import canonicalEntries from '../../catalogs/fr-es/a1/catalog.json'
+import { runtimeBundleState } from './runtimeState'
 
 export const canonicalThemes = [
   { id: 'identite', label_fr: 'Identité' },
@@ -34,6 +34,8 @@ interface CanonicalThemeEntry {
   entry_id: string
   themes: string[]
 }
+
+const canonicalEntries = runtimeBundleState().catalog as CanonicalThemeEntry[]
 
 export const v1_0_1ThemeAssignments: LexicalThemeAssignment[] = [
   { entry_id: '69046998-47e6-5570-b469-5a5cc961a97e', theme_ids: ['corps-sante'] },
