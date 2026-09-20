@@ -81,6 +81,10 @@ describe('canonical thematic taxonomy', () => {
     expect(themeIdsForEntry('fe984172-dd41-546e-ac2e-18f679281f6b')).toEqual(['maison', 'ville-services'])
   })
 
+  it('resolves themes from the complete verified runtime catalogue beyond A1', () => {
+    expect(themeIdsForEntry('9da47870-240d-54dc-a24e-54bb1ed6f656')).toEqual(['numerique'])
+  })
+
   it('reports orphan entry and theme references', () => {
     const result = validateTaxonomyAssignments([
       { entry_id: 'missing-entry', theme_ids: ['communication'] },
