@@ -6,6 +6,7 @@ export interface ProgressSummary {
   total: number
   newCount: number
   dueCount: number
+  difficultCount: number
   learningCount: number
   consolidatedCount: number
   coveragePercent: number
@@ -31,6 +32,7 @@ export function summarizeProgress(states: ScheduleState[], reviews: ReviewEvent[
     total: states.length,
     newCount: states.filter((state) => state.state === 'NEW').length,
     dueCount: states.filter((state) => state.state !== 'NEW' && state.state !== 'SUSPENDED' && new Date(state.dueAt) <= now).length,
+    difficultCount: states.filter((state) => state.state === 'RELEARNING').length,
     learningCount: states.filter((state) => state.state === 'LEARNING' || state.state === 'RELEARNING').length,
     consolidatedCount: states.filter((state) => state.state === 'REVIEW' && state.intervalDays >= 21).length,
     coveragePercent: states.length ? Math.round((studied / states.length) * 100) : 0,

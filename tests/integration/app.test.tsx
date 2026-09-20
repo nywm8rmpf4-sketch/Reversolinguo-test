@@ -32,7 +32,8 @@ describe('accessible learning flow', () => {
     const input = await screen.findByRole('textbox', { name: 'Votre réponse' })
     await user.type(input, 'la mano')
     await user.click(screen.getByRole('button', { name: 'Voir la réponse' }))
-    expect(screen.getByText('Réponse identique ✓')).toBeVisible()
+    expect(screen.getByText('Correct', { selector: '.correction strong' })).toBeVisible()
+    expect(screen.getByText(/Réponse identique/u)).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Correct' }))
     expect((await db.schedules.get(`${MANO_ID}:fr-es`))?.state).toBe('LEARNING')
     await user.click(await screen.findByRole('button', { name: 'Annuler le dernier rappel' }))
@@ -150,6 +151,28 @@ describe('accessible learning flow', () => {
     expect(screen.queryByRole('button', { name: 'Découvrir maintenant' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Réviser librement' })).toBeVisible()
     expect(screen.getByText(/aucune séance planifiée/u)).toBeVisible()
+  })
+
+  it('offers a focused free review for cards in relearning', async () => {
+    const user = userEvent.setup()
+    await db.settings.put({ ...defaultSettings, onboarded: true, dailyNew: 0 })
+    await ensureCatalogSchedules(db)
+    await db.schedules.update(`${MANO_ID}:fr-es`, {
+      state: 'RELEARNING',
+      learningStep: 0,
+      intervalDays: 0,
+      dueAt: new Date(Date.now() + 600_000).toISOString(),
+      updatedAt: new Date().toISOString()
+    })
+
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Cartes en difficulté' })).toBeVisible()
+    const focusedReview = await screen.findByRole('button', { name: 'Revoir librement' })
+    expect(focusedReview).toBeVisible()
+    await user.click(focusedReview)
+
+    expect(await screen.findByRole('heading', { name: 'la main' })).toBeVisible()
+    expect(screen.getByText(/Révision libre · Traduisez en espagnol/u)).toBeVisible()
   })
 
   it('replays a studied card freely without changing SRS state or statistics', async () => {

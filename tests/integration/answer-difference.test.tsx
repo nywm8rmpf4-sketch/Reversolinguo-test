@@ -20,6 +20,7 @@ describe('visible answer differences', () => {
     await user.type(input, 'mano')
     await user.click(screen.getByRole('button', { name: 'Voir la réponse' }))
 
+    expect(screen.getByText('Presque', { selector: '.correction strong' })).toBeVisible()
     expect(screen.getByText('Votre réponse : mano')).toBeVisible()
     expect(screen.getByText('Différence d’article ou de genre')).toBeVisible()
     expect(screen.getByText('Réponse attendue : la mano')).toBeVisible()

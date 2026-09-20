@@ -27,7 +27,7 @@ type Screen = 'loading' | 'onboarding' | 'home' | 'paths' | 'session' | 'setting
 type SessionMode = 'scheduled' | 'free' | 'exploration'
 type MessageId = keyof typeof messages
 
-const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
+const emptyProgress: ProgressSummary = { total: 0, newCount: 0, dueCount: 0, difficultCount: 0, learningCount: 0, consolidatedCount: 0, coveragePercent: 0, recallRate30d: null, effortPoints: 0, activeDays7: 0 }
 const catalogThemes = new Map(catalog.map((item) => [item.id, item.theme]))
 const catalogEntryIds = new Set(catalog.map((item) => item.id))
 const ratingSound: Record<Rating, SoundEvent> = { 0: 'forgotten', 1: 'hard', 2: 'correct', 3: 'easy' }
@@ -193,7 +193,7 @@ function AppContent() {
     setNotice('')
   }
 
-  async function startSession() {
+  async function startSession(focus: 'all' | 'due' | 'new' = 'all') {
     const now = new Date()
     const [all, reviews] = await Promise.all([
       db.schedules.where('direction').equals(settings.direction).toArray(),
@@ -202,7 +202,12 @@ function AppContent() {
     const selectedOrder = new Map(pathSummary.selectedNewEntries.map((item, index) => [item.entry_id, index]))
     all.sort((a, b) => (selectedOrder.get(a.entryId) ?? Number.MAX_SAFE_INTEGER) - (selectedOrder.get(b.entryId) ?? Number.MAX_SAFE_INTEGER))
     const remainingNew = remainingDailyNew(reviews, settings.direction, now, settings.dailyNew)
-    const session = orderSelectedSession(all, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope, now, remainingNew, catalogThemes)
+    const ordered = orderSelectedSession(all, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope, now, remainingNew, catalogThemes)
+    const session = focus === 'due'
+      ? ordered.filter((state) => state.state !== 'NEW')
+      : focus === 'new'
+        ? ordered.filter((state) => state.state === 'NEW')
+        : ordered
     if (!session.length) {
       setNotice(intl.formatMessage({ id: 'noCardsAvailable' }))
       setScreen('home')
@@ -227,6 +232,12 @@ function AppContent() {
       return
     }
     openSession(session, 'free')
+  }
+
+  async function startDifficultReview() {
+    const all = await db.schedules.where('direction').equals(settings.direction).toArray()
+    const active = statesForSelection(all, pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope)
+    await startFreeReview(active.filter((state) => state.state === 'RELEARNING').map((state) => state.key))
   }
 
   async function startExploration() {
@@ -356,6 +367,7 @@ function AppContent() {
   if (screen === 'home') {
     const planned = progress.dueCount + Math.min(progress.newCount, newRemainingToday)
     const hasSession = planned > 0
+    const availableNew = Math.min(progress.newCount, newRemainingToday)
     const estimate = hasSession ? Math.max(1, Math.ceil(planned * 0.5)) : 0
     const challengeInfo = challenge(progress, settings.dailyNew, newRemainingToday, freeReviewAvailable)
     return (
@@ -365,14 +377,17 @@ function AppContent() {
         <section className="panel path-current"><span className="eyebrow"><FormattedMessage id="pathCurrent" /></span><h2>{labelForPath(pathSummary)}</h2><p className="helper">{pathSummary.frameworks.join(' + ')} · {pathSummary.frameworkVersions.join(' + ')}</p><p><FormattedMessage id="pathSelectedNewCount" values={{ count: pathSummary.selectedNewCount }} /></p><p className="helper"><FormattedMessage id={pathPreferences.reviewScope === 'selection-only' ? 'pathReviewSelectionOnly' : 'pathReviewAllDue'} /></p><button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button></section>
         <section className="hero-card"><span className="status"><span aria-hidden="true">●</span> <FormattedMessage id={offlineReady ? 'offlineReady' : 'preparingOffline'} /></span><h2><FormattedMessage id="tagline" /></h2>
           <p><FormattedMessage id="due" values={{ count: progress.dueCount }} /> · {hasSession ? <FormattedMessage id="sessionEstimate" values={{ minutes: estimate }} /> : <FormattedMessage id="noScheduledSession" />}</p>
-          {progress.dueCount > 0 && <button className="primary large" onClick={() => void startSession()}><FormattedMessage id="reviewNow" /></button>}
-          {progress.dueCount === 0 && progress.newCount > 0 && newRemainingToday > 0 && <button className="primary large" onClick={() => void startSession()}><FormattedMessage id="discoverNow" /></button>}
           {progress.dueCount === 0 && freeReviewAvailable && <button className="secondary" onClick={() => startFreeReview()}><FormattedMessage id="freeReview" /></button>}
           {dailySessionCompleted && <button className="secondary" onClick={() => void startExploration()}><FormattedMessage id="explorationOpen" /></button>}
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew === 0 && <button className="secondary" onClick={() => setScreen('settings')}><FormattedMessage id="editNewQuota" /></button>}
           {progress.dueCount === 0 && progress.newCount > 0 && settings.dailyNew > 0 && newRemainingToday === 0 && <p className="helper"><FormattedMessage id={freeReviewAvailable ? 'quotaReachedFree' : 'quotaReached'} /></p>}
           {progress.dueCount === 0 && progress.newCount === 0 && <p className="helper"><FormattedMessage id={freeReviewAvailable ? 'nothingDueFree' : 'nothingDue'} /></p>}
           {notice && <p className="notice" role="status">{notice}</p>}
+        </section>
+        <section className="home-actions" aria-label={intl.formatMessage({ id: 'homeActions' })}>
+          <article><strong>{progress.dueCount}</strong><h3><FormattedMessage id="dueActionTitle" /></h3>{progress.dueCount > 0 ? <button className="primary" onClick={() => void startSession('due')}><FormattedMessage id="reviewNow" /></button> : <p className="helper"><FormattedMessage id="noneForNow" /></p>}</article>
+          <article><strong>{availableNew}</strong><h3><FormattedMessage id="newActionTitle" /></h3>{availableNew > 0 ? <button className="secondary" onClick={() => void startSession('new')}><FormattedMessage id="discoverNow" /></button> : <p className="helper"><FormattedMessage id="noneForNow" /></p>}</article>
+          <article><strong>{progress.difficultCount}</strong><h3><FormattedMessage id="difficultActionTitle" /></h3>{progress.difficultCount > 0 ? <button className="secondary" onClick={() => void startDifficultReview()}><FormattedMessage id="reviewDifficult" /></button> : <p className="helper"><FormattedMessage id="noneForNow" /></p>}</article>
         </section>
         <section className="stats" aria-label={intl.formatMessage({ id: 'statsLabel' })}>
           <div><strong>{progress.newCount}</strong><span><FormattedMessage id="statNew" /></span></div><div><strong>{progress.learningCount}</strong><span><FormattedMessage id="statLearning" /></span></div>
@@ -413,12 +428,13 @@ function AppContent() {
 
   const modePrefix = sessionMode === 'free' ? `${intl.formatMessage({ id: 'freeReviewLabel' })} · ` : sessionMode === 'exploration' ? `${intl.formatMessage({ id: 'explorationLabel' })} · ` : ''
   const differenceMessage: MessageId = comparison.difference === 'accent' ? 'differenceAccent' : comparison.difference === 'article-or-gender' ? 'differenceArticleGender' : 'differenceSpelling'
+  const answerResultMessage: MessageId = unknownAnswer || comparison.difference === 'spelling' ? 'resultReview' : answerMatches ? 'resultCorrect' : 'resultAlmost'
   return (
     <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only"><FormattedMessage id="closeSession" /></span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label={intl.formatMessage({ id: 'sessionProgress' })}/><div className="session-progress-meta"><span><FormattedMessage id="sessionPosition" values={{ current: Math.max(1, sessionTotal - queue.length + 1), total: Math.max(1, sessionTotal) }} /></span><span className="card-state"><FormattedMessage id={cardStateMessageId(current?.state ?? 'NEW')} /></span></div></header>
       {lastReview && sessionMode === 'scheduled' && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {notice && <p className="notice" role="alert">{notice}</p>}
       {entry && current && directionConfig && examples && <section className="flashcard" aria-live="polite" data-theme={canonicalTheme ?? 'neutral'} style={flashcardStyle}><span className="language-route">{directionDisplayLabel(directionConfig)}</span><span className="direction-label">{modePrefix}<FormattedMessage id={directionConfig.promptMessageId} /></span><h1 lang={directionConfig.promptLanguage} dir="auto">{prompt}</h1>{promptContext && <p className="prompt-context" lang={directionConfig.promptLanguage} dir="auto">{promptContext}</p>}<label htmlFor="answer"><FormattedMessage id="answerLabel" /></label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} lang={directionConfig.answerLanguage} />
-        {!revealed ? <><button className="primary" onClick={revealAnswer} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={unknownAnswer ? 'answer-review' : answerMatches ? 'answer-ok' : 'answer-review'}>{unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? <FormattedMessage id="answerExact" /> : <FormattedMessage id="answerCompare" />}</p>{!unknownAnswer && !answerMatches && <div className="answer-difference"><p><FormattedMessage id="answerGiven" values={{ answer }} /></p><p><strong><FormattedMessage id={differenceMessage} /></strong></p><p><FormattedMessage id="answerExpected" values={{ expected: comparison.expected }} /></p></div>}<h2 lang={directionConfig.answerLanguage} dir="auto">{comparison.expected || expected[0]}</h2><p><span lang={directionConfig.promptLanguage} dir="auto">{examples.prompt}</span><br/><span lang={directionConfig.answerLanguage} dir="auto">{examples.answer}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend><FormattedMessage id="recallRating" /></legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
+        {!revealed ? <><button className="primary" onClick={revealAnswer} disabled={!answer.trim()}><FormattedMessage id="showAnswer" /></button><button className="secondary" onClick={revealUnknown}><FormattedMessage id="unknown" /></button></> : <div className="correction"><p className={answerResultMessage === 'resultCorrect' ? 'answer-ok' : 'answer-review'}><strong><FormattedMessage id={answerResultMessage} /></strong><span> · {unknownAnswer ? <FormattedMessage id="unknownCorrection" /> : answerMatches ? <FormattedMessage id="answerExact" /> : <FormattedMessage id="answerCompare" />}</span></p>{!unknownAnswer && !answerMatches && <div className="answer-difference"><p><FormattedMessage id="answerGiven" values={{ answer }} /></p><p><strong><FormattedMessage id={differenceMessage} /></strong></p><p><FormattedMessage id="answerExpected" values={{ expected: comparison.expected }} /></p></div>}<h2 lang={directionConfig.answerLanguage} dir="auto">{comparison.expected || expected[0]}</h2><p><span lang={directionConfig.promptLanguage} dir="auto">{examples.prompt}</span><br/><span lang={directionConfig.answerLanguage} dir="auto">{examples.answer}</span></p>{unknownAnswer && sessionMode === 'scheduled' && <p className="helper"><FormattedMessage id="unknownScheduled" /></p>}{sessionMode === 'free' && <p className="helper"><FormattedMessage id="freeFinishDetail" /></p>}{sessionMode === 'exploration' && <p className="helper"><FormattedMessage id="explorationHelper" /></p>}{unknownAnswer ? <button className="primary" onClick={() => rate(0)}><FormattedMessage id="continue" /></button> : <fieldset><legend><FormattedMessage id="recallRating" /></legend><div className="rating-grid"><button onClick={() => rate(0)}><FormattedMessage id="forgot" /></button><button onClick={() => rate(1)}><FormattedMessage id="hard" /></button><button onClick={() => rate(2)}><FormattedMessage id="correct" /></button><button onClick={() => rate(3)}><FormattedMessage id="easy" /></button></div></fieldset>}</div>}
       </section>}
     </main>
   )

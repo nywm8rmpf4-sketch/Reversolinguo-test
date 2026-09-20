@@ -197,6 +197,29 @@ select:focus-visible,
 
 .hero-card button + button { margin-top: .8rem; }
 
+.home-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .8rem;
+  margin: 1rem 0;
+}
+
+.home-actions article {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1rem;
+  background: rgba(255, 253, 248, .94);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.home-actions strong { color: var(--navy-strong); font-size: 1.5rem; }
+.home-actions h3 { margin: .2rem 0 .8rem; font-size: .95rem; line-height: 1.25; }
+.home-actions button, .home-actions .helper { margin-top: auto; }
+.home-actions button { padding-inline: .55rem; font-size: .88rem; }
+
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -657,6 +680,7 @@ button:not(:disabled):active, .file-button:active { transform: translateY(1px); 
 
 @media (max-width: 420px) {
   .direction-switch { grid-template-columns: 1fr; }
+  .home-actions { grid-template-columns: 1fr; }
   .vocabulary-list li {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: .45rem;
