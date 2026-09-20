@@ -63,6 +63,47 @@ describe('accessible learning flow', () => {
     expect(await db.schedules.count()).toBe(catalog.length * activeLanguagePair.directions.length)
   })
 
+  it('keeps the learning direction visible on home and persists a one-tap change', async () => {
+    const user = userEvent.setup()
+    await db.settings.put({ ...defaultSettings, onboarded: true, direction: 'fr-es' })
+
+    render(<App />)
+    const directionGroup = await screen.findByRole('group', { name: 'Sens d’apprentissage' })
+    const frEs = screen.getByRole('button', { name: 'Français → espagnol' })
+    const esFr = screen.getByRole('button', { name: 'Espagnol → français' })
+    expect(directionGroup).toContainElement(frEs)
+    expect(frEs).toHaveAttribute('aria-pressed', 'true')
+
+    await user.click(esFr)
+    expect(esFr).toHaveAttribute('aria-pressed', 'true')
+    expect((await db.settings.get('settings'))?.direction).toBe('es-fr')
+    expect(screen.getByText('Chaque sens conserve sa propre progression.')).toBeVisible()
+  })
+
+  it('switches an untouched session immediately and confirms after an answer has started', async () => {
+    const user = userEvent.setup()
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
+
+    const switchButton = await screen.findByRole('button', { name: /Changer de sens/u })
+    await user.click(switchButton)
+    expect(confirmSpy).not.toHaveBeenCalled()
+    expect(await screen.findByText('Espagnol d’Espagne (es-ES) → Français (fr-FR)')).toBeVisible()
+    expect((await db.settings.get('settings'))?.direction).toBe('es-fr')
+
+    await user.type(screen.getByRole('textbox', { name: 'Votre réponse' }), 'main')
+    await user.click(screen.getByRole('button', { name: /Changer de sens/u }))
+    expect(confirmSpy).toHaveBeenCalledOnce()
+    expect(screen.getByText('Espagnol d’Espagne (es-ES) → Français (fr-FR)')).toBeVisible()
+
+    confirmSpy.mockReturnValue(true)
+    await user.click(screen.getByRole('button', { name: /Changer de sens/u }))
+    expect(await screen.findByText('Français (fr-FR) → Espagnol d’Espagne (es-ES)')).toBeVisible()
+    expect((await db.settings.get('settings'))?.direction).toBe('fr-es')
+  })
+
   it('shows the ADR-038 context before revealing an ambiguous Spanish prompt', async () => {
     const user = userEvent.setup()
     const salsaDanceId = 'd45f1a20-8bc3-548f-bafb-22a594b9fd2e'

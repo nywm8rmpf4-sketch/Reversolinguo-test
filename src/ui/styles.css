@@ -171,6 +171,22 @@ select:focus-visible,
   font-size: 1.05rem;
 }
 
+.direction-picker {
+  margin: 1.2rem 0;
+  padding: 1rem;
+  background: rgba(255, 253, 248, .9);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.direction-picker legend {
+  padding: 0 .35rem;
+  color: var(--navy-strong);
+}
+
+.direction-picker .helper { margin: .25rem 0 0; }
+
 .hero-card button + button { margin-top: .8rem; }
 
 .stats {
@@ -406,6 +422,7 @@ select:focus-visible,
 
 .language-route {
   align-self: center;
+  width: auto;
   margin-bottom: .45rem;
   padding: .35rem .7rem;
   color: var(--navy-strong);
@@ -414,6 +431,7 @@ select:focus-visible,
   border-radius: 999px;
   font-size: .76rem;
   font-weight: 750;
+  line-height: 1.3;
 }
 
 .flashcard h1 {

@@ -36,6 +36,18 @@ test('onboarding and first recall', async ({ page }) => {
   await page.getByRole('button', { name: 'Correct' }).click()
 })
 
+test('learning direction stays visible and can be reversed from home or a session', async ({ page }) => {
+  await onboard(page)
+  await expect(page.getByRole('group', { name: 'Sens d’apprentissage' })).toBeVisible()
+  await page.getByRole('button', { name: 'Espagnol → français' }).click()
+  await expect(page.getByRole('button', { name: 'Espagnol → français' })).toHaveAttribute('aria-pressed', 'true')
+
+  await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
+  await expect(page.getByText('Espagnol d’Espagne (es-ES) → Français (fr-FR)')).toBeVisible()
+  await page.getByRole('button', { name: /Changer de sens/u }).click()
+  await expect(page.getByText('Français (fr-FR) → Espagnol d’Espagne (es-ES)')).toBeVisible()
+})
+
 test('installed shell and progress remain usable offline', async ({ page, context, browserName }) => {
   await onboard(page)
   await expect(page.getByText('Disponible hors ligne')).toBeVisible({ timeout: 15_000 })
