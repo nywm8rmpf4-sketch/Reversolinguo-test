@@ -47,8 +47,8 @@ describe('R7 selected vocabulary browser', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
     expect(within(screen.getAllByRole('listitem')[0]).getByText('abricot')).toBeVisible()
 
-    await user.click(screen.getByRole('button', { name: 'Espagnol → français' }))
-    expect(screen.getByRole('button', { name: 'Espagnol → français' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: 'Espagnol d’Espagne (es-ES) → Français (fr-FR)' }))
+    expect(screen.getByRole('button', { name: 'Espagnol d’Espagne (es-ES) → Français (fr-FR)' })).toHaveAttribute('aria-pressed', 'true')
     expect(within(screen.getAllByRole('listitem')[0]).getByText('abeja')).toBeVisible()
   })
 
@@ -137,7 +137,7 @@ describe('R7 selected vocabulary browser', () => {
       expect(answer).toHaveTextContent(entry.source)
     })
 
-    await user.click(screen.getByRole('button', { name: 'Espagnol → français' }))
+    await user.click(screen.getByRole('button', { name: 'Espagnol d’Espagne (es-ES) → Français (fr-FR)' }))
     await user.click(screen.getByRole('button', { name: 'Par thèmes' }))
     const firstTheme = document.querySelector('summary')
     if (firstTheme) await user.click(firstTheme)

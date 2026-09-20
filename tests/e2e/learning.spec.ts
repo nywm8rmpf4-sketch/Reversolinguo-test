@@ -16,7 +16,7 @@ async function onboard(page: import('@playwright/test').Page) {
     consoleErrors
   }
   await expect(page.getByRole('heading', { name: 'Reversolinguo' }), `startup diagnostics: ${JSON.stringify(diagnostics)}`).toBeVisible()
-  await page.getByRole('button', { name: 'Français vers espagnol' }).click()
+  await page.getByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }).click()
   await expect(page.getByRole('button', { name: 'Découvrir maintenant' })).toBeVisible()
 }
 
@@ -39,8 +39,8 @@ test('onboarding and first recall', async ({ page }) => {
 test('learning direction can be reversed on home but not during a session', async ({ page }) => {
   await onboard(page)
   await expect(page.getByRole('group', { name: 'Sens d’apprentissage' })).toBeVisible()
-  await page.getByRole('button', { name: 'Espagnol → français' }).click()
-  await expect(page.getByRole('button', { name: 'Espagnol → français' })).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('button', { name: 'Espagnol d’Espagne (es-ES) → Français (fr-FR)' }).click()
+  await expect(page.getByRole('button', { name: 'Espagnol d’Espagne (es-ES) → Français (fr-FR)' })).toHaveAttribute('aria-pressed', 'true')
 
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByText('Espagnol d’Espagne (es-ES) → Français (fr-FR)')).toBeVisible()

@@ -14,7 +14,7 @@ describe('visible answer differences', () => {
   it('shows the entered answer, expected answer and article/gender difference while keeping self-rating available', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
     const input = await screen.findByRole('textbox', { name: 'Votre réponse' })
     await user.type(input, 'mano')

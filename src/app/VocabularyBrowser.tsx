@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { canonicalThemes, themeIdsForEntry } from '../content/taxonomy'
 import type { Direction, LexicalEntry } from '../domain/model'
-import { activeLanguagePair, displaySourceLanguage, getDirectionConfig, lexicalValues } from '../i18n/languagePairs'
+import { activeLanguagePair, directionDisplayLabel, displaySourceLanguage, getDirectionConfig, lexicalValues } from '../i18n/languagePairs'
 
 type VocabularyView = 'alphabetical' | 'themes'
 
@@ -80,7 +80,7 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, onEditSel
         <div className="direction-switch" role="group" aria-label={intl.formatMessage({ id: 'vocabularyDisplayDirection' })}>
           {activeLanguagePair.directions.map((config) => (
             <button type="button" key={config.id} aria-pressed={direction === config.id} onClick={() => setDirection(config.id)}>
-              <FormattedMessage id={config.displayMessageId} />
+              {directionDisplayLabel(config)}
             </button>
           ))}
         </div>

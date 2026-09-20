@@ -19,7 +19,7 @@ describe('sound identity integration', () => {
   it('starts a new user in subtle mode and persists a three-state preference', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Données et réglages' }))
 
     const soundMode = screen.getByRole('combobox', { name: 'Sons de l’interface' })
@@ -35,7 +35,7 @@ describe('sound identity integration', () => {
   it('emits cardFlip on reveal and rating feedback only after a successful review write', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
     const input = await screen.findByRole('textbox', { name: 'Votre réponse' })
     await user.type(input, 'la mano')

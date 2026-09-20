@@ -19,7 +19,7 @@ describe('R4 unknown answer and exploration', () => {
   it('keeps Je ne sais pas active in a scheduled session and records exactly one forgotten review after correction', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
 
     const unknown = await screen.findByRole('button', { name: 'Je ne sais pas' })

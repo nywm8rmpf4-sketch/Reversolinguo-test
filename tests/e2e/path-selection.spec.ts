@@ -7,7 +7,7 @@ function localizedCount(text: string | null): number {
 async function onboard(page: import('@playwright/test').Page) {
   await page.goto('./')
   await expect(page.getByRole('heading', { name: 'Reversolinguo' })).toBeVisible()
-  await page.getByRole('button', { name: 'Français vers espagnol' }).click()
+  await page.getByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }).click()
   await expect(page.getByRole('button', { name: 'Modifier ma sélection' })).toBeVisible()
 }
 

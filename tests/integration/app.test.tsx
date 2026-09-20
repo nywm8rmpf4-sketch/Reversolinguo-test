@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/app/App'
@@ -23,7 +23,7 @@ describe('accessible learning flow', () => {
   it('onboards without an account and starts a typed recall session', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
     expect(await screen.findByText('Français (fr-FR) → Espagnol d’Espagne (es-ES)')).toBeVisible()
     expect(screen.getByText(/Carte 1 sur \d+/u)).toBeVisible()
@@ -44,7 +44,7 @@ describe('accessible learning flow', () => {
     const user = userEvent.setup()
     render(<App />)
     expect(await screen.findByText('Votre progression reste sur cet appareil. Aucun compte, publicité ni traceur.')).toBeVisible()
-    await user.click(screen.getByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(screen.getByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Données et réglages' }))
     const summary = await screen.findByText('Vie privée — en savoir plus')
     expect(summary).toBeVisible()
@@ -69,21 +69,21 @@ describe('accessible learning flow', () => {
 
     render(<App />)
     const directionGroup = await screen.findByRole('group', { name: 'Sens d’apprentissage' })
-    const frEs = screen.getByRole('button', { name: 'Français → espagnol' })
-    const esFr = screen.getByRole('button', { name: 'Espagnol → français' })
+    const frEs = screen.getByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' })
+    const esFr = screen.getByRole('button', { name: 'Espagnol d’Espagne (es-ES) → Français (fr-FR)' })
     expect(directionGroup).toContainElement(frEs)
     expect(frEs).toHaveAttribute('aria-pressed', 'true')
 
     await user.click(esFr)
-    expect(esFr).toHaveAttribute('aria-pressed', 'true')
-    expect((await db.settings.get('settings'))?.direction).toBe('es-fr')
+    await waitFor(() => expect(esFr).toHaveAttribute('aria-pressed', 'true'))
+    await waitFor(async () => expect((await db.settings.get('settings'))?.direction).toBe('es-fr'))
     expect(screen.getByText('Chaque sens conserve sa propre progression.')).toBeVisible()
   })
 
   it('keeps direction information non-interactive during a session', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
 
     expect(await screen.findByText('Français (fr-FR) → Espagnol d’Espagne (es-ES)')).toBeVisible()
@@ -252,7 +252,7 @@ describe('accessible learning flow', () => {
   it('keeps the card and explains recovery when a review cannot be written', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Français vers espagnol' }))
+    await user.click(await screen.findByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' }))
     await user.click(await screen.findByRole('button', { name: 'Découvrir maintenant' }))
     const input = await screen.findByRole('textbox', { name: 'Votre réponse' })
     await user.type(input, 'la mano')
