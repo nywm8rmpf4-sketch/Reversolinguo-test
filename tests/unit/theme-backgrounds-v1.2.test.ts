@@ -17,6 +17,11 @@ describe('v1.2 thematic flashcard backgrounds', () => {
     expect(themeBackgroundFor('unknown-theme')).toBeNull()
   })
 
+  it('keeps a visible French label available for every illustrated theme', () => {
+    expect(canonicalThemes.every((theme) => theme.label_fr.trim().length > 0)).toBe(true)
+    expect(new Set(canonicalThemes.map((theme) => theme.label_fr)).size).toBe(20)
+  })
+
   it('keeps the validated palette visible through a bounded paper wash', () => {
     const styles = readFileSync(resolve(process.cwd(), 'src/ui/styles.css'), 'utf8')
     expect(styles).toMatch(/linear-gradient\(rgba\(255, 253, 248, \.8\), rgba\(255, 253, 248, \.8\)\)/u)

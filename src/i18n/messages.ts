@@ -63,6 +63,7 @@ export const messages = {
   esFr: 'Espagnol vers français',
   translateToSpanish: 'Traduisez en espagnol',
   translateToFrench: 'Traduisez en français',
+  themeLabel: 'Thème : {theme}',
   vocabularyTitle: 'Vocabulaire',
   vocabularyOpen: 'Voir le vocabulaire',
   vocabularyAll: 'Vocabulaire de ma sélection',

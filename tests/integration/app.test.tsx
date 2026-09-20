@@ -29,6 +29,7 @@ describe('accessible learning flow', () => {
     expect(screen.getByText(/Carte 1 sur \d+/u)).toBeVisible()
     expect(screen.getByText('Nouveau')).toBeVisible()
     expect(document.querySelector('.flashcard')).toHaveAttribute('data-theme', 'corps-sante')
+    expect(screen.getByText('Thème : Corps et santé')).toBeVisible()
     const input = await screen.findByRole('textbox', { name: 'Votre réponse' })
     await user.type(input, 'la mano')
     await user.click(screen.getByRole('button', { name: 'Voir la réponse' }))
