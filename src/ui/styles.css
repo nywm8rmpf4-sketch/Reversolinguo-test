@@ -422,7 +422,7 @@ select:focus-visible,
   text-align: center;
   background-color: rgba(255, 253, 248, .98);
   background-image:
-    linear-gradient(rgba(255, 253, 248, .88), rgba(255, 253, 248, .88)),
+    linear-gradient(rgba(255, 253, 248, .8), rgba(255, 253, 248, .8)),
     var(--flashcard-theme-image, none);
   background-position: center;
   background-size: cover;
