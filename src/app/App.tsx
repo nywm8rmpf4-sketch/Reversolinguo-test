@@ -72,6 +72,7 @@ function AppContent() {
   const [dailySessionCompleted, setDailySessionCompleted] = useState(false)
   const [storageSize, setStorageSize] = useState<string | null>(null)
   const [updateReady, setUpdateReady] = useState(false)
+  const [updateApplying, setUpdateApplying] = useState(false)
 
   const pathPreferences = useMemo(() => normalizePathPreferences({
     audience: settings.pathAudience,
@@ -129,7 +130,14 @@ function AppContent() {
     navigator.storage.estimate().then(({ usage }) => setStorageSize(`${Math.ceil((usage ?? 0) / 1024)} ko`)).catch(() => setStorageSize(null))
   }, [screen])
 
-  const updateBanner = updateReady && screen !== 'session' ? <aside className="update-banner"><span><FormattedMessage id="updateReady" /></span><button onClick={() => applyServiceWorkerUpdate()}><FormattedMessage id="updateNow" /></button></aside> : null
+  async function installUpdate() {
+    if (updateApplying) return
+    setUpdateApplying(true)
+    try { await applyServiceWorkerUpdate() }
+    catch { window.location.reload() }
+  }
+
+  const updateBanner = updateReady && screen !== 'session' ? <aside className="update-banner"><span><FormattedMessage id="updateReady" /></span><button onClick={() => void installUpdate()} disabled={updateApplying} aria-busy={updateApplying}><FormattedMessage id={updateApplying ? 'updateApplying' : 'updateNow'} /></button></aside> : null
   const current = queue[0]
   const entry = useMemo(() => catalog.find((item) => item.id === current?.entryId), [current])
   const directionConfig = current ? getDirectionConfig(current.direction) : null
