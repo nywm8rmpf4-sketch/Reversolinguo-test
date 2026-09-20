@@ -48,6 +48,12 @@ describe('PACK-7 R6 selector UI', () => {
     expect(screen.getByText('International · A1 + A2 + B1')).toBeVisible()
     expectSourceCount(adultCount + activeB1Count)
 
+    const activeB2Count = canonicalCatalogEntries.filter((entry) => entry.status !== 'withdrawn' && entry.cefr_level === 'B2').length
+    expect(activeB2Count).toBeGreaterThan(0)
+    await user.click(screen.getByRole('checkbox', { name: 'B2' }))
+    expect(screen.getByText('International · A1 + A2 + B1 + B2')).toBeVisible()
+    expectSourceCount(adultCount + activeB1Count + activeB2Count)
+
     const schoolTheme = screen.getByRole('checkbox', { name: /École et études/u })
     const foodTheme = screen.getByRole('checkbox', { name: /Alimentation/u })
     await user.click(schoolTheme)
@@ -61,7 +67,7 @@ describe('PACK-7 R6 selector UI', () => {
     expect(onSave).toHaveBeenCalledTimes(1)
     expect(onSave.mock.calls[0][0]).toMatchObject({
       audience: 'adult',
-      selectedPackIds: [adultPackIdFor('A1'), adultPackIdFor('A2'), adultPackIdFor('B1')],
+      selectedPackIds: [adultPackIdFor('A1'), adultPackIdFor('A2'), adultPackIdFor('B1'), adultPackIdFor('B2')],
       selectedThemeIds: ['ecole-etudes', 'alimentation'],
       reviewScope: 'selection-only'
     })

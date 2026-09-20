@@ -213,6 +213,34 @@ test('merges an intra-batch source alias into one identity while preserving both
   assert.equal(new Set(assignments.map((item) => item.review_id)).size, 2)
 })
 
+test('projects aliases through the canonical identity theme when source themes differ', () => {
+  const primary = row({
+    review_id: 'REV-B1-0110',
+    spanish: 'en términos generales',
+    french: 'dans les grandes lignes',
+    type: 'expression',
+    theme: 'description',
+    example_source: 'En términos generales, estamos de acuerdo.',
+    example_target: 'Dans les grandes lignes, nous sommes d’accord.'
+  })
+  const alias = row({
+    review_id: 'REV-B1-0111',
+    spanish: 'a grandes rasgos',
+    french: 'dans les grandes lignes',
+    type: 'expression',
+    theme: 'communication',
+    example_source: 'A grandes rasgos, estamos de acuerdo.',
+    example_target: 'Dans les grandes lignes, nous sommes d’accord.',
+    alias_of_review_id: 'REV-B1-0110'
+  })
+  const result = run([primary, alias], { expected_source_rows: 2 })
+  assert.equal(result.valid, true, result.exceptions.join('|'))
+  const projection = JSON.parse(result.outputs.projectionText)
+  const assignments = projection.school_source_assignments.filter((item) => ['REV-B1-0110', 'REV-B1-0111'].includes(item.review_id))
+  assert.equal(assignments.length, 4)
+  assert.deepEqual(new Set(assignments.map((item) => item.theme)), new Set(['description']))
+})
+
 test('can attach a new source alias to an existing baseline identity without rewriting the baseline lexical object', () => {
   const alias = row({
     review_id: 'REV-B1-0200',
