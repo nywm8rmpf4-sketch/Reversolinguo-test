@@ -3,7 +3,7 @@ import { validateLearningPack } from '../../src/content/contracts'
 import {
   PackResolutionError,
   resolveLearningPack,
-  validateLearningPackGraph,
+  validateLearningPackGraph, packsForLanguagePair,
   type LearningPack,
   type PackEntry
 } from '../../src/content/packs'
@@ -109,5 +109,15 @@ describe('LearningPack resolver', () => {
     const result = validateLearningPackGraph([first, second])
     expect(result.valid).toBe(false)
     expect(result.errors).toContain('duplicate-pack-id:same-pack')
+  })
+})
+
+
+describe('language-pair pack isolation', () => {
+  it('never falls back to packs from another pair', () => {
+    const base = pack({ pack_id: 'fr-es-test' })
+    const foreign = pack({ pack_id: 'fr-en-test', language_pair: 'fr-en' })
+    expect(packsForLanguagePair('fr-es', [base, foreign])).toEqual([base])
+    expect(packsForLanguagePair('fr-de', [base, foreign])).toEqual([])
   })
 })
