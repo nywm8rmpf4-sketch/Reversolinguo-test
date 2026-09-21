@@ -417,7 +417,7 @@ function AppContent() {
     )
   }
 
-  if (screen === 'vocabulary') return <VocabularyBrowser entries={catalog.filter((entry) => pathSummary.selectedNewEntries.some((selected) => selected.entry_id === entry.id))} initialDirection={settings.direction} onBack={() => setScreen('home')} onEditSelection={() => setScreen('paths')} banner={updateBanner} />
+  if (screen === 'vocabulary') return <VocabularyBrowser entries={catalog.filter((entry) => pathSummary.selectedNewEntries.some((selected) => selected.entry_id === entry.id))} initialDirection={settings.direction} pairId={settings.activePairId} onBack={() => setScreen('home')} onEditSelection={() => setScreen('paths')} banner={updateBanner} />
 
   if (screen === 'settings') return (
     <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>
