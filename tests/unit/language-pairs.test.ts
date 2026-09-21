@@ -11,9 +11,11 @@ describe('language pair runtime configuration', () => {
   })
 
   it('registers FR-ES as the default configured pair and resolves its directions uniquely', () => {
-    expect(languagePairRegistry.map((pair) => pair.id)).toEqual(['fr-es'])
+    expect(languagePairRegistry.map((pair) => pair.id)).toEqual(['fr-es', 'fr-en'])
     expect(getLanguagePairConfig('fr-es')).toBe(activeLanguagePair)
     expect(pairForDirection('es-fr')).toBe(activeLanguagePair)
+    expect(getLanguagePairConfig('fr-en').directions.map((item) => item.id)).toEqual(['fr-en', 'en-fr'])
+    expect(pairForDirection('en-fr').id).toBe('fr-en')
     expect(() => getLanguagePairConfig('fr-de')).toThrow('Paire de langues non configurée')
   })
 
