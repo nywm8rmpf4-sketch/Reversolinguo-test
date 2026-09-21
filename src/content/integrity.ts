@@ -1,4 +1,4 @@
-import { initializeRuntimeBundleState, runtimeBundleState, type RuntimeCatalogManifest } from './runtimeState'
+import { initializeRuntimeBundleState, registerRuntimeBundleState, runtimeBundleState, type RuntimeCatalogManifest } from './runtimeState'
 import type { CatalogProjectionDocument } from './catalogProjection'
 
 interface CatalogManifestIntegrity {
@@ -85,19 +85,21 @@ function runtimeUrl(path: string, baseUrl: string): string {
   return new URL(path, baseUrl).toString()
 }
 
-export async function loadVerifiedRuntimeBundle(
-  fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
-  subtle: SubtleCrypto = globalThis.crypto.subtle,
-  baseUrl: string = document.baseURI
+async function loadVerifiedRuntimeBundleFromPath(
+  runtimePath: string,
+  pairId: string | undefined,
+  fetcher: typeof fetch,
+  subtle: SubtleCrypto,
+  baseUrl: string
 ): Promise<CatalogIntegrityResult> {
   let catalogText: string
   let projectionText: string
   let manifestText: string
   try {
     const [catalogResponse, projectionResponse, manifestResponse] = await Promise.all([
-      fetcher(runtimeUrl('catalogs/runtime/catalog.json', baseUrl)),
-      fetcher(runtimeUrl('catalogs/runtime/runtime-projection.json', baseUrl)),
-      fetcher(runtimeUrl('catalogs/runtime/manifest.json', baseUrl))
+      fetcher(runtimeUrl(`${runtimePath}/catalog.json`, baseUrl)),
+      fetcher(runtimeUrl(`${runtimePath}/runtime-projection.json`, baseUrl)),
+      fetcher(runtimeUrl(`${runtimePath}/manifest.json`, baseUrl))
     ])
     if (!catalogResponse.ok || !projectionResponse.ok || !manifestResponse.ok) return { ok: false, reason: 'network-error' }
     ;[catalogText, projectionText, manifestText] = await Promise.all([
@@ -115,12 +117,32 @@ export async function loadVerifiedRuntimeBundle(
     const projection = JSON.parse(projectionText) as CatalogProjectionDocument
     const manifest = JSON.parse(manifestText) as RuntimeCatalogManifest
     if (!Array.isArray(catalog)) return { ok: false, reason: 'payload-contract-invalid' }
-    initializeRuntimeBundleState({ catalogText, projectionText, manifestText, catalog, projection, manifest })
+    const bundle = { catalogText, projectionText, manifestText, catalog, projection, manifest }
+    if (pairId) registerRuntimeBundleState(pairId, bundle)
+    else initializeRuntimeBundleState(bundle)
     return { ok: true }
   } catch (error) {
     if (error instanceof SyntaxError) return { ok: false, reason: 'payload-json-invalid' }
     return { ok: false, reason: 'payload-contract-invalid' }
   }
+}
+
+export function loadVerifiedRuntimeBundle(
+  fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
+  subtle: SubtleCrypto = globalThis.crypto.subtle,
+  baseUrl: string = document.baseURI
+): Promise<CatalogIntegrityResult> {
+  return loadVerifiedRuntimeBundleFromPath('catalogs/runtime', undefined, fetcher, subtle, baseUrl)
+}
+
+export function loadVerifiedRuntimeBundleForPair(
+  pairId: string,
+  fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
+  subtle: SubtleCrypto = globalThis.crypto.subtle,
+  baseUrl: string = document.baseURI
+): Promise<CatalogIntegrityResult> {
+  if (!/^[a-z]{2,3}-[a-z]{2,3}$/u.test(pairId)) return Promise.resolve({ ok: false, reason: 'payload-contract-invalid' })
+  return loadVerifiedRuntimeBundleFromPath(`catalogs/runtime/${pairId}`, pairId, fetcher, subtle, baseUrl)
 }
 
 export function verifyBundledCatalogIntegrity(): Promise<CatalogIntegrityResult> {
