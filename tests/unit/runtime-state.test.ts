@@ -4,7 +4,7 @@ import { initializeRuntimeBundleState, loadedRuntimePairIds, registerRuntimeBund
 function bundle(source: string, target: string, id: string): RuntimeBundleState {
   return {
     catalogText: '[]', projectionText: '{}', manifestText: '{}', catalog: [],
-    projection: { schema_version: '1.0', catalog_id: id, catalog_version: '1', source_catalog_sha256: 'a'.repeat(64), school_assignments: [], source_aliases: {}, prompt_contexts: {} },
+    projection: { schema_version: '1.0', catalog_id: id, catalog_version: '1', source: { artifact: 'test' }, prompt_contexts: {}, source_aliases: {}, school_source_assignments: [], theme_path_assignments: [], source_counts: { school: {}, theme_paths: {} } },
     manifest: { catalog_id: id, catalog_version: '1', source_language: source, target_language: target, cefr_level: 'A1', entry_count: 0, license: 'test', schema_id: 'test', min_app_version: '0', catalog_sha256: 'a'.repeat(64), status: 'validated', human_review: 'PASS' }
   }
 }
