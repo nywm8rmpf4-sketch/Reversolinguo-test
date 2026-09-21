@@ -76,12 +76,14 @@ function AppContent() {
 
   const activePair = useMemo(() => getLanguagePairConfig(settings.activePairId), [settings.activePairId])
   const isTemporaryFrEn = settings.activePairId === 'fr-en'
-  const pathPreferences = useMemo(() => normalizePathPreferences({
-    audience: settings.pathAudience,
-    selectedPackIds: settings.selectedPackIds,
-    selectedThemeIds: settings.selectedThemeIds as CanonicalThemeId[],
-    reviewScope: settings.reviewScope
-  }), [settings.pathAudience, settings.selectedPackIds, settings.selectedThemeIds, settings.reviewScope])
+  const pathPreferences = useMemo(() => isTemporaryFrEn
+    ? ({ audience: 'adult' as const, selectedPackIds: [], selectedThemeIds: [] as CanonicalThemeId[], reviewScope: settings.reviewScope })
+    : normalizePathPreferences({
+        audience: settings.pathAudience,
+        selectedPackIds: settings.selectedPackIds,
+        selectedThemeIds: settings.selectedThemeIds as CanonicalThemeId[],
+        reviewScope: settings.reviewScope
+      }), [isTemporaryFrEn, settings.pathAudience, settings.selectedPackIds, settings.selectedThemeIds, settings.reviewScope])
   const pathSummary = useMemo(() => {
     if (!isTemporaryFrEn) return summarizePath(pathPreferences)
     const selectedNewEntries = catalog.map((entry, index) => ({ entry_id: entry.id, role: 'core' as const, priority: index + 1, theme: entry.theme }))
@@ -376,8 +378,7 @@ function AppContent() {
     </main>
   )
 
-  if (screen === 'paths' && isTemporaryFrEn) { setScreen('home'); return null }
-  if (screen === 'paths') return <PathSelector initial={pathPreferences} onSave={savePath} onBack={() => setScreen('home')} banner={updateBanner} />
+  if (screen === 'paths' && !isTemporaryFrEn) return <PathSelector initial={pathPreferences} onSave={savePath} onBack={() => setScreen('home')} banner={updateBanner} />
 
   if (screen === 'home') {
     const planned = progress.dueCount + Math.min(progress.newCount, newRemainingToday)
@@ -421,7 +422,7 @@ function AppContent() {
   if (screen === 'settings') return (
     <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>
       <section className="panel actions">
-        <button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button>
+        {!isTemporaryFrEn && <button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button>}
         <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value as Direction })}>{activePair.directions.map((config) => <option key={config.id} value={config.id}>{directionDisplayLabel(config)}</option>)}</select>
         <label htmlFor="daily-new"><FormattedMessage id="dailyNew" values={{ count: settings.dailyNew }} /></label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
         <label htmlFor="daily-goal-settings"><FormattedMessage id="dailyGoalSettings" /></label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
