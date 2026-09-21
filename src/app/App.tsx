@@ -14,7 +14,7 @@ import { summarizeProgress, type ProgressSummary } from '../domain/progress'
 import { remainingDailyNew, reviewSchedule } from '../domain/scheduler'
 import { entryIdsForReviewScope, orderSelectedSession, reviewsForSelection, statesForSelection } from '../domain/selectionSession'
 import type { Direction, Rating, ReviewEvent, ScheduleState } from '../domain/model'
-import { activeLanguagePair, directionDisplayLabel, examplesFor, expectedFor, getDirectionConfig, promptContextFor, promptFor } from '../i18n/languagePairs'
+import { defaultLanguagePairId, directionDisplayLabel, examplesFor, expectedFor, getDirectionConfig, getLanguagePairConfig, languagePairRegistry, promptContextFor, promptFor } from '../i18n/languagePairs'
 import { db, defaultSettings, exportProgress, importProgress, resetProgress, type SettingsRecord } from '../storage/database'
 import { messages } from '../i18n/messages'
 import { applyServiceWorkerUpdate } from '../pwa/update'
@@ -74,13 +74,19 @@ function AppContent() {
   const [updateReady, setUpdateReady] = useState(false)
   const [updateApplying, setUpdateApplying] = useState(false)
 
+  const activePair = useMemo(() => getLanguagePairConfig(settings.activePairId), [settings.activePairId])
+  const isTemporaryFrEn = settings.activePairId === 'fr-en'
   const pathPreferences = useMemo(() => normalizePathPreferences({
     audience: settings.pathAudience,
     selectedPackIds: settings.selectedPackIds,
     selectedThemeIds: settings.selectedThemeIds as CanonicalThemeId[],
     reviewScope: settings.reviewScope
   }), [settings.pathAudience, settings.selectedPackIds, settings.selectedThemeIds, settings.reviewScope])
-  const pathSummary = useMemo(() => summarizePath(pathPreferences), [pathPreferences])
+  const pathSummary = useMemo(() => {
+    if (!isTemporaryFrEn) return summarizePath(pathPreferences)
+    const selectedNewEntries = catalog.map((entry, index) => ({ entry_id: entry.id, role: 'core' as const, priority: index + 1, theme: entry.theme }))
+    return { audience: 'adult' as const, selectedPacks: [], sourceEntries: selectedNewEntries, selectedNewEntries, sourceCount: selectedNewEntries.length, selectedNewCount: selectedNewEntries.length, availableThemes: [], frameworks: ['TEMPORARY_TEST_FIXTURE'], frameworkVersions: ['v2.0'], cefrTargets: ['A1'] }
+  }, [pathPreferences, isTemporaryFrEn])
   const reviewEntryIds = useMemo(() => entryIdsForReviewScope(pathSummary.selectedNewEntries, catalogEntryIds, pathPreferences.reviewScope), [pathSummary, pathPreferences.reviewScope])
 
   useEffect(() => {
@@ -88,7 +94,7 @@ function AppContent() {
     db.settings.get('settings').then(async (saved) => {
       if (!active) return
       if (saved?.onboarded) {
-        await ensureCatalogSchedules(db)
+        await ensureCatalogSchedules(db, new Date(), saved.activePairId ?? defaultLanguagePairId)
         if (!active) return
         setSettings({ ...defaultSettings, ...saved })
         setScreen('home')
@@ -159,7 +165,7 @@ function AppContent() {
 
   async function begin(direction: Direction) {
     const nextSettings: SettingsRecord = { ...settings, onboarded: true, direction }
-    await ensureCatalogSchedules(db)
+    await ensureCatalogSchedules(db, new Date(), settings.activePairId)
     await db.settings.put(nextSettings)
     setSettings(nextSettings); setNotice(''); setScreen('home')
   }
@@ -186,6 +192,13 @@ function AppContent() {
     setRevealed(false)
     setUnknownAnswer(false)
     setScreen('session')
+  }
+
+  async function changePair(pairId: string) {
+    if (pairId === settings.activePairId || screen === 'session') return
+    const pair = getLanguagePairConfig(pairId)
+    await persistSettings({ activePairId: pairId, direction: pair.directions[0].id, selectedPackIds: pairId === defaultLanguagePairId ? [...defaultSettings.selectedPackIds] : [] })
+    window.location.reload()
   }
 
   async function changeDirection(direction: Direction) {
@@ -358,11 +371,12 @@ function AppContent() {
         <label htmlFor="daily-goal"><FormattedMessage id="dailyGoal" /></label>
         <input id="daily-goal" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => setSettings((value) => ({ ...value, dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) }))} />
         <span className="helper"><FormattedMessage id="dailyGoalHelper" /></span>
-        {activeLanguagePair.directions.map((config, index) => <button key={config.id} className={index === 0 ? 'primary' : 'secondary'} onClick={() => begin(config.id)}>{directionDisplayLabel(config)}</button>)}
+        {activePair.directions.map((config, index) => <button key={config.id} className={index === 0 ? 'primary' : 'secondary'} onClick={() => begin(config.id)}>{directionDisplayLabel(config)}</button>)}
       </section><p className="privacy"><FormattedMessage id="privacy" /></p>
     </main>
   )
 
+  if (screen === 'paths' && isTemporaryFrEn) { setScreen('home'); return null }
   if (screen === 'paths') return <PathSelector initial={pathPreferences} onSave={savePath} onBack={() => setScreen('home')} banner={updateBanner} />
 
   if (screen === 'home') {
@@ -373,9 +387,9 @@ function AppContent() {
     const challengeInfo = challenge(progress, settings.dailyNew, newRemainingToday, freeReviewAvailable)
     return (
       <main className="shell">{updateBanner}
-        <header className="topbar"><div><span className="eyebrow">{activeLanguagePair.targetLanguage.toUpperCase()} · {activeLanguagePair.sourceLanguage.toUpperCase()} · {pathSummary.cefrTargets.join(' + ') || '—'}</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
-        <fieldset className="direction-picker"><legend><FormattedMessage id="direction" /></legend><div className="direction-switch">{activeLanguagePair.directions.map((config) => <button key={config.id} type="button" aria-pressed={settings.direction === config.id} onClick={() => void changeDirection(config.id)}>{directionDisplayLabel(config)}</button>)}</div><p className="helper"><FormattedMessage id="directionHelper" /></p></fieldset>
-        <section className="panel path-current"><span className="eyebrow"><FormattedMessage id="pathCurrent" /></span><h2>{labelForPath(pathSummary)}</h2><p className="helper">{pathSummary.frameworks.join(' + ')} · {pathSummary.frameworkVersions.join(' + ')}</p><p><FormattedMessage id="pathSelectedNewCount" values={{ count: pathSummary.selectedNewCount }} /></p><p className="helper"><FormattedMessage id={pathPreferences.reviewScope === 'selection-only' ? 'pathReviewSelectionOnly' : 'pathReviewAllDue'} /></p><button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button></section>
+        <header className="topbar"><div><span className="eyebrow">{activePair.targetLanguage.toUpperCase()} · {activePair.sourceLanguage.toUpperCase()} · {pathSummary.cefrTargets.join(' + ') || '—'}</span><h1><FormattedMessage id="title" /></h1></div><button className="icon-button" onClick={() => setScreen('settings')} aria-label={intl.formatMessage({ id: 'settings' })}>⚙︎</button></header>
+        <fieldset className="direction-picker"><legend><FormattedMessage id="languagePair" /></legend><div className="direction-switch">{languagePairRegistry.map((pair) => <button key={pair.id} type="button" aria-pressed={settings.activePairId === pair.id} onClick={() => void changePair(pair.id)}>{pair.id === "fr-es" ? "Français – espagnol" : "Français – anglais"}</button>)}</div></fieldset><fieldset className="direction-picker"><legend><FormattedMessage id="direction" /></legend><div className="direction-switch">{activePair.directions.map((config) => <button key={config.id} type="button" aria-pressed={settings.direction === config.id} onClick={() => void changeDirection(config.id)}>{directionDisplayLabel(config)}</button>)}</div><p className="helper"><FormattedMessage id="directionHelper" /></p></fieldset>
+        <section className="panel path-current"><span className="eyebrow"><FormattedMessage id="pathCurrent" /></span><h2>{isTemporaryFrEn ? "Mini-catalogue FR–EN · test temporaire" : labelForPath(pathSummary)}</h2><p className="helper">{pathSummary.frameworks.join(' + ')} · {pathSummary.frameworkVersions.join(' + ')}</p><p><FormattedMessage id="pathSelectedNewCount" values={{ count: pathSummary.selectedNewCount }} /></p><p className="helper"><FormattedMessage id={pathPreferences.reviewScope === 'selection-only' ? 'pathReviewSelectionOnly' : 'pathReviewAllDue'} /></p>{!isTemporaryFrEn && <button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button>}</section>
         <section className="hero-card"><span className="status"><span aria-hidden="true">●</span> <FormattedMessage id={offlineReady ? 'offlineReady' : 'preparingOffline'} /></span><h2><FormattedMessage id="tagline" /></h2>
           <p><FormattedMessage id="due" values={{ count: progress.dueCount }} /> · {hasSession ? <FormattedMessage id="sessionEstimate" values={{ minutes: estimate }} /> : <FormattedMessage id="noScheduledSession" />}</p>
           {progress.dueCount === 0 && freeReviewAvailable && <button className="secondary" onClick={() => startFreeReview()}><FormattedMessage id="freeReview" /></button>}
@@ -408,7 +422,7 @@ function AppContent() {
     <main className="shell">{updateBanner}<header className="topbar"><button className="back" onClick={() => setScreen('home')}>← <FormattedMessage id="back" /></button><h1><FormattedMessage id="settings" /></h1></header>
       <section className="panel actions">
         <button className="secondary" onClick={() => setScreen('paths')}><FormattedMessage id="pathOpen" /></button>
-        <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value as Direction })}>{activeLanguagePair.directions.map((config) => <option key={config.id} value={config.id}>{directionDisplayLabel(config)}</option>)}</select>
+        <label htmlFor="direction"><FormattedMessage id="direction" /></label><select id="direction" value={settings.direction} onChange={(event) => void persistSettings({ direction: event.target.value as Direction })}>{activePair.directions.map((config) => <option key={config.id} value={config.id}>{directionDisplayLabel(config)}</option>)}</select>
         <label htmlFor="daily-new"><FormattedMessage id="dailyNew" values={{ count: settings.dailyNew }} /></label><input id="daily-new" type="number" min="0" max="20" value={settings.dailyNew} onChange={(event) => void persistSettings({ dailyNew: Math.max(0, Math.min(20, Number(event.target.value) || 0)) })} />
         <label htmlFor="daily-goal-settings"><FormattedMessage id="dailyGoalSettings" /></label><input id="daily-goal-settings" type="number" min="1" max="60" value={settings.dailyGoalMinutes} onChange={(event) => void persistSettings({ dailyGoalMinutes: Math.max(1, Math.min(60, Number(event.target.value) || 10)) })} />
         <label className="check"><input type="checkbox" checked={settings.motionEnabled} onChange={(event) => void persistSettings({ motionEnabled: event.target.checked })} /> <FormattedMessage id="motionSetting" /></label>
