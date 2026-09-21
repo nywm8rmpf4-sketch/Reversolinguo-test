@@ -55,12 +55,9 @@ export function initializeRuntimeBundleState(bundle: RuntimeBundleState): void {
 }
 
 export function registerRuntimeBundleState(pairId: string, bundle: RuntimeBundleState): void {
-  initializeRuntimeBundleState(bundle)
   const inferred = pairIdForBundle(bundle)
-  if (pairId !== inferred) {
-    runtimeBundles.delete(inferred)
-    throw new Error(`runtime-pair-id-mismatch:${pairId}/${inferred}`)
-  }
+  if (pairId !== inferred) throw new Error(`runtime-pair-id-mismatch:${pairId}/${inferred}`)
+  initializeRuntimeBundleState(bundle)
 }
 
 export function selectRuntimePair(pairId: string): void {
@@ -77,4 +74,20 @@ export function runtimeBundleState(pairId: string | undefined = activeRuntimePai
 
 export function loadedRuntimePairIds(): string[] {
   return [...runtimeBundles.keys()]
+}
+
+export function assertGlobalEntryIdUniqueness(pairIds: readonly string[] = loadedRuntimePairIds()): void {
+  const owners = new Map<string, string>()
+  for (const pairId of pairIds) {
+    const bundle = runtimeBundleState(pairId)
+    for (const candidate of bundle.catalog) {
+      if (!candidate || typeof candidate !== 'object' || typeof (candidate as { entry_id?: unknown }).entry_id !== 'string') {
+        throw new Error(`runtime-entry-id-invalid:${pairId}`)
+      }
+      const entryId = (candidate as { entry_id: string }).entry_id
+      const previous = owners.get(entryId)
+      if (previous) throw new Error(`runtime-entry-id-collision:${entryId}:${previous}:${pairId}`)
+      owners.set(entryId, pairId)
+    }
+  }
 }
