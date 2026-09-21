@@ -27,12 +27,12 @@ describe('local progress', () => {
     await source.settings.put({ ...defaultSettings, onboarded: true, direction: 'fr-es', soundMode: 'on' })
     const raw = await exportProgress(source)
     const exported = JSON.parse(raw) as { settings: Array<Record<string, unknown>> }
-    expect(exported.settings[0]).toMatchObject({ soundMode: 'on' })
+    expect(exported.settings[0]).toMatchObject({ soundMode: 'on', activePairId: 'fr-es' })
     expect(exported.settings[0]).not.toHaveProperty('soundEnabled')
     const target = new ReversolinguoDatabase(`target-${crypto.randomUUID()}`); names.push(target.name)
     await importProgress(raw, target)
     expect(await target.schedules.count()).toBe(1)
-    expect(await target.settings.get('settings')).toMatchObject({ onboarded: true, soundMode: 'on' })
+    expect(await target.settings.get('settings')).toMatchObject({ onboarded: true, soundMode: 'on', activePairId: 'fr-es' })
   })
 
   it('normalizes a legacy valid export with new settings and catalog ids', async () => {
@@ -48,7 +48,7 @@ describe('local progress', () => {
       settings: [{ id: 'settings', onboarded: true, direction: 'es-fr', dailyNew: 3 }]
     })
     await importProgress(raw, target)
-    expect(await target.settings.get('settings')).toMatchObject({ direction: 'es-fr', dailyNew: 3, dailyGoalMinutes: 10, soundMode: 'off', vibrationEnabled: false })
+    expect(await target.settings.get('settings')).toMatchObject({ direction: 'es-fr', activePairId: 'fr-es', dailyNew: 3, dailyGoalMinutes: 10, soundMode: 'off', vibrationEnabled: false })
     expect(await target.schedules.get('a1-mano:fr-es')).toBeUndefined()
     expect(await target.schedules.get('69046998-47e6-5570-b469-5a5cc961a97e:fr-es')).toMatchObject({ entryId: '69046998-47e6-5570-b469-5a5cc961a97e', intervalDays: 21 })
   })
