@@ -156,3 +156,13 @@ export function validateLearningPackGraph(
 
   return { valid: errors.length === 0, errors: [...new Set(errors)] }
 }
+
+
+export function packsForLanguagePair(pairId: string, packs: readonly LearningPack[]): LearningPack[] {
+  return packs.filter((pack) => pack.language_pair === pairId)
+}
+
+export function assertPacksBelongToLanguagePair(pairId: string, packs: readonly LearningPack[]): void {
+  const foreign = packs.find((pack) => pack.language_pair !== pairId)
+  if (foreign) throw new PackResolutionError('missing-pack', `Pack ${foreign.pack_id} belongs to ${foreign.language_pair}, not ${pairId}`)
+}
