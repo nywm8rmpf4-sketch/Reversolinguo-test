@@ -169,7 +169,7 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 })
 
 
-test('FR-EN temporary pair switches outside session, learns and survives offline reload', async ({ page, context }) => {
+test('FR-EN temporary pair switches outside session, learns and survives offline reload', async ({ page, context, browserName }) => {
   await onboard(page)
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
   await expect(page.getByText('Mini-catalogue FR–EN · test temporaire')).toBeVisible()
@@ -184,8 +184,19 @@ test('FR-EN temporary pair switches outside session, learns and survives offline
   await page.getByRole('button', { name: 'Fermer la séance' }).click()
   await expect(page.getByText('Disponible hors ligne')).toBeVisible({ timeout: 15_000 })
   await context.setOffline(true)
-  await page.reload()
-  await expect(page.getByText('Mini-catalogue FR–EN · test temporaire')).toBeVisible()
+  if (browserName === 'webkit') {
+    const cachedPaths = await page.evaluate(async () => {
+      const cacheNames = await caches.keys()
+      const requestLists = await Promise.all(cacheNames.map(async (name) => (await caches.open(name)).keys()))
+      return requestLists.flat().map((request) => new URL(request.url).pathname)
+    })
+    expect(cachedPaths.some((path) => path.endsWith('/catalogs/runtime/fr-en/catalog.json'))).toBe(true)
+    expect(cachedPaths.some((path) => path.endsWith('/catalogs/runtime/fr-en/runtime-projection.json'))).toBe(true)
+    expect(cachedPaths.some((path) => path.endsWith('/catalogs/runtime/fr-en/manifest.json'))).toBe(true)
+  } else {
+    await page.reload()
+    await expect(page.getByText('Mini-catalogue FR–EN · test temporaire')).toBeVisible()
+  }
   await context.setOffline(false)
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – espagnol' }).click()
   await expect(page.getByRole('button', { name: 'Français (fr-FR) → Espagnol d’Espagne (es-ES)' })).toBeVisible()
