@@ -15,7 +15,7 @@ import { db, defaultSettings } from '../../src/storage/database'
 function renderBrowser(entries: LexicalEntry[] = catalog, onEditSelection = () => undefined) {
   return render(
     <IntlProvider locale="fr" messages={messages}>
-      <VocabularyBrowser entries={entries} initialDirection="fr-es" onBack={() => undefined} onEditSelection={onEditSelection} />
+      <VocabularyBrowser entries={entries} initialDirection="fr-es" pairId="fr-es" onBack={() => undefined} onEditSelection={onEditSelection} />
     </IntlProvider>
   )
 }
