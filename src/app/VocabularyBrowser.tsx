@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { canonicalThemes, themeIdsForEntry } from '../content/taxonomy'
 import type { Direction, LexicalEntry } from '../domain/model'
-import { activeLanguagePair, directionDisplayLabel, displaySourceLanguage, getDirectionConfig, lexicalValues } from '../i18n/languagePairs'
+import { directionDisplayLabel, getLanguagePairConfig, displaySourceLanguage, getDirectionConfig, lexicalValues } from '../i18n/languagePairs'
 
 type VocabularyView = 'alphabetical' | 'themes'
 
@@ -32,6 +32,7 @@ function vocabularyThemeGroups(entries: LexicalEntry[], direction: Direction) {
 interface VocabularyBrowserProps {
   entries: LexicalEntry[]
   initialDirection: Direction
+  pairId: string
   onBack: () => void
   onEditSelection?: () => void
   banner?: ReactNode
@@ -51,10 +52,11 @@ function VocabularyList({ entries, direction }: { entries: LexicalEntry[]; direc
   )
 }
 
-export function VocabularyBrowser({ entries, initialDirection, onBack, onEditSelection, banner }: VocabularyBrowserProps) {
+export function VocabularyBrowser({ entries, initialDirection, pairId, onBack, onEditSelection, banner }: VocabularyBrowserProps) {
   const intl = useIntl()
   const [direction, setDirection] = useState<Direction>(initialDirection)
   const [view, setView] = useState<VocabularyView>('alphabetical')
+  const pair = useMemo(() => getLanguagePairConfig(pairId), [pairId])
   const sortedEntries = useMemo(() => sortVocabularyEntries(entries, direction), [direction, entries])
   const themeGroups = useMemo(() => vocabularyThemeGroups(entries, direction), [direction, entries])
 
@@ -78,7 +80,7 @@ export function VocabularyBrowser({ entries, initialDirection, onBack, onEditSel
           </button>
         </div>
         <div className="direction-switch" role="group" aria-label={intl.formatMessage({ id: 'vocabularyDisplayDirection' })}>
-          {activeLanguagePair.directions.map((config) => (
+          {pair.directions.map((config) => (
             <button type="button" key={config.id} aria-pressed={direction === config.id} onClick={() => setDirection(config.id)}>
               {directionDisplayLabel(config)}
             </button>
