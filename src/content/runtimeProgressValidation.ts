@@ -91,7 +91,7 @@ function isReview(value: unknown): boolean {
 
 const settingsRequired = ['id', 'onboarded', 'direction', 'dailyNew'] as const
 const settingsOptional = [
-  'dailyGoalMinutes', 'motionEnabled', 'soundMode', 'soundEnabled', 'vibrationEnabled',
+  'activePairId', 'dailyGoalMinutes', 'motionEnabled', 'soundMode', 'soundEnabled', 'vibrationEnabled',
   'pathAudience', 'selectedPackIds', 'selectedThemeIds', 'reviewScope',
   'primaryPackId', 'focusThemeIds', 'adultScope'
 ] as const
@@ -103,6 +103,7 @@ function stringEnum(value: unknown, allowed: readonly string[]): boolean {
 function isSettings(value: unknown): boolean {
   if (!isRecord(value) || !exactShape(value, settingsRequired, settingsOptional)) return false
   if (value.id !== 'settings' || typeof value.onboarded !== 'boolean' || !isDirection(value.direction) || !isIntegerIn(value.dailyNew, 0, 20)) return false
+  if (value.activePairId !== undefined && !isBoundedString(value.activePairId, 1, 64)) return false
   if (value.dailyGoalMinutes !== undefined && !isIntegerIn(value.dailyGoalMinutes, 1, 60)) return false
   if (value.motionEnabled !== undefined && typeof value.motionEnabled !== 'boolean') return false
   if (value.soundMode !== undefined && !stringEnum(value.soundMode, ['off', 'subtle', 'on'])) return false
