@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { scheduleKey } from '../../src/domain/model'
-import { activeLanguagePair, annotateAmbiguousPromptContexts, expectedFor, getDirectionConfig, normalizeAnswer, promptContextFor, promptFor, type LanguagePairConfig } from '../../src/i18n/languagePairs'
+import { activeLanguagePair, annotateAmbiguousPromptContexts, expectedFor, getDirectionConfig, getLanguagePairConfig, languagePairRegistry, normalizeAnswer, pairForDirection, promptContextFor, promptFor, type LanguagePairConfig } from '../../src/i18n/languagePairs'
 import { catalog } from '../../src/content/catalog'
 
 describe('language pair runtime configuration', () => {
@@ -8,6 +8,13 @@ describe('language pair runtime configuration', () => {
     expect(activeLanguagePair.directions.map((item) => item.id)).toEqual(['fr-es', 'es-fr'])
     expect(scheduleKey('entry', 'fr-es')).toBe('entry:fr-es')
     expect(scheduleKey('entry', 'es-fr')).toBe('entry:es-fr')
+  })
+
+  it('registers FR-ES as the default configured pair and resolves its directions uniquely', () => {
+    expect(languagePairRegistry.map((pair) => pair.id)).toEqual(['fr-es'])
+    expect(getLanguagePairConfig('fr-es')).toBe(activeLanguagePair)
+    expect(pairForDirection('es-fr')).toBe(activeLanguagePair)
+    expect(() => getLanguagePairConfig('fr-de')).toThrow('Paire de langues non configurée')
   })
 
   it('drives prompt and answer sides without FR/ES fields in the runtime entry', () => {
