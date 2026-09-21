@@ -3,11 +3,13 @@ import { legacyEntryIdMap } from '../content/legacyIds'
 import { validateProgressExportRuntime } from '../content/runtimeProgressValidation'
 import type { Direction, ReviewEvent, ScheduleState } from '../domain/model'
 import { defaultSoundMode, soundModeFromPersisted, type SoundMode } from '../audio/model'
+import { defaultLanguagePairId, pairForDirection } from '../i18n/languagePairs'
 
 export interface SettingsRecord {
   id: 'settings'
   onboarded: boolean
   direction: Direction
+  activePairId: string
   dailyNew: number
   dailyGoalMinutes: number
   motionEnabled: boolean
@@ -27,7 +29,7 @@ type PersistedSettingsInput = Partial<SettingsRecord> & {
 }
 
 export const defaultSettings: SettingsRecord = {
-  id: 'settings', onboarded: false, direction: 'fr-es', dailyNew: 5, dailyGoalMinutes: 10,
+  id: 'settings', onboarded: false, direction: 'fr-es', activePairId: defaultLanguagePairId, dailyNew: 5, dailyGoalMinutes: 10,
   motionEnabled: true, soundMode: defaultSoundMode, vibrationEnabled: false,
   pathAudience: 'adult', selectedPackIds: ['fr-es-adult-cefr-a1'], selectedThemeIds: [], reviewScope: 'all-due'
 }
@@ -65,6 +67,9 @@ function completeSettings(value?: PersistedSettingsInput): SettingsRecord {
     : Array.isArray(focusThemeIds) ? focusThemeIds.filter((item): item is string => typeof item === 'string') : []
 
   const reviewScope = current.reviewScope === 'selection-only' ? 'selection-only' : 'all-due'
+  const activePairId = typeof current.activePairId === 'string' && current.activePairId.trim()
+    ? current.activePairId
+    : (() => { try { return pairForDirection(current.direction ?? defaultSettings.direction).id } catch { return defaultLanguagePairId } })()
 
   return {
     ...defaultSettings,
@@ -73,6 +78,7 @@ function completeSettings(value?: PersistedSettingsInput): SettingsRecord {
     selectedPackIds: selectedPackIds.length ? [...new Set(selectedPackIds)] : [...defaultSettings.selectedPackIds],
     selectedThemeIds: [...new Set(selectedThemeIds)],
     reviewScope,
+    activePairId,
     soundMode: soundModeFromPersisted(current.soundMode, soundEnabled),
     id: 'settings'
   }
@@ -146,6 +152,11 @@ export class ReversolinguoDatabase extends Dexie {
         if (settings) await transaction.table('settings').put(completeSettings(settings))
       })
     this.version(6).stores(stores)
+      .upgrade(async (transaction) => {
+        const settings = await transaction.table('settings').get('settings') as PersistedSettingsInput | undefined
+        if (settings) await transaction.table('settings').put(completeSettings(settings))
+      })
+    this.version(7).stores(stores)
       .upgrade(async (transaction) => {
         const settings = await transaction.table('settings').get('settings') as PersistedSettingsInput | undefined
         if (settings) await transaction.table('settings').put(completeSettings(settings))
