@@ -26,7 +26,7 @@ export interface LanguagePairConfig {
   resources: readonly string[]
 }
 
-export const activeLanguagePair: LanguagePairConfig = {
+export const frEsLanguagePair: LanguagePairConfig = {
   id: 'fr-es',
   sourceLanguage: 'es',
   targetLanguage: 'fr',
@@ -64,6 +64,22 @@ export const activeLanguagePair: LanguagePairConfig = {
   resources: []
 }
 
+export const languagePairRegistry = [frEsLanguagePair] as const satisfies readonly LanguagePairConfig[]
+export const defaultLanguagePairId = frEsLanguagePair.id
+export const activeLanguagePair = frEsLanguagePair
+
+export function getLanguagePairConfig(pairId: string, registry: readonly LanguagePairConfig[] = languagePairRegistry): LanguagePairConfig {
+  const pair = registry.find((item) => item.id === pairId)
+  if (!pair) throw new Error(`Paire de langues non configurée : ${pairId}`)
+  return pair
+}
+
+export function pairForDirection(direction: Direction, registry: readonly LanguagePairConfig[] = languagePairRegistry): LanguagePairConfig {
+  const matches = registry.filter((pair) => pair.directions.some((item) => item.id === direction))
+  if (matches.length !== 1) throw new Error(matches.length ? `Direction ambiguë : ${direction}` : `Direction non configurée : ${direction}`)
+  return matches[0]
+}
+
 export function directionDisplayLabel(config: DirectionConfig): string {
   const prompt = config.promptLanguageName ?? config.promptLanguage
   const answer = config.answerLanguageName ?? config.answerLanguage
@@ -72,7 +88,7 @@ export function directionDisplayLabel(config: DirectionConfig): string {
   return `${prompt}${promptLocale} → ${answer}${answerLocale}`
 }
 
-export function getDirectionConfig(direction: Direction, pair = activeLanguagePair): DirectionConfig {
+export function getDirectionConfig(direction: Direction, pair: LanguagePairConfig = pairForDirection(direction)): DirectionConfig {
   const config = pair.directions.find((item) => item.id === direction)
   if (!config) throw new Error(`Direction non configurée : ${direction}`)
   return config
