@@ -64,7 +64,46 @@ export const frEsLanguagePair: LanguagePairConfig = {
   resources: []
 }
 
-export const languagePairRegistry = [frEsLanguagePair] as const satisfies readonly LanguagePairConfig[]
+
+export const frEnLanguagePair: LanguagePairConfig = {
+  id: 'fr-en',
+  sourceLanguage: 'en',
+  targetLanguage: 'fr',
+  directions: [
+    {
+      id: 'fr-en',
+      promptSide: 'target',
+      answerSide: 'source',
+      promptLanguage: 'fr',
+      answerLanguage: 'en',
+      promptMessageId: 'translateToEnglish',
+      selectMessageId: 'frEn',
+      displayMessageId: 'vocabularyFrEn',
+      promptLocale: 'fr-FR',
+      answerLocale: 'en-GB',
+      promptLanguageName: 'Français',
+      answerLanguageName: 'Anglais'
+    },
+    {
+      id: 'en-fr',
+      promptSide: 'source',
+      answerSide: 'target',
+      promptLanguage: 'en',
+      answerLanguage: 'fr',
+      promptMessageId: 'translateToFrench',
+      selectMessageId: 'enFr',
+      displayMessageId: 'vocabularyEnFr',
+      promptLocale: 'en-GB',
+      answerLocale: 'fr-FR',
+      promptLanguageName: 'Anglais',
+      answerLanguageName: 'Français'
+    }
+  ],
+  voices: [],
+  resources: []
+}
+
+export const languagePairRegistry = [frEsLanguagePair, frEnLanguagePair] as const satisfies readonly LanguagePairConfig[]
 export const defaultLanguagePairId = frEsLanguagePair.id
 export const activeLanguagePair = frEsLanguagePair
 
