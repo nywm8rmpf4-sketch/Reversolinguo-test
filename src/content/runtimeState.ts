@@ -25,7 +25,16 @@ export interface RuntimeBundleState {
   manifest: RuntimeCatalogManifest
 }
 
-let activeRuntimeBundle: RuntimeBundleState | undefined
+const runtimeBundles = new Map<string, RuntimeBundleState>()
+let activeRuntimePairId: string | undefined
+
+function primaryLanguage(tag: string): string {
+  return tag.toLowerCase().split('-')[0]
+}
+
+function pairIdForBundle(bundle: RuntimeBundleState): string {
+  return `${primaryLanguage(bundle.manifest.target_language)}-${primaryLanguage(bundle.manifest.source_language)}`
+}
 
 export function initializeRuntimeBundleState(bundle: RuntimeBundleState): void {
   if (!Array.isArray(bundle.catalog)) throw new Error('runtime-catalog-not-array')
@@ -40,10 +49,32 @@ export function initializeRuntimeBundleState(bundle: RuntimeBundleState): void {
   if (bundle.projection.catalog_version !== bundle.manifest.catalog_version) {
     throw new Error(`runtime-projection-version:${bundle.projection.catalog_version}/${bundle.manifest.catalog_version}`)
   }
-  activeRuntimeBundle = bundle
+  const pairId = pairIdForBundle(bundle)
+  runtimeBundles.set(pairId, bundle)
+  activeRuntimePairId ??= pairId
 }
 
-export function runtimeBundleState(): RuntimeBundleState {
-  if (!activeRuntimeBundle) throw new Error('runtime-bundle-not-initialized')
-  return activeRuntimeBundle
+export function registerRuntimeBundleState(pairId: string, bundle: RuntimeBundleState): void {
+  initializeRuntimeBundleState(bundle)
+  const inferred = pairIdForBundle(bundle)
+  if (pairId !== inferred) {
+    runtimeBundles.delete(inferred)
+    throw new Error(`runtime-pair-id-mismatch:${pairId}/${inferred}`)
+  }
+}
+
+export function selectRuntimePair(pairId: string): void {
+  if (!runtimeBundles.has(pairId)) throw new Error(`runtime-pair-not-loaded:${pairId}`)
+  activeRuntimePairId = pairId
+}
+
+export function runtimeBundleState(pairId: string | undefined = activeRuntimePairId): RuntimeBundleState {
+  if (!pairId) throw new Error('runtime-bundle-not-initialized')
+  const bundle = runtimeBundles.get(pairId)
+  if (!bundle) throw new Error(`runtime-pair-not-loaded:${pairId}`)
+  return bundle
+}
+
+export function loadedRuntimePairIds(): string[] {
+  return [...runtimeBundles.keys()]
 }
