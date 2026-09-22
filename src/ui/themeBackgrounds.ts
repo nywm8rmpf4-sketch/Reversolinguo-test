@@ -26,26 +26,26 @@ export const frEsThemeBackgrounds: Record<CanonicalThemeId, string> = {
 export const themeBackgrounds = frEsThemeBackgrounds
 
 export const frEnUkThemeBackgrounds: Record<CanonicalThemeId, string> = {
-  'alimentation': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/01-alimentation.svg', import.meta.url).href,
-  'communication': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/02-communication.svg', import.meta.url).href,
-  'corps-sante': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/03-corps-sante.svg', import.meta.url).href,
-  'culture-fetes': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/04-culture-fetes.svg', import.meta.url).href,
-  'description': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/05-description.svg', import.meta.url).href,
-  'ecole-etudes': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/06-ecole-etudes.svg', import.meta.url).href,
-  'espace-orientation': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/07-espace-orientation.svg', import.meta.url).href,
-  'famille-relations': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/08-famille-relations.svg', import.meta.url).href,
-  'identite': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/09-identite.svg', import.meta.url).href,
-  'loisirs': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/10-loisirs.svg', import.meta.url).href,
-  'maison': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/11-maison.svg', import.meta.url).href,
-  'meteo': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/12-meteo.svg', import.meta.url).href,
-  'nature-environnement': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/13-nature-environnement.svg', import.meta.url).href,
-  'numerique': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/14-numerique.svg', import.meta.url).href,
-  'sports': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/15-sports.svg', import.meta.url).href,
-  'temps': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/16-temps.svg', import.meta.url).href,
-  'travail-metiers': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/17-travail-metiers.svg', import.meta.url).href,
-  'vetements': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/18-vetements.svg', import.meta.url).href,
-  'ville-services': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/19-ville-services.svg', import.meta.url).href,
-  'voyage': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/20-voyage.svg', import.meta.url).href
+  'alimentation': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/01-alimentation.svg?url', import.meta.url).href,
+  'communication': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/02-communication.svg?url', import.meta.url).href,
+  'corps-sante': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/03-corps-sante.svg?url', import.meta.url).href,
+  'culture-fetes': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/04-culture-fetes.svg?url', import.meta.url).href,
+  'description': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/05-description.svg?url', import.meta.url).href,
+  'ecole-etudes': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/06-ecole-etudes.svg?url', import.meta.url).href,
+  'espace-orientation': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/07-espace-orientation.svg?url', import.meta.url).href,
+  'famille-relations': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/08-famille-relations.svg?url', import.meta.url).href,
+  'identite': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/09-identite.svg?url', import.meta.url).href,
+  'loisirs': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/10-loisirs.svg?url', import.meta.url).href,
+  'maison': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/11-maison.svg?url', import.meta.url).href,
+  'meteo': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/12-meteo.svg?url', import.meta.url).href,
+  'nature-environnement': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/13-nature-environnement.svg?url', import.meta.url).href,
+  'numerique': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/14-numerique.svg?url', import.meta.url).href,
+  'sports': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/15-sports.svg?url', import.meta.url).href,
+  'temps': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/16-temps.svg?url', import.meta.url).href,
+  'travail-metiers': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/17-travail-metiers.svg?url', import.meta.url).href,
+  'vetements': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/18-vetements.svg?url', import.meta.url).href,
+  'ville-services': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/19-ville-services.svg?url', import.meta.url).href,
+  'voyage': new URL('../../documentation/design/assets/v2.0-theme-backgrounds-fr-en-uk-r1/20-voyage.svg?url', import.meta.url).href
 }
 
 const backgroundsByPair: Record<string, Record<CanonicalThemeId, string>> = {
