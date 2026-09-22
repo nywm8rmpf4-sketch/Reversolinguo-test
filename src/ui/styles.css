@@ -445,7 +445,7 @@ select:focus-visible,
   text-align: center;
   background-color: rgba(255, 253, 248, .98);
   background-image:
-    linear-gradient(rgba(255, 253, 248, .8), rgba(255, 253, 248, .8)),
+    linear-gradient(var(--flashcard-theme-wash, rgba(255, 253, 248, .8)), var(--flashcard-theme-wash, rgba(255, 253, 248, .8))),
     var(--flashcard-theme-image, none);
   background-position: center;
   background-size: cover;
@@ -706,4 +706,13 @@ button:not(:disabled):active, .file-button:active { transform: translateY(1px); 
 @media (forced-colors: active), (prefers-contrast: more) {
   .flashcard { background-image: none; }
   .language-route { border: 1px solid currentColor; }
+}
+
+.build-identity {
+  margin: 0 0 .45rem;
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: .02em;
 }
