@@ -17,7 +17,8 @@ describe('v1.2 thematic flashcard backgrounds', () => {
     expect(Object.keys(frEnUkThemeBackgrounds)).toHaveLength(20)
     expect(new Set(Object.values(frEnUkThemeBackgrounds)).size).toBe(20)
     expect(themeBackgroundFor('alimentation', 'fr-es')).toContain('v1.3-theme-backgrounds-fr-es-r1')
-    expect(themeBackgroundFor('alimentation', 'fr-en')).toContain('v2.0-theme-backgrounds-fr-en-uk-r1/01-alimentation.svg')
+    expect(themeBackgroundFor('alimentation', 'fr-en')).toBe(frEnUkThemeBackgrounds.alimentation)
+    expect(themeBackgroundFor('alimentation', 'fr-en')).not.toBe(themeBackgroundFor('alimentation', 'fr-es'))
     expect(themeBackgroundFor('alimentation', 'unknown-pair')).toBeNull()
   })
 
