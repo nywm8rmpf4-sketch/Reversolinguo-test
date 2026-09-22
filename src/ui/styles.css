@@ -703,8 +703,12 @@ button:not(:disabled):active, .file-button:active { transform: translateY(1px); 
   .hero-card, .panel, .flashcard { padding: 2rem; }
 }
 
-@media (forced-colors: active), (prefers-contrast: more) {
+@media (forced-colors: active) {
   .flashcard { background-image: none; }
+  .language-route { border: 1px solid currentColor; }
+}
+
+@media (prefers-contrast: more) {
   .language-route { border: 1px solid currentColor; }
 }
 
