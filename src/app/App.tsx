@@ -158,7 +158,10 @@ function AppContent() {
   const canonicalTheme = entry ? themeIdsForEntry(entry.id)[0] : undefined
   const canonicalThemeLabel = canonicalThemes.find((theme) => theme.id === canonicalTheme)?.label_fr
   const themeBackground = themeBackgroundFor(canonicalTheme, settings.activePairId)
-  const flashcardStyle = themeBackground ? ({ '--flashcard-theme-image': `url("${themeBackground}")` } as CSSProperties) : undefined
+  const flashcardStyle = themeBackground ? ({
+    '--flashcard-theme-image': `url("${themeBackground}")`,
+    '--flashcard-theme-wash': settings.activePairId === 'fr-en' ? 'rgba(255, 253, 248, .32)' : 'rgba(255, 253, 248, .8)'
+  } as CSSProperties) : undefined
 
   async function persistSettings(patch: Partial<SettingsRecord>) {
     const next: SettingsRecord = { ...settings, ...patch, id: 'settings' }
@@ -446,7 +449,7 @@ function AppContent() {
   const differenceMessage: MessageId = comparison.difference === 'accent' ? 'differenceAccent' : comparison.difference === 'article-or-gender' ? 'differenceArticleGender' : 'differenceSpelling'
   const answerResultMessage: MessageId = unknownAnswer || comparison.difference === 'spelling' ? 'resultReview' : answerMatches ? 'resultCorrect' : 'resultAlmost'
   return (
-    <main className="shell session"><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only"><FormattedMessage id="closeSession" /></span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label={intl.formatMessage({ id: 'sessionProgress' })}/><div className="session-progress-meta"><span><FormattedMessage id="sessionPosition" values={{ current: Math.max(1, sessionTotal - queue.length + 1), total: Math.max(1, sessionTotal) }} /></span><span className="card-state"><FormattedMessage id={cardStateMessageId(current?.state ?? 'NEW')} /></span></div></header>
+    <main className="shell session"><div className="build-identity" aria-label="Version de test">TEST v2.0-R10 · publié 22/09/2026</div><header className="session-header"><button className="back" onClick={() => setScreen('home')}>× <span className="sr-only"><FormattedMessage id="closeSession" /></span></button><progress value={Math.max(1, sessionTotal - queue.length + 1)} max={Math.max(1, sessionTotal)} aria-label={intl.formatMessage({ id: 'sessionProgress' })}/><div className="session-progress-meta"><span><FormattedMessage id="sessionPosition" values={{ current: Math.max(1, sessionTotal - queue.length + 1), total: Math.max(1, sessionTotal) }} /></span><span className="card-state"><FormattedMessage id={cardStateMessageId(current?.state ?? 'NEW')} /></span></div></header>
       {lastReview && sessionMode === 'scheduled' && <button className="undo-banner" onClick={undoLastReview}><FormattedMessage id="undo" /></button>}
       {notice && <p className="notice" role="alert">{notice}</p>}
       {entry && current && directionConfig && examples && <section className="flashcard" aria-live="polite" data-theme={canonicalTheme ?? 'neutral'} style={flashcardStyle}><span className="language-route">{directionDisplayLabel(directionConfig)}</span><span className="direction-label">{modePrefix}<FormattedMessage id={directionConfig.promptMessageId} /></span>{canonicalThemeLabel && <span className="theme-label"><FormattedMessage id="themeLabel" values={{ theme: canonicalThemeLabel }} /></span>}<h1 lang={directionConfig.promptLanguage} dir="auto">{prompt}</h1>{promptContext && <p className="prompt-context" lang={directionConfig.promptLanguage} dir="auto">{promptContext}</p>}<label htmlFor="answer"><FormattedMessage id="answerLabel" /></label><input id="answer" value={answer} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" disabled={revealed} lang={directionConfig.answerLanguage} />
