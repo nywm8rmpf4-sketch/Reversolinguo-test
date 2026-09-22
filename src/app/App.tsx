@@ -157,7 +157,7 @@ function AppContent() {
   const examples = entry && current ? examplesFor(entry, current.direction) : null
   const canonicalTheme = entry ? themeIdsForEntry(entry.id)[0] : undefined
   const canonicalThemeLabel = canonicalThemes.find((theme) => theme.id === canonicalTheme)?.label_fr
-  const themeBackground = themeBackgroundFor(canonicalTheme)
+  const themeBackground = themeBackgroundFor(canonicalTheme, settings.activePairId)
   const flashcardStyle = themeBackground ? ({ '--flashcard-theme-image': `url("${themeBackground}")` } as CSSProperties) : undefined
 
   async function persistSettings(patch: Partial<SettingsRecord>) {
