@@ -34,6 +34,6 @@ describe('v1.2 thematic flashcard backgrounds', () => {
 
   it('keeps the validated palette visible through a bounded paper wash', () => {
     const styles = readFileSync(resolve(process.cwd(), 'src/ui/styles.css'), 'utf8')
-    expect(styles).toMatch(/linear-gradient\(rgba\(255, 253, 248, \.8\), rgba\(255, 253, 248, \.8\)\)/u)
+    expect(styles).toContain("--flashcard-theme-wash, rgba(255, 253, 248, .8)")
   })
 })
