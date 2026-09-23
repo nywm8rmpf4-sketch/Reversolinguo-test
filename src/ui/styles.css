@@ -447,7 +447,7 @@ select:focus-visible,
   background-image:
     linear-gradient(var(--flashcard-theme-wash, rgba(255, 253, 248, .8)), var(--flashcard-theme-wash, rgba(255, 253, 248, .8))),
     var(--flashcard-theme-image, none);
-  background-position: center, center;
+  background-position: center, var(--flashcard-theme-position, center);
   background-size: cover, var(--flashcard-theme-size, cover);
   background-repeat: no-repeat, no-repeat;
 }
