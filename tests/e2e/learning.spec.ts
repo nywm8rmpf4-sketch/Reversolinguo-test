@@ -169,6 +169,38 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 })
 
 
+test('FR-EN UK decoration stays outside controls on iPad landscape', async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 })
+  await onboard(page)
+  await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
+  await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
+  const card = page.locator('.flashcard')
+  await expect(card).toBeVisible()
+  const cardBox = await card.boundingBox()
+  if (!cardBox) throw new Error('Missing flashcard bounds')
+  const artworkWidth = cardBox.width * 0.28
+  const artworkHeight = artworkWidth * (280 / 360)
+  const artwork = {
+    x: cardBox.x + 16,
+    y: cardBox.y + cardBox.height - 16 - artworkHeight,
+    width: artworkWidth,
+    height: artworkHeight
+  }
+  for (const locator of [
+    page.getByRole('textbox', { name: 'Votre réponse' }),
+    page.getByRole('button', { name: 'Voir la réponse' }),
+    page.getByRole('button', { name: 'Je ne sais pas' })
+  ]) {
+    const box = await locator.boundingBox()
+    if (!box) throw new Error('Missing learning-control bounds')
+    const overlaps = artwork.x < box.x + box.width && artwork.x + artwork.width > box.x &&
+      artwork.y < box.y + box.height && artwork.y + artwork.height > box.y
+    expect(overlaps).toBe(false)
+  }
+  expect(await card.evaluate((node) => getComputedStyle(node).backgroundSize)).toBe('cover, 28% auto')
+  expect(await card.evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 16px calc(100% - 16px)')
+})
+
 test('FR-EN temporary pair switches outside session, learns and survives offline reload', async ({ page, context, browserName }) => {
   await onboard(page)
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
