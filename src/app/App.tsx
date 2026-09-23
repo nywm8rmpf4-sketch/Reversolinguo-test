@@ -368,7 +368,7 @@ function AppContent() {
     await resetProgress(); setSettings(defaultSettings); setScreen('onboarding')
   }
 
-  if (screen === 'loading') return <main className="shell"><div className="build-identity" aria-label="Version de test">TEST v2.0-R15 · publié 23/09/2026</div><p aria-live="polite"><FormattedMessage id="loading" /></p></main>
+  if (screen === 'loading') return <main className="shell"><div className="build-identity" aria-label="Version de test">TEST v2.0-R16 · publié 23/09/2026</div><p aria-live="polite"><FormattedMessage id="loading" /></p></main>
 
   if (screen === 'onboarding') return (
     <main className="shell onboarding">
