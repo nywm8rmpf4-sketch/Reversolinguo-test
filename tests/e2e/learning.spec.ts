@@ -186,7 +186,7 @@ test('FR-EN temporary pair switches outside session, learns and survives offline
   expect(frEnBackground).toContain('data:image/svg+xml')
   const frEnBackgroundSize = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)
   expect(frEnBackgroundSize).toBe('cover, 28% auto')
-  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toContain('1rem')
+  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 16px calc(100% - 16px)')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundRepeat)).toBe('no-repeat, no-repeat')
   await page.getByRole('textbox', { name: 'Votre réponse' }).fill('hello')
   await page.getByRole('button', { name: 'Voir la réponse' }).click()
