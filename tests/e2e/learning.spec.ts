@@ -169,36 +169,30 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 })
 
 
-test('FR-EN UK decoration stays outside controls on iPad landscape', async ({ page }) => {
+test('FR-EN original UK artwork loads intact on iPad landscape', async ({ page }) => {
   await page.setViewportSize({ width: 1180, height: 820 })
   await onboard(page)
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   const card = page.locator('.flashcard')
   await expect(card).toBeVisible()
-  const cardBox = await card.boundingBox()
-  if (!cardBox) throw new Error('Missing flashcard bounds')
-  const artworkWidth = cardBox.width * 0.28
-  const artworkHeight = artworkWidth * (280 / 360)
-  const artwork = {
-    x: cardBox.x + 16,
-    y: cardBox.y + cardBox.height - 16 - artworkHeight,
-    width: artworkWidth,
-    height: artworkHeight
+  const background = await card.evaluate(async (node) => {
+    const style = getComputedStyle(node)
+    const url = style.backgroundImage.match(/url\("([^"]+)"\)/)?.[1]
+    if (!url) throw new Error('Missing UK artwork URL')
+    const image = new Image()
+    image.src = url
+    await image.decode()
+    return { size: style.backgroundSize, position: style.backgroundPosition, width: image.naturalWidth, height: image.naturalHeight }
+  })
+  expect(background.size).toBe('cover, contain')
+  expect(background.position).toBe('50% 50%, 50% 50%')
+  expect(background.width).toBe(701)
+  expect(background.height).toBe(561)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  for (const name of ['Votre réponse', 'Voir la réponse', 'Je ne sais pas']) {
+    await expect(page.getByRole(name === 'Votre réponse' ? 'textbox' : 'button', { name })).toBeVisible()
   }
-  for (const locator of [
-    page.getByRole('textbox', { name: 'Votre réponse' }),
-    page.getByRole('button', { name: 'Voir la réponse' }),
-    page.getByRole('button', { name: 'Je ne sais pas' })
-  ]) {
-    const box = await locator.boundingBox()
-    if (!box) throw new Error('Missing learning-control bounds')
-    const overlaps = artwork.x < box.x + box.width && artwork.x + artwork.width > box.x &&
-      artwork.y < box.y + box.height && artwork.y + artwork.height > box.y
-    expect(overlaps).toBe(false)
-  }
-  expect(await card.evaluate((node) => getComputedStyle(node).backgroundSize)).toContain('cover')
-  expect(await card.evaluate((node) => getComputedStyle(node).backgroundPosition)).toContain('16px')
 })
 
 test('FR-EN temporary pair switches outside session, learns and survives offline reload', async ({ page, context, browserName }) => {
@@ -215,10 +209,10 @@ test('FR-EN temporary pair switches outside session, learns and survives offline
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByRole('heading', { name: 'bonjour' })).toBeVisible()
   const frEnBackground = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundImage)
-  expect(frEnBackground).toContain('data:image/svg+xml')
+  expect(frEnBackground).toContain('.webp')
   const frEnBackgroundSize = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)
-  expect(frEnBackgroundSize).toBe('cover, 28% auto')
-  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 16px calc(100% - 16px)')
+  expect(frEnBackgroundSize).toBe('cover, contain')
+  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 50% 50%')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundRepeat)).toBe('no-repeat, no-repeat')
   await page.getByRole('textbox', { name: 'Votre réponse' }).fill('hello')
   await page.getByRole('button', { name: 'Voir la réponse' }).click()
