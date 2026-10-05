@@ -1,0 +1,24 @@
+name: R20 lockfile audit refresh diagnostic
+on:
+  push:
+    branches: [tooling/r20-audit-lock-refresh-2026-10-05]
+permissions:
+  contents: read
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - run: npm install --global npm@11.9.0
+      - run: npm ci
+      - run: npm audit fix --package-lock-only
+      - run: npm audit --audit-level=high
+      - run: git diff --stat -- package-lock.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r20-refreshed-package-lock
+          path: package-lock.json
+          if-no-files-found: error
