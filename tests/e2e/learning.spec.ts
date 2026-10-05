@@ -169,14 +169,16 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 })
 
 
-test('FR-EN original UK artwork loads intact on iPad landscape', async ({ page }) => {
+test('FR-EN original UK artwork has its own space on iPad and phone', async ({ page }) => {
   await page.setViewportSize({ width: 1180, height: 820 })
   await onboard(page)
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   const card = page.locator('.flashcard')
   await expect(card).toBeVisible()
-  const background = await card.evaluate(async (node) => {
+  const art = card.locator('.flashcard-art')
+  await expect(art).toBeVisible()
+  const background = await art.evaluate(async (node) => {
     const style = getComputedStyle(node)
     const url = style.backgroundImage.match(/url\("([^"]+)"\)/)?.[1]
     if (!url) throw new Error('Missing UK artwork URL')
@@ -185,13 +187,21 @@ test('FR-EN original UK artwork loads intact on iPad landscape', async ({ page }
     await image.decode()
     return { size: style.backgroundSize, position: style.backgroundPosition, width: image.naturalWidth, height: image.naturalHeight }
   })
-  expect(background.size).toBe('cover, contain')
+  expect(background.size).toBe('contain, contain')
   expect(background.position).toBe('50% 50%, 50% 50%')
   expect(background.width).toBe(701)
   expect(background.height).toBe(561)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  for (const name of ['Votre réponse', 'Voir la réponse', 'Je ne sais pas']) {
-    await expect(page.getByRole(name === 'Votre réponse' ? 'textbox' : 'button', { name })).toBeVisible()
+  for (const viewport of [{ width: 1180, height: 820 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    const artBox = await art.boundingBox()
+    if (!artBox) throw new Error('Missing artwork bounds')
+    for (const locator of [card.locator('.language-route'), card.getByRole('heading'), page.getByRole('textbox', { name: 'Votre réponse' }), page.getByRole('button', { name: 'Voir la réponse' }), page.getByRole('button', { name: 'Je ne sais pas' })]) {
+      await expect(locator).toBeVisible()
+      const box = await locator.boundingBox()
+      if (!box) throw new Error('Missing learning-content bounds')
+      expect(artBox.y + artBox.height).toBeLessThanOrEqual(box.y)
+    }
   }
 })
 
@@ -208,12 +218,12 @@ test('FR-EN temporary pair switches outside session, learns and survives offline
   await page.getByRole('button', { name: /Retour/ }).click()
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByRole('heading', { name: 'bonjour' })).toBeVisible()
-  const frEnBackground = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundImage)
+  const frEnBackground = await page.locator('.flashcard-art').evaluate((node) => getComputedStyle(node).backgroundImage)
   expect(frEnBackground).toContain('.webp')
-  const frEnBackgroundSize = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)
-  expect(frEnBackgroundSize).toBe('cover, contain')
-  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 50% 50%')
-  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundRepeat)).toBe('no-repeat, no-repeat')
+  const frEnBackgroundSize = await page.locator('.flashcard-art').evaluate((node) => getComputedStyle(node).backgroundSize)
+  expect(frEnBackgroundSize).toBe('contain, contain')
+  expect(await page.locator('.flashcard-art').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 50% 50%')
+  expect(await page.locator('.flashcard-art').evaluate((node) => getComputedStyle(node).backgroundRepeat)).toBe('no-repeat, no-repeat')
   await page.getByRole('textbox', { name: 'Votre réponse' }).fill('hello')
   await page.getByRole('button', { name: 'Voir la réponse' }).click()
   await expect(page.getByText('Réponse identique ✓')).toBeVisible()
