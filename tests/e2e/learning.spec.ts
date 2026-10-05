@@ -185,7 +185,7 @@ test('all language pairs use the same themed flashcard composition on iPad and p
       const computed = getComputedStyle(node)
       return { image: computed.backgroundImage, size: computed.backgroundSize, position: computed.backgroundPosition, repeat: computed.backgroundRepeat }
     })
-    expect(style.image).toContain('.svg')
+    expect(style.image).toContain('data:image/svg+xml')
     expect(style.size).toBe('cover, cover')
     expect(style.position).toBe('50% 50%, 50% 50%')
     expect(style.repeat).toBe('no-repeat, no-repeat')
@@ -206,7 +206,7 @@ test('FR-EN temporary pair switches outside session, learns and survives offline
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByRole('heading', { name: 'bonjour' })).toBeVisible()
   const frEnBackground = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundImage)
-  expect(frEnBackground).toContain('.svg')
+  expect(frEnBackground).toContain('data:image/svg+xml')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)).toBe('cover, cover')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 50% 50%')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundRepeat)).toBe('no-repeat, no-repeat')
