@@ -172,7 +172,7 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 test('all language pairs use the same themed flashcard composition on iPad and phone', async ({ page }) => {
   await page.setViewportSize({ width: 1180, height: 820 })
   await onboard(page)
-  await expect(page.locator('.build-identity')).toHaveText('TEST v2.0-R22 · publié 05/10/2026')
+  await expect(page.locator('.build-identity')).toHaveText('TEST v2.0-R23 · publié 05/10/2026')
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   const card = page.locator('.flashcard')
@@ -185,8 +185,8 @@ test('all language pairs use the same themed flashcard composition on iPad and p
       const computed = getComputedStyle(node)
       return { image: computed.backgroundImage, size: computed.backgroundSize, position: computed.backgroundPosition, repeat: computed.backgroundRepeat }
     })
-    expect(style.image).toContain('.webp')
-    expect(style.size).toBe('cover, contain')
+    expect(style.image).toContain('.svg')
+    expect(style.size).toBe('cover, cover')
     expect(style.position).toBe('50% 50%, 50% 50%')
     expect(style.repeat).toBe('no-repeat, no-repeat')
   }
@@ -206,8 +206,8 @@ test('FR-EN temporary pair switches outside session, learns and survives offline
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   await expect(page.getByRole('heading', { name: 'bonjour' })).toBeVisible()
   const frEnBackground = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundImage)
-  expect(frEnBackground).toContain('.webp')
-  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)).toBe('cover, contain')
+  expect(frEnBackground).toContain('.svg')
+  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)).toBe('cover, cover')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 50% 50%')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundRepeat)).toBe('no-repeat, no-repeat')
   await page.getByRole('textbox', { name: 'Votre réponse' }).fill('hello')
@@ -237,6 +237,6 @@ test('FR-EN temporary pair switches outside session, learns and survives offline
   const frEsBackground = await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundImage)
   expect(frEsBackground).toContain('url(')
   expect(frEsBackground).not.toBe(frEnBackground)
-  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)).toBe('cover, contain')
+  expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundSize)).toBe('cover, cover')
   expect(await page.locator('.flashcard').evaluate((node) => getComputedStyle(node).backgroundPosition)).toBe('50% 50%, 50% 50%')
 })
