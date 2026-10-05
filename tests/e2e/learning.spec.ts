@@ -172,8 +172,10 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 test('FR-EN original UK artwork has its own space on iPad and phone', async ({ page }) => {
   await page.setViewportSize({ width: 1180, height: 820 })
   await onboard(page)
+  await expect(page.locator('.build-identity')).toHaveText('TEST v2.0-R20 · publié 05/10/2026')
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
+  await expect(page.locator('.build-identity')).toHaveText('TEST v2.0-R20 · publié 05/10/2026')
   const card = page.locator('.flashcard')
   await expect(card).toBeVisible()
   const art = card.locator('.flashcard-art')
