@@ -74,7 +74,7 @@ jobs:
         run: |
           set -euo pipefail
           actual="$(git hash-object package-lock.json)"
-          expected="2e3e38bcdc0c780a45f12fc91ae8ccddb5c51bac"
+          expected="1d4c2108b571e4ac6d9aafa98f74cce0fc9bb947"
           echo "package-lock blob: $actual"
           test "$actual" = "$expected"
 
