@@ -161,8 +161,8 @@ function AppContent() {
   const flashcardStyle = themeBackground ? ({
     '--flashcard-theme-image': `url("${themeBackground}")`,
     '--flashcard-theme-wash': 'rgba(255, 253, 248, .8)',
-    '--flashcard-theme-size': 'contain',
-    '--flashcard-theme-position': 'center bottom'
+    '--flashcard-theme-size': 'cover',
+    '--flashcard-theme-position': 'center'
   } as CSSProperties) : undefined
 
   async function persistSettings(patch: Partial<SettingsRecord>) {
