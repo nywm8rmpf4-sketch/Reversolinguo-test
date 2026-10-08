@@ -172,7 +172,7 @@ test('installed shell and progress remain usable offline', async ({ page, contex
 test('all language pairs use the same themed flashcard composition on iPad and phone', async ({ page }) => {
   await page.setViewportSize({ width: 1180, height: 820 })
   await onboard(page)
-  await expect(page.locator('.build-identity')).toHaveText('TEST v2.0-R24 · publié 06/10/2026')
+  await expect(page.locator('.build-identity')).toHaveText('TEST v2.0-R24-R5 · publié 08/10/2026')
   await page.getByRole('group', { name: 'Langues' }).getByRole('button', { name: 'Français – anglais' }).click()
   await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
   const card = page.locator('.flashcard')
