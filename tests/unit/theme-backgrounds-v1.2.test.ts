@@ -46,8 +46,8 @@ describe('v1.2 thematic flashcard backgrounds', () => {
       const svg = readFileSync(resolve(directory, file), 'utf8')
       expect(svg).toContain(viewBox)
       expect(svg).toContain(artworkTransform)
-      expect(svg.match(/<g\\b/g)).toHaveLength(1)
-      expect(svg).not.toMatch(/<script\\b|<foreignObject\\b|<image\\b|\\bhref=/i)
+      expect(svg.match(/<g\b/g)).toHaveLength(1)
+      expect(svg).not.toMatch(/<script\b|<foreignObject\b|<image\b|\bhref=/i)
     }
     // Source drawings occupy approximately x=18..342 and y=37..257.
     // Under the common transform, their envelope is x=99..261 and y=-123.5..-13.5,
