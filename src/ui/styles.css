@@ -388,6 +388,7 @@ select:focus-visible,
 
 .session-header progress {
   flex: 1;
+  min-width: 0;
   accent-color: var(--coral);
 }
 

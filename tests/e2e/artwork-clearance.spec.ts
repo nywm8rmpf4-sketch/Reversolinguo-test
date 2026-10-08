@@ -85,8 +85,9 @@ test('UK painted pixels remain clear of learning content before and after reveal
       }
       if (face === 'question') paintedSizes.set(viewport.width, measurements.map(m => m.paintedHeight))
       else measurements.forEach((m, i) => expect(m.paintedHeight).toBeCloseTo(paintedSizes.get(viewport.width)![i], 1))
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      const overflow = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth, elements: Array.from(document.querySelectorAll('body *')).filter(el => el.getBoundingClientRect().right > innerWidth).map(el => ({ tag: el.tagName, className: el.className, right: el.getBoundingClientRect().right })) }))
       await page.screenshot({ path: `qa-visual/${testInfo.project.name}-${viewport.width}-${face}.png`, fullPage: true })
+      expect(overflow.scroll, `${face} ${viewport.width}: ${JSON.stringify(overflow)}`).toBeLessThanOrEqual(overflow.width)
     }
   }
 })
