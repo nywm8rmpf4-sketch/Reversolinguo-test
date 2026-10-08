@@ -126,6 +126,14 @@ jobs:
       - name: Browser and offline QA on portable build under QA subpath
         run: npm run test:e2e
 
+      - name: Preserve responsive artwork screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artwork-visual-${{ github.sha }}
+          path: qa-visual/
+          if-no-files-found: ignore
+
       - name: Upload exact tested artifact and selection proof
         uses: actions/upload-artifact@v4
         with:

@@ -57,8 +57,8 @@ describe('v1.2 thematic flashcard backgrounds', () => {
     expect(-142 + 0.5 * 37).toBeGreaterThan(-130)
     expect(-142 + 0.5 * 257).toBeLessThan(-10)
     const app = readFileSync(resolve(process.cwd(), 'src/app/App.tsx'), 'utf8')
-    expect(app).toContain("'--flashcard-theme-size': 'cover'")
-    expect(app).toContain("'--flashcard-theme-position': 'center'")
+    expect(app).toContain("'--flashcard-theme-size': '100% auto'")
+    expect(app).toContain("'--flashcard-theme-position': 'center top'")
   })
 
 })

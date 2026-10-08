@@ -447,8 +447,8 @@ select:focus-visible,
   background-image:
     linear-gradient(var(--flashcard-theme-wash, rgba(255, 253, 248, .8)), var(--flashcard-theme-wash, rgba(255, 253, 248, .8))),
     var(--flashcard-theme-image, none);
-  background-position: center, var(--flashcard-theme-position, center);
-  background-size: cover, var(--flashcard-theme-size, cover);
+  background-position: center, var(--flashcard-theme-position, center top);
+  background-size: cover, var(--flashcard-theme-size, 100% auto);
   background-repeat: no-repeat, no-repeat;
 }
 
@@ -722,3 +722,7 @@ button:not(:disabled):active, .file-button:active { transform: translateY(1px); 
   text-align: center;
   letter-spacing: .02em;
 }
+
+/* Shared by every language: artwork scale never follows revealed-card height.
+   The upper 22% of the width plus 1rem is kept clear of learning content. */
+.flashcard { padding-top: calc(22% + 1rem); }
