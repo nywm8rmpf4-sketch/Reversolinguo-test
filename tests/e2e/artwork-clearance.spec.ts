@@ -14,8 +14,23 @@ test('UK painted pixels remain clear of learning content before and after reveal
   await expect(page.locator('.flashcard')).toBeVisible()
   const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 430, height: 932 }, { width: 1180, height: 820 }]
   const paintedSizes = new Map<number, number[]>()
-  for (const face of ['question', 'correction']) {
+  for (const face of ['question', 'correction', 'free-correction', 'unknown']) {
     if (face === 'correction') {
+      await page.getByRole('textbox', { name: 'Votre réponse' }).fill('hello')
+      await page.getByRole('button', { name: 'Voir la réponse' }).click()
+      await expect(page.getByText('Réponse identique ✓')).toBeVisible()
+    }
+    if (face === 'free-correction') {
+      await page.getByRole('button', { name: 'Correct', exact: true }).click()
+      await page.getByRole('button', { name: 'Fermer la séance' }).click()
+      await page.getByRole('button', { name: 'Réviser librement' }).click()
+      await page.getByRole('textbox', { name: 'Votre réponse' }).fill('hello')
+      await page.getByRole('button', { name: 'Voir la réponse' }).click()
+      await expect(page.getByText('Cette révision libre n’a modifié ni vos échéances ni vos statistiques.')).toBeVisible()
+    }
+    if (face === 'unknown') {
+      await page.getByRole('button', { name: 'Fermer la séance' }).click()
+      await page.getByRole('button', { name: 'Découvrir maintenant' }).click()
       await page.getByRole('button', { name: 'Je ne sais pas' }).click()
       await expect(page.locator('.correction')).toBeVisible()
     }
