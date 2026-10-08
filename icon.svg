@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Reversolinguo">
+  <rect width="512" height="512" rx="112" fill="#9f2d3f"/>
+  <path d="M112 140h214c41 0 74 33 74 74v158H186c-41 0-74-33-74-74V140Z" fill="#fffaf2"/>
+  <path d="M177 213h158M177 270h110" stroke="#9f2d3f" stroke-width="28" stroke-linecap="round"/>
+  <path d="m296 332 46 46 74-91" fill="none" stroke="#f1b24a" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
